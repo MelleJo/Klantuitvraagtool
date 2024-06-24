@@ -14,12 +14,13 @@ def generate_email(transcript, email_templates):
     3. Suggestie voor vervolgstappen of een oproep tot actie
     
     Gebruik een vriendelijke maar professionele toon in de hele tekst.
+    Schrijf de tekst alsof deze direct in de e-mail wordt geplaatst, zonder aanhef of afsluiting.
     """
     
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": "U bent een professionele assistent van een financieel adviseur, belast met het opstellen van e-mails aan klanten op basis van de notities van de adviseur."},
+            {"role": "system", "content": "U bent een professionele assistent van een financieel adviseur, belast met het opstellen van e-mailteksten aan klanten op basis van de notities van de adviseur. Schrijf alleen in het Nederlands."},
             {"role": "user", "content": prompt}
         ]
     )

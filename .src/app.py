@@ -9,46 +9,10 @@ import io
 def main():
     st.set_page_config(page_title="Adviseur E-mail Generator", layout="wide")
     
-    # Custom CSS
-    st.markdown("""
-    <style>
-        body {
-            color: #333;
-            font-family: 'Roboto', sans-serif;
-        }
-        .stApp {
-            background-color: #f5f5f5;
-        }
-        .main .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-        }
-        h1, h2, h3 {
-            color: #003366;
-        }
-        .stButton>button {
-            background-color: #008080;
-            color: white;
-            border-radius: 5px;
-            border: none;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s;
-        }
-        .stButton>button:hover {
-            background-color: #006666;
-        }
-        .card {
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-
-
+    # Load external CSS
+    with open('styles/main.css') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    
     if not client:
         st.error("OpenAI client niet geïnitialiseerd. Controleer uw API-sleutel.")
         return
@@ -72,26 +36,25 @@ def main():
                 transcript = transcribe_audio(audio_bytes)
                 st.session_state.transcript = transcript
                 st.success("Audio getranscribeerd!")
-        elif audio_data is not None:
-            st.error("Onverwacht audio formaat. Neem opnieuw op.")
-
-        if st.button("Genereer E-mail"):
-            if 'transcript' in st.session_state:
-                email_content = generate_email(st.session_state.transcript, config['email_templates'])
-                st.session_state.email = email_content
-                st.success("E-mail gegenereerd!")
-            else:
-                st.warning("Transcribeer eerst de audio voordat u een e-mail genereert.")
 
     col1, col2 = st.columns(2)
     
     with col1:
         st.subheader("Opgenomen Informatie")
         if 'transcript' in st.session_state:
-            display_transcript(st.session_state.transcript)
-    
+            edited_transcript = display_transcript(st.session_state.transcript)
+            if edited_transcript != st.session_state.transcript:
+                st.session_state.transcript = edited_transcript
+                st.success("Transcript bijgewerkt!")
+
     with col2:
-        st.subheader("Gegenereerde E-mail")
+        st.subheader("Gegenereerde E-mailtekst")
+        if st.button("Genereer E-mailtekst"):
+            if 'transcript' in st.session_state:
+                email_content = generate_email(st.session_state.transcript, config['email_templates'])
+                st.session_state.email = email_content
+                st.success("E-mailtekst gegenereerd!")
+        
         if 'email' in st.session_state:
             display_email(st.session_state.email)
 

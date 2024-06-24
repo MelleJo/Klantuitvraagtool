@@ -18,21 +18,27 @@ def main():
     
     with st.sidebar:
         st.subheader("Opname Bediening")
-        audio_data = display_recorder()
+        audio_bytes = display_recorder()
         
+        if audio_bytes:
+            st.audio(audio_bytes, format="audio/wav")
+            if st.button("Transcribeer Audio"):
+                transcript = transcribe_audio(audio_bytes)
+                st.session_state.transcript = transcript
+
         if st.button("Genereer E-mail"):
             if 'transcript' in st.session_state:
                 email_content = generate_email(st.session_state.transcript, config['email_templates'])
                 st.session_state.email = email_content
+            else:
+                st.warning("Transcribeer eerst de audio voordat u een e-mail genereert.")
 
     col1, col2 = st.columns(2)
     
     with col1:
         st.subheader("Opgenomen Informatie")
-        if audio_data:
-            transcript = transcribe_audio(audio_data)
-            st.session_state.transcript = transcript
-            display_transcript(transcript)
+        if 'transcript' in st.session_state:
+            display_transcript(st.session_state.transcript)
     
     with col2:
         st.subheader("Gegenereerde E-mail")

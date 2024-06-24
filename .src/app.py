@@ -9,6 +9,46 @@ import io
 def main():
     st.set_page_config(page_title="Adviseur E-mail Generator", layout="wide")
     
+    # Custom CSS
+    st.markdown("""
+    <style>
+        body {
+            color: #333;
+            font-family: 'Roboto', sans-serif;
+        }
+        .stApp {
+            background-color: #f5f5f5;
+        }
+        .main .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        h1, h2, h3 {
+            color: #003366;
+        }
+        .stButton>button {
+            background-color: #008080;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s;
+        }
+        .stButton>button:hover {
+            background-color: #006666;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+
     if not client:
         st.error("OpenAI client niet geïnitialiseerd. Controleer uw API-sleutel.")
         return

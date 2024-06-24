@@ -6,17 +6,14 @@ def generate_email(transcript, email_templates):
     
     {transcript}
     
-    Genereer een professionele e-mail aan de klant op basis van deze informatie. 
-    De e-mail moet de volgende structuur volgen:
+    Genereer alleen de hoofdtekst van een professionele e-mail in het Nederlands, gericht aan de klant en gebaseerd op deze informatie. 
+    De tekst moet de volgende elementen bevatten:
     
-    1. Begroeting
-    2. Verwijzing naar het recente gesprek
-    3. Hoofdpunten uit de transcriptie, professioneel uitgewerkt
-    4. Suggestie voor vervolgstappen of een oproep tot actie
-    5. Professionele afsluiting
+    1. Verwijzing naar het recente gesprek
+    2. Hoofdpunten uit de transcriptie, professioneel uitgewerkt
+    3. Suggestie voor vervolgstappen of een oproep tot actie
     
-    Gebruik een vriendelijke maar professionele toon in de hele e-mail.
-    De e-mail moet in het Nederlands zijn.
+    Gebruik een vriendelijke maar professionele toon in de hele tekst.
     """
     
     response = client.chat.completions.create(

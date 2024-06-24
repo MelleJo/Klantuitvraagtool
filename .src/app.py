@@ -4,6 +4,7 @@ from email_generator import generate_email
 from ui_components import display_recorder, display_transcript, display_email
 from config import load_config
 from openai_utils import client
+import io
 
 def main():
     st.set_page_config(page_title="Adviseur E-mail Generator", layout="wide")
@@ -17,19 +18,23 @@ def main():
     st.title("Adviseur E-mail Generator")
     
     with st.sidebar:
-        st.subheader("Opname Bediening")
+        st.subheader("Audio Opname")
         audio_bytes = display_recorder()
         
-        if audio_bytes:
-            st.audio(audio_bytes, format="audio/wav")
+        if audio_bytes is not None:
+            # Convert audio_bytes to BytesIO object
+            audio_file = io.BytesIO(audio_bytes)
+            st.audio(audio_file)
             if st.button("Transcribeer Audio"):
                 transcript = transcribe_audio(audio_bytes)
                 st.session_state.transcript = transcript
+                st.success("Audio getranscribeerd!")
 
         if st.button("Genereer E-mail"):
             if 'transcript' in st.session_state:
                 email_content = generate_email(st.session_state.transcript, config['email_templates'])
                 st.session_state.email = email_content
+                st.success("E-mail gegenereerd!")
             else:
                 st.warning("Transcribeer eerst de audio voordat u een e-mail genereert.")
 

@@ -3,7 +3,7 @@ from openai_utils import client
 
 def transcribe_audio(audio_bytes):
     audio_file = io.BytesIO(audio_bytes)
-    audio_file.name = "audio.wav"  # OpenAI requires a filename
+    audio_file.name = "audio.wav"  # OpenAI vereist een bestandsnaam
     
     transcript = client.audio.transcriptions.create(
         file=audio_file,

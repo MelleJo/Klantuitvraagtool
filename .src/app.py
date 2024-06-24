@@ -19,21 +19,21 @@ def main():
     
     with st.sidebar:
         st.subheader("Audio Opname")
-        audio_bytes = display_recorder()
+        audio_data = display_recorder()
         
-        if audio_bytes is not None:
-            st.write(f"Type of audio_bytes: {type(audio_bytes)}")
-            st.write(f"Length of audio_bytes: {len(audio_bytes) if isinstance(audio_bytes, (bytes, bytearray)) else 'N/A'}")
+        if audio_data is not None and isinstance(audio_data, dict) and 'bytes' in audio_data:
+            st.write(f"Audio opgenomen. Lengte: {len(audio_data['bytes'])} bytes")
+            audio_bytes = audio_data['bytes']
             
-            if isinstance(audio_bytes, (bytes, bytearray)):
-                audio_file = io.BytesIO(audio_bytes)
-                st.audio(audio_file)
-                if st.button("Transcribeer Audio"):
-                    transcript = transcribe_audio(audio_bytes)
-                    st.session_state.transcript = transcript
-                    st.success("Audio getranscribeerd!")
-            else:
-                st.error("Opgenomen audio is niet in het verwachte formaat. Probeer opnieuw op te nemen.")
+            audio_file = io.BytesIO(audio_bytes)
+            st.audio(audio_file)
+            
+            if st.button("Transcribeer Audio"):
+                transcript = transcribe_audio(audio_bytes)
+                st.session_state.transcript = transcript
+                st.success("Audio getranscribeerd!")
+        elif audio_data is not None:
+            st.error("Onverwacht audio formaat. Neem opnieuw op.")
 
         if st.button("Genereer E-mail"):
             if 'transcript' in st.session_state:

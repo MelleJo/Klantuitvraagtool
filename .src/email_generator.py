@@ -2,26 +2,27 @@ from openai_utils import client
 
 def generate_email(transcript, email_templates):
     prompt = f"""
-    Given the following transcript of an advisor's notes:
+    Gegeven de volgende transcriptie van de notities van een adviseur:
     
     {transcript}
     
-    Generate a professional email to the client based on this information. 
-    The email should follow this structure:
+    Genereer een professionele e-mail aan de klant op basis van deze informatie. 
+    De e-mail moet de volgende structuur volgen:
     
-    1. Greeting
-    2. Reference to the recent conversation
-    3. Main points from the transcript, elaborated professionally
-    4. Suggestion for next steps or a call to action
-    5. Professional closing
+    1. Begroeting
+    2. Verwijzing naar het recente gesprek
+    3. Hoofdpunten uit de transcriptie, professioneel uitgewerkt
+    4. Suggestie voor vervolgstappen of een oproep tot actie
+    5. Professionele afsluiting
     
-    Use a friendly yet professional tone throughout the email.
+    Gebruik een vriendelijke maar professionele toon in de hele e-mail.
+    De e-mail moet in het Nederlands zijn.
     """
     
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are a professional financial advisor assistant, tasked with drafting emails to clients based on the advisor's notes."},
+            {"role": "system", "content": "U bent een professionele assistent van een financieel adviseur, belast met het opstellen van e-mails aan klanten op basis van de notities van de adviseur."},
             {"role": "user", "content": prompt}
         ]
     )

@@ -22,13 +22,18 @@ def main():
         audio_bytes = display_recorder()
         
         if audio_bytes is not None:
-            # Convert audio_bytes to BytesIO object
-            audio_file = io.BytesIO(audio_bytes)
-            st.audio(audio_file)
-            if st.button("Transcribeer Audio"):
-                transcript = transcribe_audio(audio_bytes)
-                st.session_state.transcript = transcript
-                st.success("Audio getranscribeerd!")
+            st.write(f"Type of audio_bytes: {type(audio_bytes)}")
+            st.write(f"Length of audio_bytes: {len(audio_bytes) if isinstance(audio_bytes, (bytes, bytearray)) else 'N/A'}")
+            
+            if isinstance(audio_bytes, (bytes, bytearray)):
+                audio_file = io.BytesIO(audio_bytes)
+                st.audio(audio_file)
+                if st.button("Transcribeer Audio"):
+                    transcript = transcribe_audio(audio_bytes)
+                    st.session_state.transcript = transcript
+                    st.success("Audio getranscribeerd!")
+            else:
+                st.error("Opgenomen audio is niet in het verwachte formaat. Probeer opnieuw op te nemen.")
 
         if st.button("Genereer E-mail"):
             if 'transcript' in st.session_state:

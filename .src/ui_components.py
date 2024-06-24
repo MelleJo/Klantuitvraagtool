@@ -1,15 +1,11 @@
 import streamlit as st
-from streamlit_mic_recorder import audio_recorder
+from st_audiorec import st_audiorec
 import pyperclip
 
 def display_recorder():
-    audio_bytes = audio_recorder(
-        text="Klik om de opname te starten/stoppen",
-        recording_color="#e8b62c",
-        neutral_color="#6aa36f",
-        icon_name="microphone",
-        icon_size="6x"
-    )
+    audio_bytes = st_audiorec()
+    if audio_bytes is not None:
+        st.write(f"Audio recorded. Type: {type(audio_bytes)}")
     return audio_bytes
 
 def display_transcript(transcript):

@@ -31,7 +31,7 @@ def main():
             
             if st.button("Transcribeer Audio"):
                 try:
-                    transcript = transcribe_audio(audio_bytes, api_key)
+                    transcript = transcribe_audio(audio_bytes)
                     st.session_state.transcript = transcript
                     st.success("Audio getranscribeerd!")
                 except Exception as e:

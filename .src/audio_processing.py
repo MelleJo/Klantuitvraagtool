@@ -1,8 +1,9 @@
 import io
 from openai import OpenAI
+import streamlit as st
 
-def transcribe_audio(audio_bytes, api_key):
-    client = OpenAI(api_key=api_key)
+def transcribe_audio(audio_bytes):
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     audio_file = io.BytesIO(audio_bytes)
     audio_file.name = "audio.wav"  # OpenAI requires a filename
     

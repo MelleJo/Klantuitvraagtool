@@ -60,6 +60,10 @@ def main():
                 st.write(f"Taal detectie: {'Nederlands' if any(dutch_word in email_content.lower() for dutch_word in ['de', 'het', 'een', 'en', 'is']) else 'Niet Nederlands'}")
                 st.write(f"Aantal karakters: {len(email_content)}")
                 st.write(f"Eerste 100 karakters: {email_content[:100]}...")
+                st.write(f"Laatste 100 karakters: ...{email_content[-100:]}")
+                st.write(f"Bevat 'Subject:': {'Subject:' in email_content}")
+                st.write(f"Bevat 'Dear': {'Dear' in email_content}")
+                st.write(f"Bevat 'Best regards': {'Best regards' in email_content}")
         
         if 'email' in st.session_state:
             display_email(st.session_state.email)

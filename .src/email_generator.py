@@ -19,7 +19,7 @@ def generate_email(transcript, email_templates):
     """
     
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "U bent een professionele assistent van een financieel adviseur in Nederland. Uw taak is om alleen de hoofdtekst van e-mails op te stellen in het Nederlands, zonder aanhef of afsluiting."},
             {"role": "user", "content": prompt}

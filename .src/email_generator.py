@@ -41,7 +41,7 @@ def generate_email(transcript, api_key):
 
     prompt = ChatPromptTemplate.from_template(template)
     
-    model = ChatOpenAI(model="gpt-4", temperature=0.7, openai_api_key=api_key)
+    model = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=api_key)
     
     chain = LLMChain(llm=model, prompt=prompt, output_parser=StrOutputParser())
 

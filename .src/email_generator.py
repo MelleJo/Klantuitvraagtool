@@ -2,31 +2,37 @@ from openai_utils import client
 
 def generate_email(transcript, email_templates):
     prompt = f"""
-    Gegeven de volgende transcriptie van de notities van een adviseur:
+    Gebruik de volgende transcriptie om ALLEEN de hoofdtekst van een e-mail in het Nederlands te genereren:
 
     {transcript}
 
-    Genereer ALLEEN de hoofdtekst van een professionele e-mail in het Nederlands, gericht aan de klant en gebaseerd op deze informatie. 
-    Volg deze strikte regels:
-
+    STRIKTE REGELS:
     1. Schrijf UITSLUITEND in het Nederlands.
-    2. Produceer ALLEEN de hoofdtekst van de e-mail, zonder aanhef of afsluiting.
-    3. Begin direct met de inhoud, zonder 'Beste' of iets dergelijks.
-    4. Eindig zonder groet of ondertekening.
-    5. Verwijs naar het recente gesprek.
-    6. Werk de hoofdpunten uit de transcriptie professioneel uit.
-    7. Suggereer vervolgstappen of doe een oproep tot actie.
+    2. Begin direct met de inhoud, zonder aanhef.
+    3. Eindig zonder groet of ondertekening.
+    4. Focus op:
+       a. Verwijzing naar het recente gesprek
+       b. Uitwerking van de hoofdpunten
+       c. Suggestie voor vervolgstappen
+    5. Gebruik een professionele maar vriendelijke toon.
 
-    Gebruik een vriendelijke maar professionele toon.
+    BELANGRIJK: Genereer ALLEEN de hoofdtekst, niets anders.
     """
     
     response = client.chat.completions.create(
-        model="gpt-4o",  # Ensure this matches the model name for GPT-4 in your OpenAI account
+        model="gpt-4",
         messages=[
-            {"role": "system", "content": "U bent een Nederlandse assistent die alleen de hoofdtekst van e-mails schrijft, strikt in het Nederlands, zonder aanhef of afsluiting."},
+            {"role": "system", "content": "U bent een Nederlandse e-mail assistent die uitsluitend de hoofdtekst van e-mails produceert in het Nederlands, zonder enige opmaak."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.7
     )
     
-    return response.choices[0].message.content
+    generated_text = response.choices[0].message.content
+    
+    # Extra controle om er zeker van te zijn dat we alleen de hoofdtekst hebben
+    lines = generated_text.split('\n')
+    cleaned_lines = [line for line in lines if not line.startswith(('Beste', 'Geachte', 'Met vriendelijke groet', 'Hoogachtend'))]
+    cleaned_text = '\n'.join(cleaned_lines)
+    
+    return cleaned_text

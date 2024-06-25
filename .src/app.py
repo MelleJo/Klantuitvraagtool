@@ -2,6 +2,7 @@ import streamlit as st
 from audio_processing import transcribe_audio
 from email_generator import generate_email
 from ui_components import display_recorder, display_transcript, display_email
+from config import load_config
 import io
 
 def main():
@@ -15,6 +16,9 @@ def main():
     if not api_key:
         st.error("OpenAI API-sleutel niet gevonden. Controleer uw Streamlit Secrets.")
         return
+
+    config = load_config()
+    email_templates = config['email_templates']
 
     st.title("Adviseur E-mail Generator")
     
@@ -52,7 +56,7 @@ def main():
         if st.button("Genereer E-mailtekst"):
             if 'transcript' in st.session_state:
                 try:
-                    email_content = generate_email(st.session_state.transcript, api_key)
+                    email_content, cb = generate_email(st.session_state.transcript, email_templates, api_key)
                     st.session_state.email = email_content
                     st.success("E-mailtekst gegenereerd!")
                     
@@ -62,6 +66,13 @@ def main():
                     st.write(f"Aantal karakters: {len(email_content)}")
                     st.write(f"Eerste 100 karakters: {email_content[:100]}...")
                     st.write(f"Laatste 100 karakters: ...{email_content[-100:]}")
+                    
+                    # Display OpenAI usage information
+                    st.write("OpenAI API Usage:")
+                    st.write(f"Total Tokens: {cb.total_tokens}")
+                    st.write(f"Prompt Tokens: {cb.prompt_tokens}")
+                    st.write(f"Completion Tokens: {cb.completion_tokens}")
+                    st.write(f"Total Cost (USD): ${cb.total_cost}")
                 except Exception as e:
                     st.error(f"Er is een fout opgetreden bij het genereren van de e-mailtekst: {str(e)}")
         

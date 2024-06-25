@@ -58,12 +58,5 @@ def main():
         if 'email' in st.session_state:
             display_email(st.session_state.email)
 
-    st.markdown("""
-    <div class="card">
-        <h3>Let op:</h3>
-        <p>De gegenereerde tekst is alleen de hoofdtekst van de e-mail in het Nederlands, zonder aanhef of afsluiting.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
 if __name__ == "__main__":
     main()

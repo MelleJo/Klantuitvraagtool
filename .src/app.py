@@ -30,9 +30,12 @@ def main():
             st.audio(audio_file)
             
             if st.button("Transcribeer Audio"):
-                transcript = transcribe_audio(audio_bytes, api_key)
-                st.session_state.transcript = transcript
-                st.success("Audio getranscribeerd!")
+                try:
+                    transcript = transcribe_audio(audio_bytes, api_key)
+                    st.session_state.transcript = transcript
+                    st.success("Audio getranscribeerd!")
+                except Exception as e:
+                    st.error(f"Fout bij het transcriberen van audio: {str(e)}")
 
     col1, col2 = st.columns(2)
     

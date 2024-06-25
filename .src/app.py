@@ -2,8 +2,6 @@ import streamlit as st
 from audio_processing import transcribe_audio
 from email_generator import generate_email
 from ui_components import display_recorder, display_transcript, display_email
-from config import load_config
-from openai_utils import client
 import io
 
 def main():
@@ -13,12 +11,11 @@ def main():
     with open('styles/main.css') as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     
-    if not client:
-        st.error("OpenAI client niet geïnitialiseerd. Controleer uw API-sleutel.")
+    api_key = st.secrets["OPENAI_API_KEY"]
+    if not api_key:
+        st.error("OpenAI API-sleutel niet gevonden. Controleer uw Streamlit Secrets.")
         return
 
-    config = load_config()
-    
     st.title("Adviseur E-mail Generator")
     
     with st.sidebar:
@@ -33,7 +30,7 @@ def main():
             st.audio(audio_file)
             
             if st.button("Transcribeer Audio"):
-                transcript = transcribe_audio(audio_bytes)
+                transcript = transcribe_audio(audio_bytes, api_key)
                 st.session_state.transcript = transcript
                 st.success("Audio getranscribeerd!")
 
@@ -52,7 +49,7 @@ def main():
         if st.button("Genereer E-mailtekst"):
             if 'transcript' in st.session_state:
                 try:
-                    email_content = generate_email(st.session_state.transcript, config['email_templates'])
+                    email_content = generate_email(st.session_state.transcript, api_key)
                     st.session_state.email = email_content
                     st.success("E-mailtekst gegenereerd!")
                     

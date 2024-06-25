@@ -1,9 +1,10 @@
 import io
-from openai_utils import client
+from openai import OpenAI
 
-def transcribe_audio(audio_bytes):
+def transcribe_audio(audio_bytes, api_key):
+    client = OpenAI(api_key=api_key)
     audio_file = io.BytesIO(audio_bytes)
-    audio_file.name = "audio.wav"  # OpenAI vereist een bestandsnaam
+    audio_file.name = "audio.wav"  # OpenAI requires a filename
     
     transcript = client.audio.transcriptions.create(
         file=audio_file,

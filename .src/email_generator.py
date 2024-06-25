@@ -1,4 +1,7 @@
-from openai_utils import client
+from langchain.prompts import ChatPromptTemplate
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import LLMChain
+from langchain.output_parsers import StrOutputParser
 import re
 
 def clean_text(text):
@@ -17,8 +20,8 @@ def clean_text(text):
     
     return text
 
-def generate_email(transcript, email_templates):
-    prompt = f"""
+def generate_email(transcript, api_key):
+    template = """
     Gebruik de volgende transcriptie om ALLEEN de hoofdtekst van een e-mail in het Nederlands te genereren:
 
     {transcript}
@@ -35,19 +38,16 @@ def generate_email(transcript, email_templates):
 
     BELANGRIJK: Genereer ALLEEN de hoofdtekst, niets anders.
     """
+
+    prompt = ChatPromptTemplate.from_template(template)
     
+    model = ChatOpenAI(model="gpt-4", temperature=0.7, openai_api_key=api_key)
+    
+    chain = LLMChain(llm=model, prompt=prompt, output_parser=StrOutputParser())
+
     try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "U bent een Nederlandse e-mail assistent die uitsluitend de hoofdtekst van e-mails produceert in het Nederlands, zonder enige opmaak."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7
-        )
-        
-        generated_text = response.choices[0].message.content
-        cleaned_text = clean_text(generated_text)
+        result = chain.invoke({"transcript": transcript})
+        cleaned_text = clean_text(result['text'])
         
         # Als de tekst nog steeds Engels lijkt, forceer dan een Nederlandse foutmelding
         if not any(dutch_word in cleaned_text.lower() for dutch_word in ['de', 'het', 'een', 'en', 'is']):

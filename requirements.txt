@@ -2,8 +2,9 @@ streamlit
 openai
 langchain
 python-dotenv
+streamlit-mic-recorder
 pyperclip
-streamlit-webrtc
 pydub
-langchain-openai
+pytz
 langchain-community
+langchain-openai

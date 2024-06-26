@@ -1,10 +1,23 @@
 import streamlit as st
-from st_audiorec import st_audiorec
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 import pyperclip
+from pydub import AudioSegment
+import io
 
 def display_recorder():
-    audio_bytes = st_audiorec()
-    return audio_bytes
+    webrtc_ctx = webrtc_streamer(
+        key="audio-recorder",
+        mode=WebRtcMode.AUDIO_RECORDER,
+        audio_recorder_config={"sample_rate": 16000},
+    )
+    
+    if webrtc_ctx.audio_recorder_state.recording:
+        st.write("Recording... (Click stop to finish)")
+    elif webrtc_ctx.audio_recorder_state.recorded:
+        st.audio(webrtc_ctx.audio_recorder_state.recorded_audio, format="audio/wav")
+        audio_bytes = webrtc_ctx.audio_recorder_state.audio_data
+        return audio_bytes
+    return None
 
 def display_editable_transcript(transcript):
     return st.text_area("Bewerk transcript indien nodig", value=transcript, height=200)

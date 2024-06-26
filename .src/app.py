@@ -20,15 +20,9 @@ def main():
     
     with st.sidebar:
         st.subheader("Audio Opname")
-        audio_data = display_recorder()
+        audio_bytes = display_recorder()
         
-        if audio_data is not None and isinstance(audio_data, dict) and 'bytes' in audio_data:
-            st.write(f"Audio opgenomen. Lengte: {len(audio_data['bytes'])} bytes")
-            audio_bytes = audio_data['bytes']
-            
-            audio_file = io.BytesIO(audio_bytes)
-            st.audio(audio_file)
-            
+        if audio_bytes is not None:
             if st.button("Transcribeer Audio"):
                 try:
                     transcript = transcribe_audio(audio_bytes)

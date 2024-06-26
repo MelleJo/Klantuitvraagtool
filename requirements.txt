@@ -5,3 +5,5 @@ python-dotenv
 pyperclip
 streamlit-webrtc
 pydub
+langchain-openai
+langchain-community

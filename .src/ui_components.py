@@ -6,12 +6,11 @@ def display_recorder():
     audio_bytes = st_audiorec()
     return audio_bytes
 
-def display_transcript(transcript):
-    edited_transcript = st.text_area("Transcript (bewerk indien nodig)", value=transcript, height=200)
-    return edited_transcript
+def display_editable_transcript(transcript):
+    return st.text_area("Bewerk transcript indien nodig", value=transcript, height=200)
 
-def display_email(email_content):
-    st.text_area("Gegenereerde E-mailtekst", value=email_content, height=400)
+def display_email_body(email_body):
+    st.text_area("Gegenereerde E-mailtekst", value=email_body, height=300)
     if st.button("Kopieer naar Klembord"):
-        pyperclip.copy(email_content)
+        pyperclip.copy(email_body)
         st.success("E-mailtekst gekopieerd naar klembord!")

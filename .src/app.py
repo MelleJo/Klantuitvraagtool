@@ -1,8 +1,7 @@
 import streamlit as st
 from audio_processing import transcribe_audio
-from email_generator import generate_email
-from ui_components import display_recorder, display_transcript, display_email
-from config import load_config
+from email_generator import generate_email_body
+from ui_components import display_recorder, display_editable_transcript, display_email_body
 import io
 
 def main():
@@ -16,9 +15,6 @@ def main():
     if not api_key:
         st.error("OpenAI API-sleutel niet gevonden. Controleer uw Streamlit Secrets.")
         return
-
-    config = load_config()
-    email_templates = config['email_templates']
 
     st.title("Adviseur E-mail Generator")
     
@@ -46,38 +42,24 @@ def main():
     with col1:
         st.subheader("Opgenomen Informatie")
         if 'transcript' in st.session_state:
-            edited_transcript = display_transcript(st.session_state.transcript)
+            edited_transcript = display_editable_transcript(st.session_state.transcript)
             if edited_transcript != st.session_state.transcript:
                 st.session_state.transcript = edited_transcript
                 st.success("Transcript bijgewerkt!")
 
-    with col2:
-        st.subheader("Gegenereerde E-mailtekst")
-        if st.button("Genereer E-mailtekst"):
+        if st.button("Bevestig Transcript"):
             if 'transcript' in st.session_state:
                 try:
-                    email_content, cb = generate_email(st.session_state.transcript, email_templates, api_key)
-                    st.session_state.email = email_content
+                    email_body = generate_email_body(st.session_state.transcript, api_key)
+                    st.session_state.email_body = email_body
                     st.success("E-mailtekst gegenereerd!")
-                    
-                    # Debug informatie
-                    st.write("Debug Informatie:")
-                    st.write(f"Taal detectie: {'Nederlands' if any(dutch_word in email_content.lower() for dutch_word in ['de', 'het', 'een', 'en', 'is']) else 'Niet Nederlands'}")
-                    st.write(f"Aantal karakters: {len(email_content)}")
-                    st.write(f"Eerste 100 karakters: {email_content[:100]}...")
-                    st.write(f"Laatste 100 karakters: ...{email_content[-100:]}")
-                    
-                    # Display OpenAI usage information
-                    st.write("OpenAI API Usage:")
-                    st.write(f"Total Tokens: {cb.total_tokens}")
-                    st.write(f"Prompt Tokens: {cb.prompt_tokens}")
-                    st.write(f"Completion Tokens: {cb.completion_tokens}")
-                    st.write(f"Total Cost (USD): ${cb.total_cost}")
                 except Exception as e:
                     st.error(f"Er is een fout opgetreden bij het genereren van de e-mailtekst: {str(e)}")
-        
-        if 'email' in st.session_state:
-            display_email(st.session_state.email)
+
+    with col2:
+        st.subheader("Gegenereerde E-mailtekst")
+        if 'email_body' in st.session_state:
+            display_email_body(st.session_state.email_body)
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
 from audio_processing import transcribe_audio
-from .email_generator import generate_email_body
+from email_generator import generate_email_body
 from ui_components import display_recorder, display_editable_transcript, display_email_body
 import io
 

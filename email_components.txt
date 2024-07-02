@@ -1,0 +1,15 @@
+Aanhef:
+U heeft verzekeringen bij ons lopen, wij vinden het belangrijk dat deze aansluit bij de actuele situatie.
+
+Wat er allemaal loopt inspreken: [variabele]
+verzekekering 1
+verzekering 2
+
+Algemene vraag/info inspreken: [variabele]
+Hoe gaat het enzo, punt x et cetera. 
+
+Afspraak maken:
+Als u een afspraak wilt maken dan kunt u op deze email reageren. Een afspraak kan telefonisch, digitaal, of natuurlijk bij ons op kantoor. 
+
+Bijlage:
+Uitleg over de vezekerde risico's en de al afgesloten producten met uitleg. 

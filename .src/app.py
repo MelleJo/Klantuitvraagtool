@@ -5,7 +5,7 @@ import tempfile
 from datetime import datetime
 import pytz
 import pyperclip
-from langchain.chat_models import ChatOpenAI
+from langchain_community import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
 from pydub import AudioSegment
@@ -138,3 +138,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

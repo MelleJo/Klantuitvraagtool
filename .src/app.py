@@ -10,6 +10,8 @@ import io
 import os
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
+import ffmpeg
+import tempfile
 
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])

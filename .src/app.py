@@ -5,12 +5,11 @@ import tempfile
 from datetime import datetime
 import pytz
 import pyperclip
-from langchain_community import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain.chains import LLMChain
 from pydub import AudioSegment
 import io
 import os
+from email_generator import generate_email_body
+from smart_analyzer import analyze_product_info_and_risks
 
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -20,6 +19,8 @@ if 'transcript' not in st.session_state:
     st.session_state['transcript'] = ""
 if 'email_body' not in st.session_state:
     st.session_state['email_body'] = ""
+if 'product_info' not in st.session_state:
+    st.session_state['product_info'] = ""
 
 def get_local_time():
     timezone = pytz.timezone("Europe/Amsterdam")
@@ -61,41 +62,10 @@ def transcribe_audio(audio_bytes):
         progress_text.success("Transcriptie voltooid.")
     return transcript_text.strip()
 
-def generate_email_body(transcript, api_key):
-    template = """
-    Je bent een Nederlandse e-mail assistent. Gebruik de volgende transcriptie om de hoofdtekst van een e-mail in het Nederlands te genereren:
-
-    {transcript}
-
-    STRIKTE REGELS:
-    1. Schrijf UITSLUITEND in het Nederlands.
-    2. Begin direct met de inhoud, zonder aanhef.
-    3. Eindig zonder groet of ondertekening.
-    4. Focus op:
-       a. Hoofdpunten uit de transcriptie
-       b. Suggestie voor vervolgstappen (indien van toepassing)
-    5. Gebruik een professionele maar vriendelijke toon.
-    6. Houd de tekst bondig en to-the-point.
-
-    BELANGRIJK: Genereer ALLEEN de hoofdtekst die in Outlook geplakt kan worden.
-    """
-
-    prompt = ChatPromptTemplate.from_template(template)
-    
-    model = ChatOpenAI(model="gpt-4", temperature=0.7, openai_api_key=api_key)
-    
-    chain = LLMChain(llm=model, prompt=prompt)
-
-    try:
-        result = chain.run(transcript=transcript)
-        return result.strip()
-    except Exception as e:
-        raise Exception(f"Fout bij het genereren van e-mailtekst: {str(e)}")
-
 def main():
-    st.set_page_config(page_title="Adviseur E-mail Generator", layout="wide")
+    st.set_page_config(page_title="Slimme Verzekeringsadviseur E-mail Generator", layout="wide")
     
-    st.title("Adviseur E-mail Generator")
+    st.title("Slimme Verzekeringsadviseur E-mail Generator")
     
     api_key = st.secrets["OPENAI_API_KEY"]
     if not api_key:
@@ -118,17 +88,38 @@ def main():
         if 'transcript' in st.session_state:
             st.session_state['transcript'] = st.text_area("Bewerk transcript indien nodig", value=st.session_state['transcript'], height=200)
 
-        if st.button("Genereer E-mailtekst"):
+        if st.button("Analyseer en Genereer E-mail"):
             if st.session_state['transcript']:
                 try:
+                    # Analyze product info and risks
+                    product_analysis = analyze_product_info_and_risks(st.session_state['transcript'], api_key)
+                    st.session_state['product_info'] = product_analysis
+
+                    # Generate email body
                     st.session_state['email_body'] = generate_email_body(st.session_state['transcript'], api_key)
-                    st.success("E-mailtekst gegenereerd!")
+                    
+                    st.success("Analyse voltooid en e-mailtekst gegenereerd!")
                 except Exception as e:
-                    st.error(f"Er is een fout opgetreden bij het genereren van de e-mailtekst: {str(e)}")
+                    st.error(f"Er is een fout opgetreden: {str(e)}")
             else:
                 st.warning("Transcribeer eerst de audio of voer handmatig een transcript in.")
 
     with col2:
+        st.subheader("AI Verzekeringsadviseur Analyse")
+        if 'product_info' in st.session_state and st.session_state['product_info']:
+            st.text_area("Productinformatie en Risico-analyse", value=st.session_state['product_info'], height=200)
+            
+            # Parse the product_info to get the list of products for the attachment
+            products_for_attachment = st.session_state['product_info'].split("Aanbevolen bijlage-inhoud:")[1].split("Ontbrekende cruciale verzekeringen:")[0].strip()
+            products_list = [product.strip() for product in products_for_attachment.split(",")]
+            
+            st.subheader("Bevestig Bijlage-inhoud")
+            selected_products = st.multiselect("Selecteer producten voor de bijlage", products_list, default=products_list)
+            
+            if st.button("Genereer Bijlage"):
+                # Here you would generate the attachment based on selected_products
+                st.success("Bijlage gegenereerd! (Implementatie vereist)")
+
         st.subheader("Gegenereerde E-mailtekst")
         if 'email_body' in st.session_state and st.session_state['email_body']:
             st.text_area("E-mailtekst", value=st.session_state['email_body'], height=300)
@@ -138,4 +129,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

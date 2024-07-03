@@ -1,4 +1,8 @@
 import streamlit as st
+
+# Set page config at the very beginning
+st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
+
 from audio_processing import process_audio_input
 import pyperclip
 from docx import Document
@@ -7,6 +11,8 @@ from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
 
 st.write("Debug: All modules imported successfully")
+
+
 
 def load_insurance_products():
     # In a real application, this would load from a database or file
@@ -33,8 +39,6 @@ def create_docx_attachment(products):
     return buffer
 
 def main():
-    st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
-    
     st.title("Verzekeringsadviseur E-mail Generator")
     
     if 'transcript' not in st.session_state:

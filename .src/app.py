@@ -6,6 +6,8 @@ from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
 
+st.write("Debug: All modules imported successfully")
+
 def load_insurance_products():
     # In a real application, this would load from a database or file
     return [
@@ -42,9 +44,13 @@ def main():
     if 'product_info' not in st.session_state:
         st.session_state['product_info'] = {}
 
+    st.write("Debug: Session state initialized")
+
     # Step 1: Record info
     st.subheader("1. Neem audio op")
+    st.write("Debug: About to call process_audio_input()")
     new_transcript = process_audio_input()
+    st.write(f"Debug: process_audio_input() returned: {new_transcript}")
     if new_transcript:
         st.session_state['transcript'] = new_transcript
 

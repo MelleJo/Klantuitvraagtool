@@ -25,6 +25,7 @@ def transcribe_audio(audio_bytes):
         return f"Transcriptie mislukt: {str(e)}"
 
 def process_audio_input():
+    st.write("Debug: process_audio_input function called")
     st.write("Klik op de microfoon om de opname te starten en te stoppen.")
     audio_bytes = audio_recorder(text="", recording_color="#e8b62c", neutral_color="#6aa36f")
     
@@ -36,3 +37,6 @@ def process_audio_input():
             return transcript
     
     return None
+
+# Add this line at the end of the file
+st.write("Debug: audio_processing.py loaded")

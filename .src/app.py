@@ -29,10 +29,33 @@ def get_local_time():
     return datetime.now(timezone).strftime('%d-%m-%Y %H:%M:%S')
 
 def split_audio(audio_bytes, max_duration_ms=30000):
-    audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="webm")
+    max_duration_s = max_duration_ms / 1000  # Convert to seconds
+    
     chunks = []
-    for i in range(0, len(audio), max_duration_ms):
-        chunks.append(audio[i:i+max_duration_ms])
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_input_file:
+        temp_input_file.write(audio_bytes)
+        temp_input_file.flush()
+        
+        # Get the duration of the input file
+        probe = ffmpeg.probe(temp_input_file.name)
+        duration = float(probe['streams'][0]['duration'])
+        
+        # Calculate the number of segments
+        num_segments = int(duration / max_duration_s) + 1
+        
+        for i in range(num_segments):
+            start_time = i * max_duration_s
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_output_file:
+                (
+                    ffmpeg
+                    .input(temp_input_file.name, ss=start_time, t=max_duration_s)
+                    .output(temp_output_file.name, acodec='copy')
+                    .overwrite_output()
+                    .run(capture_stdout=True, capture_stderr=True)
+                )
+                with open(temp_output_file.name, 'rb') as f:
+                    chunks.append(f.read())
+    
     return chunks
 
 def transcribe_audio(audio_bytes):

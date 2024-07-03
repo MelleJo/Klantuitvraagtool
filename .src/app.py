@@ -1,13 +1,10 @@
 import streamlit as st
-from openai import OpenAI
-import json
 from audio_processing import process_audio_input
 import pyperclip
 from docx import Document
 from io import BytesIO
-
-# Initialize OpenAI client
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+from email_generator import generate_email_body
+from smart_analyzer import analyze_product_info_and_risks
 
 def load_insurance_products():
     # In a real application, this would load from a database or file
@@ -18,58 +15,6 @@ def load_insurance_products():
         "Rechtsbijstandverzekering",
         "Bestuurdersaansprakelijkheidsverzekering"
     ]
-
-def generate_email_body(transcript, insurance_products):
-    prompt = f"""
-    Je bent een Nederlandse e-mail assistent voor een verzekeringsadviseur. Gebruik de volgende transcriptie om een e-mail op te stellen:
-
-    {transcript}
-
-    Huidige verzekeringen van de klant: {', '.join(insurance_products)}
-
-    Volg deze structuur:
-    1. Standaardtekst: Begin met een korte introductie over het belang van up-to-date verzekeringen.
-    2. Huidige verzekeringen: Bevestig de actieve verzekeringen en verzekerde bedragen uit de transcriptie.
-    3. Algemene vragen: Stel relevante vragen over de sector of situatie van de klant.
-    4. Slimme aanbevelingen: Analyseer de informatie en stel eventuele aanpassingen of extra verzekeringen voor.
-    5. Afspraak maken: Voeg een standaardtekst toe over het maken van een afspraak.
-
-    STRIKTE REGELS:
-    1. Schrijf UITSLUITEND in het Nederlands.
-    2. Begin met een aanhef "Beste [Klantnaam]," (vul geen echte naam in).
-    3. Eindig met een groet "Met vriendelijke groet, [Naam Adviseur]" (vul geen echte naam in).
-    4. Gebruik een professionele maar vriendelijke toon.
-    5. Wees bondig maar informatief.
-    """
-
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "system", "content": prompt}],
-        temperature=0.7,
-    )
-    return response.choices[0].message.content
-
-def analyze_product_info_and_risks(transcript):
-    prompt = f"""
-    Je bent een AI verzekeringsadviseur. Analyseer de volgende transcriptie:
-
-    Transcriptie: {transcript}
-
-    Geef je antwoord in het volgende JSON-formaat:
-    {{
-        "geidentificeerde_producten": ["lijst van producten genoemd in de transcriptie"],
-        "aanbevolen_bijlage_inhoud": ["lijst van producten en risico's voor de bijlage"],
-        "ontbrekende_cruciale_verzekeringen": ["lijst van ontbrekende verzekeringen"],
-        "risico_analyse": "Korte analyse van de belangrijkste risico's voor dit type bedrijf"
-    }}
-    """
-
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "system", "content": prompt}],
-        temperature=0.7,
-    )
-    return json.loads(response.choices[0].message.content)
 
 def create_docx_attachment(products):
     doc = Document()
@@ -111,7 +56,7 @@ def main():
         # Step 4: Get AI suggestions
         if st.button("Analyseer Transcript"):
             with st.spinner("Bezig met analyseren..."):
-                st.session_state['product_info'] = analyze_product_info_and_risks(st.session_state['transcript'])
+                st.session_state['product_info'] = analyze_product_info_and_risks(st.session_state['transcript'], st.secrets["OPENAI_API_KEY"])
             st.success("Analyse voltooid!")
 
     # Step 5: Choose products
@@ -136,7 +81,7 @@ def main():
         # Step 6: Generate email and attachment
         if st.button("Genereer E-mail en Bijlage"):
             with st.spinner("Bezig met genereren van e-mail en bijlage..."):
-                st.session_state['email_body'] = generate_email_body(st.session_state['transcript'], selected_products)
+                st.session_state['email_body'] = generate_email_body(st.session_state['transcript'], st.secrets["OPENAI_API_KEY"])
                 attachment = create_docx_attachment(selected_products)
             
             st.subheader("4. Gegenereerde E-mailtekst")

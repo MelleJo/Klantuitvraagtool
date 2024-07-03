@@ -8,3 +8,4 @@ pydub
 pytz
 langchain-community
 langchain-openai
+ffmpeg-python

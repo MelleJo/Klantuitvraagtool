@@ -1,8 +1,6 @@
 import io
 from openai import OpenAI
 import streamlit as st
-import ffmpeg
-import tempfile
 
 def transcribe_audio(audio_bytes):
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])

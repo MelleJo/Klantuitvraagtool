@@ -5,12 +5,12 @@ import tempfile
 from datetime import datetime
 import pytz
 import pyperclip
-from pydub import AudioSegment
 import io
 import os
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-import ffmpeg
+import wave
+import math
 import tempfile
 
 # Initialize OpenAI client
@@ -29,37 +29,39 @@ def get_local_time():
     return datetime.now(timezone).strftime('%d-%m-%Y %H:%M:%S')
 
 def split_audio(audio_bytes, max_duration_ms=30000):
-    max_duration_s = max_duration_ms / 1000  # Convert to seconds
-    
-    chunks = []
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_input_file:
-        temp_input_file.write(audio_bytes)
-        temp_input_file.flush()
+    input_buffer = io.BytesIO(audio_bytes)
+    with wave.open(input_buffer, 'rb') as wav_file:
+        channels = wav_file.getnchannels()
+        sample_width = wav_file.getsampwidth()
+        frame_rate = wav_file.getframerate()
+        n_frames = wav_file.getnframes()
         
-        # Get the duration of the input file
-        probe = ffmpeg.probe(temp_input_file.name)
-        duration = float(probe['streams'][0]['duration'])
+        max_frames = int((max_duration_ms / 1000) * frame_rate)
+        num_chunks = math.ceil(n_frames / max_frames)
         
-        # Calculate the number of segments
-        num_segments = int(duration / max_duration_s) + 1
-        
-        for i in range(num_segments):
-            start_time = i * max_duration_s
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_output_file:
-                (
-                    ffmpeg
-                    .input(temp_input_file.name, ss=start_time, t=max_duration_s)
-                    .output(temp_output_file.name, acodec='copy')
-                    .overwrite_output()
-                    .run(capture_stdout=True, capture_stderr=True)
-                )
-                with open(temp_output_file.name, 'rb') as f:
-                    chunks.append(f.read())
+        chunks = []
+        for i in range(num_chunks):
+            start_frame = i * max_frames
+            end_frame = min((i + 1) * max_frames, n_frames)
+            
+            wav_file.setpos(start_frame)
+            chunk_frames = wav_file.readframes(end_frame - start_frame)
+            
+            chunk_buffer = io.BytesIO()
+            with wave.open(chunk_buffer, 'wb') as chunk_wav:
+                chunk_wav.setnchannels(channels)
+                chunk_wav.setsampwidth(sample_width)
+                chunk_wav.setframerate(frame_rate)
+                chunk_wav.writeframes(chunk_frames)
+            
+            chunks.append(chunk_buffer.getvalue())
     
     return chunks
 
 def transcribe_audio(audio_bytes):
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     transcript_text = ""
+    
     with st.spinner('Audio transcriptie wordt uitgevoerd...'):
         try:
             audio_segments = split_audio(audio_bytes)
@@ -71,20 +73,28 @@ def transcribe_audio(audio_bytes):
         progress_bar = st.progress(0)
         progress_text = st.empty()
         progress_text.text("Start transcriptie...")
+        
         for i, segment in enumerate(audio_segments):
             progress_text.text(f'Bezig met verwerken van segment {i+1} van {total_segments} - {((i+1)/total_segments*100):.2f}% voltooid')
-            with tempfile.NamedTemporaryFile(delete=True, suffix='.wav') as temp_file:
-                segment.export(temp_file.name, format="wav")
-                with open(temp_file.name, "rb") as audio_file:
-                    try:
-                        transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
-                        if hasattr(transcription_response, 'text'):
-                            transcript_text += transcription_response.text + " "
-                    except Exception as e:
-                        st.error(f"Fout bij het transcriberen: {str(e)}")
-                        continue
+            
+            audio_file = io.BytesIO(segment)
+            audio_file.name = f"audio_segment_{i}.wav"
+            
+            try:
+                transcription_response = client.audio.transcriptions.create(
+                    file=audio_file,
+                    model="whisper-1"
+                )
+                if hasattr(transcription_response, 'text'):
+                    transcript_text += transcription_response.text + " "
+            except Exception as e:
+                st.error(f"Fout bij het transcriberen van segment {i+1}: {str(e)}")
+                continue
+            
             progress_bar.progress((i + 1) / total_segments)
+        
         progress_text.success("Transcriptie voltooid.")
+    
     return transcript_text.strip()
 
 def main():

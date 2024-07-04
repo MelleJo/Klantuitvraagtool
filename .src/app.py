@@ -59,7 +59,7 @@ def main():
             st.audio(audio_data['bytes'], format="audio/wav")
             if st.button("Transcribeer Opgenomen Audio"):
                 with st.spinner("Transcriberen van audio..."):
-                    st.session_state['transcript'] = transcribe_audio(audio_data['bytes'])
+                    st.session_state['transcript'] = transcribe_audio(audio_data['bytes'], 'wav')
                 st.success("Transcriptie voltooid!")
     else:
         uploaded_file = st.file_uploader("Kies een audiobestand", type=['wav', 'mp3', 'ogg', 'm4a'])
@@ -71,7 +71,8 @@ def main():
             if st.button("Transcribeer Geüpload Bestand"):
                 with st.spinner("Transcriberen van audio..."):
                     audio_bytes = uploaded_file.read()
-                    st.session_state['transcript'] = transcribe_audio(audio_bytes)
+                    file_format = uploaded_file.type.split('/')[-1]  # Extract format from MIME type
+                    st.session_state['transcript'] = transcribe_audio(audio_bytes, file_format)
                 st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript

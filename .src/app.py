@@ -3,7 +3,7 @@ from openai import OpenAI
 import pyperclip
 from docx import Document
 import audio_processing
-from audio_processing import record_audio, transcribe_audio, upload_audio
+#from audio_processing import record_audio, transcribe_audio, upload_audio
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
@@ -55,24 +55,24 @@ def main():
     # Step 2: Record or Upload audio
     st.subheader("2. Voer audio in")
     if input_method == "Neem audio op":
-        audio_data = record_audio()
+        audio_data = audio_processing.record_audio()
         if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
             st.audio(audio_data['bytes'], format="audio/wav")
             if st.button("Transcribeer Opgenomen Audio"):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_audio:
                     tmp_audio.write(audio_data['bytes'])
                     tmp_audio.flush()
-                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                    st.session_state['transcript'] = audio_processing.transcribe_audio(tmp_audio.name)
                 st.success("Transcriptie voltooid!")
     else:
-        uploaded_file = upload_audio()
+        uploaded_file = audio_processing.upload_audio()
         if uploaded_file is not None:
             st.audio(uploaded_file, format=f"audio/{uploaded_file.type.split('/')[-1]}")
             if st.button("Transcribeer Geüpload Bestand"):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded_file.type.split('/')[-1]}") as tmp_audio:
                     tmp_audio.write(uploaded_file.getvalue())
                     tmp_audio.flush()
-                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                    st.session_state['transcript'] = audio_processing.transcribe_audio(tmp_audio.name)
                 st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript

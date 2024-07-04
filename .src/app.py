@@ -64,11 +64,8 @@ def main():
         if uploaded_file is not None:
             if st.button("Transcribeer Geüpload Bestand"):
                 with st.spinner("Transcriberen van audio..."):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
-                        tmp_audio.write(uploaded_file.getvalue())
-                        tmp_audio.flush()
-                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
-                    tempfile.NamedTemporaryFile(delete=True)
+                    audio_bytes = uploaded_file.read()
+                    st.session_state['transcript'] = transcribe_audio(audio_bytes)
                 st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript

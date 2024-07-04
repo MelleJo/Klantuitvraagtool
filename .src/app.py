@@ -9,6 +9,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 import audio_processing  # Ensure correct import path
+st.write(f"Debug: Imported audio_processing module with functions: {dir(audio_processing)}")
+
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks

@@ -67,3 +67,6 @@ def upload_audio():
 
 # Debug: Print when this module is imported
 st.write("Debug: audio_processing.py has been imported")
+
+# Ensure function definitions are visible at the end of the file
+st.write(f"Debug: Available functions in audio_processing: {dir()}")

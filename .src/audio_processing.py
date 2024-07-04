@@ -48,34 +48,24 @@ def process_audio_input():
     if input_method == "Upload audio":
         uploaded_file = st.file_uploader("Upload een audiobestand", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
         if uploaded_file is not None:
-            try:
-                audio_bytes = uploaded_file.read()
-                st.audio(audio_bytes, format=f"audio/{uploaded_file.type.split('/')[-1]}")
-            except Exception as e:
-                st.error(f"Fout bij het afspelen van het audiobestand: {str(e)}")
-
-            if st.button("Transcribeer Audio"):
+            audio_bytes = uploaded_file.read()
+            st.audio(audio_bytes, format=f"audio/{uploaded_file.type.split('/')[-1]}")
+            if st.button("Transcribeer Geüpload Bestand"):
                 with st.spinner("Transcriberen van audio..."):
                     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded_file.type.split('/')[-1]}") as tmp_audio:
                         tmp_audio.write(audio_bytes)
                         tmp_audio.flush()
                     transcript = transcribe_audio(tmp_audio.name)
-                    tempfile.NamedTemporaryFile(delete=True)
                 return transcript
     elif input_method == "Neem audio op":
         audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
         if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
-            try:
-                st.audio(audio_data['bytes'], format="audio/wav")
-            except Exception as e:
-                st.error(f"Fout bij het afspelen van de opgenomen audio: {str(e)}")
-
-            if st.button("Transcribeer Audio"):
+            st.audio(audio_data['bytes'], format="audio/wav")
+            if st.button("Transcribeer Opgenomen Audio"):
                 with st.spinner("Transcriberen van audio..."):
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_audio:
                         tmp_audio.write(audio_data['bytes'])
                         tmp_audio.flush()
                     transcript = transcribe_audio(tmp_audio.name)
-                    tempfile.NamedTemporaryFile(delete=True)
                 return transcript
     return None

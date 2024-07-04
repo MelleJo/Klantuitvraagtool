@@ -52,10 +52,11 @@ def main():
 
     # Step 2: Record or Upload audio
     st.subheader("2. Voer audio in")
-    transcript = process_audio_input(input_method)
-    if transcript:
-        st.session_state['transcript'] = transcript
-        st.success("Transcriptie voltooid!")
+    if st.button("Start Audio Verwerking"):
+        transcript = process_audio_input()
+        if transcript:
+            st.session_state['transcript'] = transcript
+            st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript
     if st.session_state['transcript']:

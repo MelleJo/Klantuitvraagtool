@@ -5,7 +5,7 @@ from docx import Document
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-from audio_processing import process_audio_input, transcribe_audio
+from audio_processing import record_audio, upload_audio, transcribe_audio
 import tempfile
 
 # Initialize OpenAI client
@@ -46,30 +46,36 @@ def main():
     if 'product_info' not in st.session_state:
         st.session_state['product_info'] = {}
 
-    # Step 1 & 2: Choose input method and process audio
-    st.subheader("1. Voer audio in")
-    audio_input = process_audio_input()
-    
-    if audio_input:
-        if isinstance(audio_input, dict):  # Recorded audio
-            st.audio(audio_input['bytes'], format="audio/wav")
-        else:  # Uploaded file
-            st.audio(audio_input, format=f"audio/{audio_input.type.split('/')[-1]}")
-        
-        if st.button("Transcribeer Audio"):
-            with st.spinner("Transcriberen van audio..."):
+    # Step 1: Choose input method
+    st.subheader("1. Kies een invoermethode")
+    input_method = st.radio("Hoe wil je de audio invoeren?", ["Neem audio op", "Upload audio"])
+
+    # Step 2: Record or Upload audio
+    st.subheader("2. Voer audio in")
+    if input_method == "Neem audio op":
+        audio_data = record_audio()
+        if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
+            st.audio(audio_data['bytes'], format="audio/wav")
+            if st.button("Transcribeer Opgenomen Audio"):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_audio:
-                    if isinstance(audio_input, dict):
-                        tmp_audio.write(audio_input['bytes'])
-                    else:
-                        tmp_audio.write(audio_input.getvalue())
+                    tmp_audio.write(audio_data['bytes'])
                     tmp_audio.flush()
-                st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
-            st.success("Transcriptie voltooid!")
+                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                st.success("Transcriptie voltooid!")
+    else:
+        uploaded_file = upload_audio()
+        if uploaded_file is not None:
+            st.audio(uploaded_file, format=f"audio/{uploaded_file.type.split('/')[-1]}")
+            if st.button("Transcribeer Geüpload Bestand"):
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded_file.type.split('/')[-1]}") as tmp_audio:
+                    tmp_audio.write(uploaded_file.getvalue())
+                    tmp_audio.flush()
+                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript
     if st.session_state['transcript']:
-        st.subheader("2. Bekijk en bewerk het transcript")
+        st.subheader("3. Bekijk en bewerk het transcript")
         st.session_state['transcript'] = st.text_area("Bewerk transcript indien nodig", value=st.session_state['transcript'], height=200)
         
         # Step 4: Get AI suggestions
@@ -80,7 +86,7 @@ def main():
 
     # Step 5: Choose products
     if st.session_state['product_info']:
-        st.subheader("3. Kies producten voor de bijlage")
+        st.subheader("4. Kies producten voor de bijlage")
         st.json(st.session_state['product_info'])
         
         recommended_products = st.session_state['product_info'].get('aanbevolen_bijlage_inhoud', [])
@@ -103,7 +109,7 @@ def main():
                 st.session_state['email_body'] = generate_email_body(st.session_state['transcript'], st.secrets["OPENAI_API_KEY"])
                 attachment = create_docx_attachment(selected_products)
             
-            st.subheader("4. Gegenereerde E-mailtekst")
+            st.subheader("5. Gegenereerde E-mailtekst")
             st.text_area("E-mailtekst", value=st.session_state['email_body'], height=300)
             
             if st.button("Kopieer naar Klembord"):

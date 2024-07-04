@@ -42,15 +42,11 @@ def transcribe_audio(file_path):
     progress_text.success("Transcriptie voltooid.")
     return transcript_text.strip()
 
-def process_audio_input():
-    input_method = st.radio("Hoe wil je de audio invoeren?", ["Neem audio op", "Upload audio"])
-    
-    if input_method == "Upload audio":
-        uploaded_file = st.file_uploader("Upload een audiobestand", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
-        if uploaded_file is not None:
-            return uploaded_file
-    elif input_method == "Neem audio op":
-        audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
-        if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
-            return audio_data
-    return None
+def record_audio():
+    st.write("Klik op de microfoon om de opname te starten en te stoppen.")
+    audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
+    return audio_data
+
+def upload_audio():
+    uploaded_file = st.file_uploader("Upload een audiobestand", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
+    return uploaded_file

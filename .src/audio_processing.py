@@ -22,7 +22,7 @@ def transcribe_audio(file_path):
 
     total_segments = len(audio_segments)
     progress_bar = st.progress(0)
-    progress_text = st.empty()
+    progress_text is st.empty()
     progress_text.text("Start transcriptie...")
     for i, segment in enumerate(audio_segments):
         progress_text.text(f'Bezig met verwerken van segment {i+1} van {total_segments} - {((i+1)/total_segments*100):.2f}% voltooid')

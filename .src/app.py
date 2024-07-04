@@ -1,11 +1,12 @@
 import streamlit as st
+
+st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
+
 from openai import OpenAI
 import pyperclip
 from docx import Document
 import sys
 import os
-
-st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
 
 
 # Debug: Print current working directory
@@ -52,7 +53,6 @@ def create_docx_attachment(products):
     return buffer
 
 def main():
-    st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
 
     st.title("Verzekeringsadviseur E-mail Generator")
     

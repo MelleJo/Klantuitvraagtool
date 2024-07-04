@@ -1,7 +1,0 @@
-{
-    "default": {
-      "greeting": "Beste [Naam Klant],",
-      "opening": "Ik hoop dat deze e-mail u in goede gezondheid bereikt. Ik wil graag even terugkomen op ons recente gesprek en u voorzien van enkele belangrijke informatie.",
-      "closing": "Als u vragen heeft of dit verder wilt bespreken, aarzel dan niet om contact met mij op te nemen. Ik sta voor u klaar.\n\nMet vriendelijke groet,\n[Naam Adviseur]"
-    }
-  }

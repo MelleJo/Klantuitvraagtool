@@ -1,12 +1,7 @@
 streamlit
-openai
+openai-whisper
 langchain
-python-dotenv
+gpt4o
+pandas
+PyPDF2
 streamlit-mic-recorder
-pyperclip
-pydub
-pytz
-langchain-community
-langchain-openai
-ffmpeg-python
-python-docx

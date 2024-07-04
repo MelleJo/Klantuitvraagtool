@@ -55,7 +55,7 @@ def main():
     st.write("Debug: About to call process_audio_input()")
     new_transcript = process_audio_input()
     st.write(f"Debug: process_audio_input() returned: {new_transcript}")
-    if new_transcript:
+    if new_transcript is not None:
         st.session_state['transcript'] = new_transcript
 
     # Step 2 & 3: See and edit transcript

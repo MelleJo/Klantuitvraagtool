@@ -8,7 +8,7 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 def transcribe_audio(audio_bytes):
     try:
         audio_file = io.BytesIO(audio_bytes)
-        audio_file.name = "audio.webm"
+        audio_file.name = "audio.wav"  # Change to .wav
         
         transcription_response = client.audio.transcriptions.create(
             file=audio_file,
@@ -30,7 +30,14 @@ def process_audio_input():
     audio_bytes = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
     
     if audio_bytes:
-        st.audio(audio_bytes, format="audio/webm")
+        try:
+            # Convert bytes to BytesIO object
+            audio_io = io.BytesIO(audio_bytes)
+            # Display audio using st.audio
+            st.audio(audio_io, format="audio/wav")
+        except Exception as e:
+            st.error(f"Fout bij het afspelen van audio: {str(e)}")
+        
         if st.button("Transcribeer Audio"):
             with st.spinner("Transcriberen van audio..."):
                 transcript = transcribe_audio(audio_bytes)

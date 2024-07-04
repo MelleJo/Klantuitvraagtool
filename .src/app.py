@@ -2,10 +2,12 @@ import streamlit as st
 from openai import OpenAI
 import pyperclip
 from docx import Document
+import audio_processing
+from audio_processing import record_audio, transcribe_audio, upload_audio
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-from audio_processing import upload_audio, transcribe_audio, record_audio
+#from audio_processing import upload_audio, transcribe_audio, record_audio
 import tempfile
 
 # Initialize OpenAI client

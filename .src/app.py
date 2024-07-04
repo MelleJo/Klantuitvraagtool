@@ -10,7 +10,6 @@ from smart_analyzer import analyze_product_info_and_risks
 #from audio_processing import upload_audio, transcribe_audio, record_audio
 import tempfile
 
-st.write("Debug: All modules imported successfully")
 
 
 # Initialize OpenAI client

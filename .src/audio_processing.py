@@ -8,7 +8,7 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 def transcribe_audio(audio_bytes):
     try:
         audio_file = io.BytesIO(audio_bytes)
-        audio_file.name = "audio.wav"  # Change to .wav
+        audio_file.name = "audio.wav"
         
         transcription_response = client.audio.transcriptions.create(
             file=audio_file,
@@ -27,14 +27,12 @@ def transcribe_audio(audio_bytes):
 def process_audio_input():
     st.write("Debug: process_audio_input function called")
     st.write("Klik op de microfoon om de opname te starten en te stoppen.")
-    audio_bytes = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
+    audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
     
-    if audio_bytes:
+    if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
+        audio_bytes = audio_data['bytes']
         try:
-            # Convert bytes to BytesIO object
-            audio_io = io.BytesIO(audio_bytes)
-            # Display audio using st.audio
-            st.audio(audio_io, format="audio/wav")
+            st.audio(audio_bytes, format="audio/wav")
         except Exception as e:
             st.error(f"Fout bij het afspelen van audio: {str(e)}")
         

@@ -53,10 +53,13 @@ def main():
     # Step 1: Record info
     st.subheader("1. Neem audio op")
     st.write("Debug: About to call process_audio_input()")
-    new_transcript = process_audio_input()
-    st.write(f"Debug: process_audio_input() returned: {new_transcript}")
-    if new_transcript is not None:
-        st.session_state['transcript'] = new_transcript
+    try:
+        new_transcript = process_audio_input()
+        st.write(f"Debug: process_audio_input() returned: {new_transcript}")
+        if new_transcript is not None:
+            st.session_state['transcript'] = new_transcript
+    except Exception as e:
+        st.error(f"Error in audio processing: {str(e)}")
 
     # Step 2 & 3: See and edit transcript
     st.subheader("2. Bekijk en bewerk het transcript")

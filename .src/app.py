@@ -3,16 +3,13 @@ import streamlit as st
 # Set page config at the very beginning
 st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
 
-from audio_processing import process_audio_input
+from audio_processing import process_audio_input, transcribe_audio
+from streamlit_mic_recorder import mic_recorder
 import pyperclip
 from docx import Document
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-
-st.write("Debug: All modules imported successfully")
-
-
 
 def load_insurance_products():
     # In a real application, this would load from a database or file
@@ -48,25 +45,35 @@ def main():
     if 'product_info' not in st.session_state:
         st.session_state['product_info'] = {}
 
-    st.write("Debug: Session state initialized")
+    # Step 1: Choose input method
+    st.subheader("1. Kies een invoermethode")
+    input_method = st.radio("Hoe wil je de audio invoeren?", ["Audio opnemen", "Audiobestand uploaden"])
 
-    # Step 1: Record or Upload audio
-    st.subheader("1. Neem audio op of upload een bestand")
-    st.write("Debug: About to call process_audio_input()")
-    try:
-        new_transcript = process_audio_input()
-        st.write(f"Debug: process_audio_input() returned: {new_transcript}")
-        if new_transcript is not None:
-            st.session_state['transcript'] = new_transcript
-            st.success("Nieuwe transcriptie ontvangen en opgeslagen.")
-        else:
-            st.info("Geen nieuwe transcriptie ontvangen.")
-    except Exception as e:
-        st.error(f"Error in audio processing: {str(e)}")
+    # Step 2: Record or Upload audio
+    st.subheader("2. Voer audio in")
+    if input_method == "Audio opnemen":
+        st.write("Klik op de microfoon om de opname te starten en te stoppen.")
+        audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
+        
+        if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
+            st.audio(audio_data['bytes'], format="audio/wav")
+            if st.button("Transcribeer Opgenomen Audio"):
+                with st.spinner("Transcriberen van audio..."):
+                    st.session_state['transcript'] = transcribe_audio(audio_data['bytes'])
+                st.success("Transcriptie voltooid!")
+    else:
+        uploaded_file = st.file_uploader("Kies een audiobestand", type=['wav', 'mp3', 'ogg'])
+        if uploaded_file is not None:
+            st.audio(uploaded_file, format=f"audio/{uploaded_file.type}")
+            if st.button("Transcribeer Geüpload Bestand"):
+                with st.spinner("Transcriberen van audio..."):
+                    audio_bytes = uploaded_file.read()
+                    st.session_state['transcript'] = transcribe_audio(audio_bytes)
+                st.success("Transcriptie voltooid!")
 
-    # Step 2 & 3: See and edit transcript
-    st.subheader("2. Bekijk en bewerk het transcript")
+    # Step 3: Display and edit transcript
     if st.session_state['transcript']:
+        st.subheader("3. Bekijk en bewerk het transcript")
         st.session_state['transcript'] = st.text_area("Bewerk transcript indien nodig", value=st.session_state['transcript'], height=200)
         
         # Step 4: Get AI suggestions
@@ -77,7 +84,7 @@ def main():
 
     # Step 5: Choose products
     if st.session_state['product_info']:
-        st.subheader("3. Kies producten voor de bijlage")
+        st.subheader("4. Kies producten voor de bijlage")
         st.json(st.session_state['product_info'])
         
         recommended_products = st.session_state['product_info'].get('aanbevolen_bijlage_inhoud', [])
@@ -100,7 +107,7 @@ def main():
                 st.session_state['email_body'] = generate_email_body(st.session_state['transcript'], st.secrets["OPENAI_API_KEY"])
                 attachment = create_docx_attachment(selected_products)
             
-            st.subheader("4. Gegenereerde E-mailtekst")
+            st.subheader("5. Gegenereerde E-mailtekst")
             st.text_area("E-mailtekst", value=st.session_state['email_body'], height=300)
             
             if st.button("Kopieer naar Klembord"):

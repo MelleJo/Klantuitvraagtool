@@ -3,7 +3,7 @@ import streamlit as st
 # Set page config at the very beginning
 st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
 
-from audio_processing import process_audio_input, transcribe_audio
+from audio_processing import transcribe_audio
 from streamlit_mic_recorder import mic_recorder
 import pyperclip
 from docx import Document
@@ -62,9 +62,12 @@ def main():
                     st.session_state['transcript'] = transcribe_audio(audio_data['bytes'])
                 st.success("Transcriptie voltooid!")
     else:
-        uploaded_file = st.file_uploader("Kies een audiobestand", type=['wav', 'mp3', 'ogg'])
+        uploaded_file = st.file_uploader("Kies een audiobestand", type=['wav', 'mp3', 'ogg', 'm4a'])
         if uploaded_file is not None:
-            st.audio(uploaded_file, format=f"audio/{uploaded_file.type}")
+            file_type = uploaded_file.type
+            if file_type == 'audio/x-m4a':
+                file_type = 'audio/mp4'  # M4A files are typically treated as MP4 audio
+            st.audio(uploaded_file, format=file_type)
             if st.button("Transcribeer Geüpload Bestand"):
                 with st.spinner("Transcriberen van audio..."):
                     audio_bytes = uploaded_file.read()

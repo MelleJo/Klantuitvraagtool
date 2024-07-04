@@ -2,7 +2,13 @@ import streamlit as st
 from openai import OpenAI
 import pyperclip
 from docx import Document
-from .src import audio_processing  # Adjusted import path based on structure
+import sys
+import os
+
+# Add the src directory to the sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+import audio_processing  # Adjusted import path based on structure
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks

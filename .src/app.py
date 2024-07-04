@@ -5,7 +5,7 @@ from docx import Document
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-from audio_processing import record_audio, upload_audio, transcribe_audio
+from audio_processing import upload_audio, transcribe_audio, record_audio
 import tempfile
 
 # Initialize OpenAI client

@@ -10,6 +10,9 @@ from smart_analyzer import analyze_product_info_and_risks
 #from audio_processing import upload_audio, transcribe_audio, record_audio
 import tempfile
 
+st.write("Debug: All modules imported successfully")
+
+
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -55,7 +58,9 @@ def main():
     # Step 2: Record or Upload audio
     st.subheader("2. Voer audio in")
     if input_method == "Neem audio op":
+        st.write("Debug: Attempting to record audio")
         audio_data = audio_processing.record_audio()
+        st.write(f"Debug: record_audio returned {type(audio_data)}")
         if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
             st.audio(audio_data['bytes'], format="audio/wav")
             if st.button("Transcribeer Opgenomen Audio"):
@@ -65,7 +70,9 @@ def main():
                     st.session_state['transcript'] = audio_processing.transcribe_audio(tmp_audio.name)
                 st.success("Transcriptie voltooid!")
     else:
+        st.write("Debug: Attempting to upload audio")
         uploaded_file = audio_processing.upload_audio()
+        st.write(f"Debug: upload_audio returned {type(uploaded_file)}")
         if uploaded_file is not None:
             st.audio(uploaded_file, format=f"audio/{uploaded_file.type.split('/')[-1]}")
             if st.button("Transcribeer Geüpload Bestand"):

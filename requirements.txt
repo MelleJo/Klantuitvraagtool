@@ -1,6 +1,8 @@
 streamlit
 openai-whisper
 langchain
+langchain-community
+langchain-core
 pandas
 PyPDF2
 streamlit-mic-recorder

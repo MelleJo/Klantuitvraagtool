@@ -50,14 +50,17 @@ def main():
 
     st.write("Debug: Session state initialized")
 
-    # Step 1: Record info
-    st.subheader("1. Neem audio op")
+    # Step 1: Record or Upload audio
+    st.subheader("1. Neem audio op of upload een bestand")
     st.write("Debug: About to call process_audio_input()")
     try:
         new_transcript = process_audio_input()
         st.write(f"Debug: process_audio_input() returned: {new_transcript}")
         if new_transcript is not None:
             st.session_state['transcript'] = new_transcript
+            st.success("Nieuwe transcriptie ontvangen en opgeslagen.")
+        else:
+            st.info("Geen nieuwe transcriptie ontvangen.")
     except Exception as e:
         st.error(f"Error in audio processing: {str(e)}")
 

@@ -45,20 +45,16 @@ def main():
     if 'product_info' not in st.session_state:
         st.session_state['product_info'] = {}
 
-    # Step 1: Choose input method
-    st.subheader("1. Kies een invoermethode")
-    input_method = st.radio("Hoe wil je de audio invoeren?", ["Neem audio op", "Upload audio"])
-
-    # Step 2: Record or Upload audio
-    st.subheader("2. Voer audio in")
-    transcript = process_audio_input(input_method)
+    # Step 1 & 2: Choose input method and process audio
+    st.subheader("1. Voer audio in")
+    transcript = process_audio_input()
     if transcript:
         st.session_state['transcript'] = transcript
         st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript
     if st.session_state['transcript']:
-        st.subheader("3. Bekijk en bewerk het transcript")
+        st.subheader("2. Bekijk en bewerk het transcript")
         st.session_state['transcript'] = st.text_area("Bewerk transcript indien nodig", value=st.session_state['transcript'], height=200)
         
         # Step 4: Get AI suggestions
@@ -69,7 +65,7 @@ def main():
 
     # Step 5: Choose products
     if st.session_state['product_info']:
-        st.subheader("4. Kies producten voor de bijlage")
+        st.subheader("3. Kies producten voor de bijlage")
         st.json(st.session_state['product_info'])
         
         recommended_products = st.session_state['product_info'].get('aanbevolen_bijlage_inhoud', [])
@@ -92,7 +88,7 @@ def main():
                 st.session_state['email_body'] = generate_email_body(st.session_state['transcript'], st.secrets["OPENAI_API_KEY"])
                 attachment = create_docx_attachment(selected_products)
             
-            st.subheader("5. Gegenereerde E-mailtekst")
+            st.subheader("4. Gegenereerde E-mailtekst")
             st.text_area("E-mailtekst", value=st.session_state['email_body'], height=300)
             
             if st.button("Kopieer naar Klembord"):

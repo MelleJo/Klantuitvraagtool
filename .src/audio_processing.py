@@ -3,8 +3,6 @@ from pydub import AudioSegment
 import tempfile
 from openai_service import get_openai_client
 from streamlit_mic_recorder import mic_recorder
-from services.summarization_service import summarize_text
-from utils.text_processing import update_gesprekslog
 
 def split_audio(file_path, max_duration_ms=30000):
     audio = AudioSegment.from_file(file_path)
@@ -43,7 +41,9 @@ def transcribe_audio(file_path):
     progress_text.success("Transcriptie voltooid.")
     return transcript_text.strip()
 
-def process_audio_input(input_method):
+def process_audio_input():
+    input_method = st.radio("Hoe wil je de audio invoeren?", ["Neem audio op", "Upload audio"])
+    
     if input_method == "Upload audio":
         uploaded_file = st.file_uploader("Upload een audiobestand", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
         if uploaded_file is not None:

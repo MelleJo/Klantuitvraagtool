@@ -5,14 +5,12 @@ from docx import Document
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-from audio_processing import process_audio_input, transcribe_audio
-import tempfile
+from audio_processing import process_audio_input
 
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def load_insurance_products():
-    # In a real application, this would load from a database or file
     return [
         "Aansprakelijkheidsverzekering",
         "Bedrijfsschadeverzekering",
@@ -53,20 +51,10 @@ def main():
 
     # Step 2: Record or Upload audio
     st.subheader("2. Voer audio in")
-    if input_method == "Neem audio op":
-        if st.button("Start Audio Opname"):
-            transcript = process_audio_input()
-            if transcript:
-                st.session_state['transcript'] = transcript
-                st.success("Transcriptie voltooid!")
-    else:  # Upload audio
-        uploaded_file = st.file_uploader("Upload een audiobestand", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
-        if uploaded_file is not None:
-            if st.button("Transcribeer Geüpload Bestand"):
-                with st.spinner("Transcriberen van audio..."):
-                    audio_bytes = uploaded_file.read()
-                    st.session_state['transcript'] = transcribe_audio(audio_bytes)
-                st.success("Transcriptie voltooid!")
+    transcript = process_audio_input(input_method)
+    if transcript:
+        st.session_state['transcript'] = transcript
+        st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript
     if st.session_state['transcript']:

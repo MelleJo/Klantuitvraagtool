@@ -5,7 +5,8 @@ from docx import Document
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-from audio_processing import process_audio_input
+from audio_processing import process_audio_input, transcribe_audio
+import tempfile
 
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -47,10 +48,24 @@ def main():
 
     # Step 1 & 2: Choose input method and process audio
     st.subheader("1. Voer audio in")
-    transcript = process_audio_input()
-    if transcript:
-        st.session_state['transcript'] = transcript
-        st.success("Transcriptie voltooid!")
+    audio_input = process_audio_input()
+    
+    if audio_input:
+        if isinstance(audio_input, dict):  # Recorded audio
+            st.audio(audio_input['bytes'], format="audio/wav")
+        else:  # Uploaded file
+            st.audio(audio_input, format=f"audio/{audio_input.type.split('/')[-1]}")
+        
+        if st.button("Transcribeer Audio"):
+            with st.spinner("Transcriberen van audio..."):
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_audio:
+                    if isinstance(audio_input, dict):
+                        tmp_audio.write(audio_input['bytes'])
+                    else:
+                        tmp_audio.write(audio_input.getvalue())
+                    tmp_audio.flush()
+                st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+            st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript
     if st.session_state['transcript']:

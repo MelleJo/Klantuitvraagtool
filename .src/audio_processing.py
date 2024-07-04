@@ -3,7 +3,6 @@ from pydub import AudioSegment
 import tempfile
 from openai_service import get_openai_client
 from streamlit_mic_recorder import mic_recorder
-import io
 
 def split_audio(file_path, max_duration_ms=30000):
     audio = AudioSegment.from_file(file_path)
@@ -48,7 +47,10 @@ def record_audio():
         st.write("Klik op de microfoon om de opname te starten en te stoppen.")
         audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
         st.write(f"Debug: mic_recorder returned {type(audio_data)}")
-        return audio_data
+        if audio_data:
+            audio_bytes = audio_data.get_wav_bytes()
+            return {"bytes": audio_bytes}
+        return None
     except Exception as e:
         st.error(f"Error in record_audio: {str(e)}")
         return None

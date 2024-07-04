@@ -5,7 +5,7 @@ from docx import Document
 from io import BytesIO
 from email_generator import generate_email_body
 from smart_analyzer import analyze_product_info_and_risks
-from audio_processing import process_audio_input, transcribe_audio
+from audio_processing import process_audio_input
 
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -48,33 +48,14 @@ def main():
 
     # Step 1: Choose input method
     st.subheader("1. Kies een invoermethode")
-    input_method = st.radio("Hoe wil je de audio invoeren?", ["Audio opnemen", "Audiobestand uploaden"])
+    input_method = st.radio("Hoe wil je de audio invoeren?", ["Neem audio op", "Upload audio"])
 
     # Step 2: Record or Upload audio
     st.subheader("2. Voer audio in")
-    if input_method == "Audio opnemen":
-        st.write("Klik op de microfoon om de opname te starten en te stoppen.")
-        audio_data = process_audio_input()
-        
-        if audio_data and isinstance(audio_data, dict) and 'bytes' in audio_data:
-            st.audio(audio_data['bytes'], format="audio/wav")
-            if st.button("Transcribeer Opgenomen Audio"):
-                with st.spinner("Transcriberen van audio..."):
-                    st.session_state['transcript'] = transcribe_audio(audio_data['bytes'], 'wav')
-                st.success("Transcriptie voltooid!")
-    else:
-        uploaded_file = st.file_uploader("Kies een audiobestand", type=['wav', 'mp3', 'ogg', 'm4a'])
-        if uploaded_file is not None:
-            file_type = uploaded_file.type
-            if file_type == 'audio/x-m4a':
-                file_type = 'audio/mp4'  # M4A files are typically treated as MP4 audio
-            st.audio(uploaded_file, format=file_type)
-            if st.button("Transcribeer Geüpload Bestand"):
-                with st.spinner("Transcriberen van audio..."):
-                    audio_bytes = uploaded_file.read()
-                    file_format = uploaded_file.type.split('/')[-1]  # Extract format from MIME type
-                    st.session_state['transcript'] = transcribe_audio(audio_bytes, file_format)
-                st.success("Transcriptie voltooid!")
+    transcript = process_audio_input(input_method)
+    if transcript:
+        st.session_state['transcript'] = transcript
+        st.success("Transcriptie voltooid!")
 
     # Step 3: Display and edit transcript
     if st.session_state['transcript']:

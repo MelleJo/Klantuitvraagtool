@@ -5,6 +5,9 @@ from docx import Document
 import sys
 import os
 
+st.set_page_config(page_title="Verzekeringsadviseur E-mail Generator", layout="wide")
+
+
 # Debug: Print current working directory
 st.write(f"Debug: Current working directory: {os.getcwd()}")
 

@@ -1,22 +1,11 @@
-from openai import OpenAI
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
-import io
-import os
-
-client = OpenAI()
+from utils.api_calls import transcribe_audio_api
 
 def transcribe_audio(audio_file):
-    # Code to call Whisper API and return transcribed text
-    transcription = client.audio.transcriptions.create(
-        model="whisper-1", 
-        file=audio_file,
-        response_format="text"
-    )
-    return transcription['text']
+    return transcribe_audio_api(audio_file)
 
 def transcribe_text(text):
-    # Simply return the provided text
     return text
 
 def whisper_stt(openai_api_key=None, start_prompt="Start recording", stop_prompt="Stop recording", just_once=False,
@@ -59,12 +48,4 @@ def whisper_stt(openai_api_key=None, start_prompt="Start recording", stop_prompt
                     output = transcript.text
                     st.session_state._last_speech_to_text_transcript = output
         elif not just_once:
-            output = st.session_state._last_speech_to_text_transcript
-        else:
-            output = None
-
-    if key:
-        st.session_state[key + '_output'] = output
-    if new_output and callback:
-        callback(*args, **(kwargs or {}))
-    return output
+            output = st.se

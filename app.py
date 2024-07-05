@@ -23,7 +23,6 @@ if text_input:
 
 st.write("Record your voice:")
 recorded_text = whisper_stt(
-    openai_api_key=st.secrets["OPENAI_API_KEY"],
     start_prompt="Start recording",
     stop_prompt="Stop recording",
     just_once=True,

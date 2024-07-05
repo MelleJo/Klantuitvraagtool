@@ -1,15 +1,15 @@
-from openai import OpenAI
+import openai
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-import io
 
-def transcribe_audio_api(audio_file):
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    transcription = client.audio.transcriptions.create(
+def transcribe_audio_api(audio_file, language=None):
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+    transcription = openai.Audio.transcribe(
         model="whisper-1", 
         file=audio_file,
-        response_format="text"
+        response_format="text",
+        language=language
     )
     return transcription['text']
 

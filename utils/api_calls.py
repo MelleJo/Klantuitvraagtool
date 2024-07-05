@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 def transcribe_audio_api(audio_file, language=None):
     openai.api_key = st.secrets["OPENAI_API_KEY"]
     transcription = openai.Audio.transcriptions.create(
-        model="whisper-1", 
+        model="whisper-1",
         file=audio_file,
         response_format="text",
         language=language

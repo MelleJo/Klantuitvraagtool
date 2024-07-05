@@ -12,3 +12,4 @@ pyperclip
 pydub
 ffmpeg-python
 ffmpy
+ffprobe

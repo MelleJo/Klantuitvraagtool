@@ -1,7 +1,7 @@
 import streamlit as st
 from pydub import AudioSegment
 import tempfile
-from api_calls import get_openai_client
+from utils.api_calls import get_openai_client  # Updated import
 from streamlit_mic_recorder import mic_recorder
 
 def split_audio(file_path, max_duration_ms=30000):
@@ -65,4 +65,3 @@ def process_audio_input(input_method):
                     tempfile.NamedTemporaryFile(delete=True)
                 st.session_state['transcription_done'] = True
                 st.experimental_rerun()
-        

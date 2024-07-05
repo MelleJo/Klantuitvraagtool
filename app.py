@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.transcription import process_audio_input, display_detailed_logs, log
+from utils.transcription import process_audio_input, display_logs
 from utils.nlp import analyze_transcript
 from utils.email import generate_email
 from utils.attachment import generate_attachment
@@ -19,9 +19,6 @@ st.header("Input Section")
 input_method = st.radio("Kies de invoermethode", ["Upload audio", "Neem audio op"])
 
 process_audio_input(input_method)
-
-# Display detailed logs
-display_detailed_logs()
 
 # Display transcription result
 if st.session_state['transcription_done']:
@@ -52,3 +49,7 @@ if st.session_state.get('processing_complete', False):
     if st.button("Genereer Bijlage"):
         attachment_content = generate_attachment(analysis)
         st.download_button("Download Bijlage", attachment_content, file_name="bijlage.pdf")
+
+# Display detailed logs
+st.header("Debug Information")
+display_logs()

@@ -6,15 +6,15 @@ from streamlit_mic_recorder import mic_recorder
 
 def split_audio(file_path, max_duration_ms=30000):
     try:
-        st.write(f"Trying to load audio file from: {file_path}")
+        log(f"Trying to load audio file from: {file_path}")
         audio = AudioSegment.from_file(file_path)
         chunks = []
         for i in range(0, len(audio), max_duration_ms):
             chunks.append(audio[i:i+max_duration_ms])
-        st.write(f"Audio successfully split into {len(chunks)} chunks.")
+        log(f"Audio successfully split into {len(chunks)} chunks.")
         return chunks
     except Exception as e:
-        st.error(f"Error loading or splitting audio file: {str(e)}")
+        log(f"Error loading or splitting audio file: {str(e)}")
         return None
 
 def transcribe_audio(file_path):
@@ -24,7 +24,7 @@ def transcribe_audio(file_path):
         if audio_segments is None:
             return "Segmentation failed."
     except Exception as e:
-        st.error(f"Error during audio segmentation: {str(e)}")
+        log(f"Error during audio segmentation: {str(e)}")
         return "Segmentation failed."
 
     total_segments = len(audio_segments)
@@ -35,16 +35,16 @@ def transcribe_audio(file_path):
         progress_text.text(f'Processing segment {i+1} of {total_segments} - {((i+1)/total_segments*100):.2f}% completed')
         with tempfile.NamedTemporaryFile(delete=True, suffix='.wav') as temp_file:
             segment.export(temp_file.name, format="wav")
-            st.write(f"Segment {i+1} exported to temporary file.")
+            log(f"Segment {i+1} exported to temporary file.")
             with open(temp_file.name, "rb") as audio_file:
                 try:
                     client = get_openai_client()
                     transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
                     if hasattr(transcription_response, 'text'):
                         transcript_text += transcription_response.text + " "
-                        st.write(f"Segment {i+1} transcription: {transcription_response.text}")
+                        log(f"Segment {i+1} transcription: {transcription_response.text}")
                 except Exception as e:
-                    st.error(f"Error during transcription: {str(e)}")
+                    log(f"Error during transcription: {str(e)}")
                     continue
         progress_bar.progress((i + 1) / total_segments)
     progress_text.success("Transcription completed.")
@@ -60,10 +60,10 @@ def process_audio_input(input_method):
                         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
                             tmp_audio.write(uploaded_file.getvalue())
                             tmp_audio.flush()
-                            st.write(f"Uploaded audio file saved to temporary file: {tmp_audio.name}")
+                            log(f"Uploaded audio file saved to temporary file: {tmp_audio.name}")
                         st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
                     except Exception as e:
-                        st.error(f"Error processing audio file: {str(e)}")
+                        log(f"Error processing audio file: {str(e)}")
                     finally:
                         tempfile.NamedTemporaryFile(delete=True)
                 st.session_state['transcription_done'] = True
@@ -76,21 +76,20 @@ def process_audio_input(input_method):
                         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
                             tmp_audio.write(audio_data['bytes'])
                             tmp_audio.flush()
-                            st.write(f"Recorded audio saved to temporary file: {tmp_audio.name}")
+                            log(f"Recorded audio saved to temporary file: {tmp_audio.name}")
                         st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
                     except Exception as e:
-                        st.error(f"Error processing audio file: {str(e)}")
+                        log(f"Error processing audio file: {str(e)}")
                     finally:
                         tempfile.NamedTemporaryFile(delete=True)
                 st.session_state['transcription_done'] = True
                 st.experimental_rerun()
 
-def display_detailed_logs():
-    if st.session_state.get('log_details'):
-        st.text_area("Detailed Logs", st.session_state['log_details'], height=300)
-
 def log(message):
     if 'log_details' not in st.session_state:
         st.session_state['log_details'] = ""
     st.session_state['log_details'] += f"{message}\n"
-    st.write(message)
+
+def display_logs():
+    if 'log_details' in st.session_state:
+        st.text_area("Detailed Logs", st.session_state['log_details'], height=300)

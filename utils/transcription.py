@@ -1,37 +1,68 @@
-import io
 import streamlit as st
+from pydub import AudioSegment
+import tempfile
+from api_calls import get_openai_client
 from streamlit_mic_recorder import mic_recorder
-from utils.api_calls import transcribe_audio_api
 
-def transcribe_audio(audio_file):
-    return transcribe_audio_api(audio_file)
+def split_audio(file_path, max_duration_ms=30000):
+    audio = AudioSegment.from_file(file_path)
+    chunks = []
+    for i in range(0, len(audio), max_duration_ms):
+        chunks.append(audio[i:i+max_duration_ms])
+    return chunks
 
-def transcribe_text(text):
-    return text
+def transcribe_audio(file_path):
+    transcript_text = ""
+    with st.spinner('Audio segmentatie wordt gestart...'):
+        try:
+            audio_segments = split_audio(file_path)
+        except Exception as e:
+            st.error(f"Fout bij het segmenteren van het audio: {str(e)}")
+            return "Segmentatie mislukt."
 
-def whisper_stt(start_prompt="Start recording", stop_prompt="Stop recording", just_once=False,
-                use_container_width=False, language=None, callback=None, args=(), kwargs=None, key=None):
-    audio = mic_recorder(start_prompt=start_prompt, stop_prompt=stop_prompt, just_once=just_once,
-                         use_container_width=use_container_width, key=key)
-    new_output = False
-    if audio is None:
-        output = None
-    else:
-        id = audio['id']
-        new_output = (id > st.session_state.get('_last_speech_to_text_transcript_id', 0))
-        if new_output:
-            st.session_state['_last_speech_to_text_transcript_id'] = id
-            audio_bio = io.BytesIO(audio['bytes'])
-            audio_bio.name = 'audio.mp3'
-            output = transcribe_audio_api(audio_bio, language)
-            st.session_state['_last_speech_to_text_transcript'] = output
-        elif not just_once:
-            output = st.session_state.get('_last_speech_to_text_transcript', None)
-        else:
-            output = None
+    total_segments = len(audio_segments)
+    progress_bar = st.progress(0)
+    progress_text = st.empty()
+    progress_text.text("Start transcriptie...")
+    for i, segment in enumerate(audio_segments):
+        progress_text.text(f'Bezig met verwerken van segment {i+1} van {total_segments} - {((i+1)/total_segments*100):.2f}% voltooid')
+        with tempfile.NamedTemporaryFile(delete=True, suffix='.wav') as temp_file:
+            segment.export(temp_file.name, format="wav")
+            with open(temp_file.name, "rb") as audio_file:
+                try:
+                    client = get_openai_client()
+                    transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
+                    if hasattr(transcription_response, 'text'):
+                        transcript_text += transcription_response.text + " "
+                except Exception as e:
+                    st.error(f"Fout bij het transcriberen: {str(e)}")
+                    continue
+        progress_bar.progress((i + 1) / total_segments)
+    progress_text.success("Transcriptie voltooid.")
+    return transcript_text.strip()
 
-    if key:
-        st.session_state[key + '_output'] = output
-    if new_output and callback:
-        callback(*args, **(kwargs or {}))
-    return output
+def process_audio_input(input_method):
+    if not st.session_state.get('processing_complete', False):
+        if input_method == "Upload audio":
+            uploaded_file = st.file_uploader("Upload an audio file", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
+            if uploaded_file is not None and not st.session_state.get('transcription_done', False):
+                with st.spinner("Transcriberen van audio..."):
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                        tmp_audio.write(uploaded_file.getvalue())
+                        tmp_audio.flush()
+                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                    tempfile.NamedTemporaryFile(delete=True)
+                st.session_state['transcription_done'] = True
+                st.experimental_rerun()
+        elif input_method == "Neem audio op":
+            audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True, format="webm")
+            if audio_data and 'bytes' in audio_data and not st.session_state.get('transcription_done', False):
+                with st.spinner("Transcriberen van audio..."):
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                        tmp_audio.write(audio_data['bytes'])
+                        tmp_audio.flush()
+                    st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                    tempfile.NamedTemporaryFile(delete=True)
+                st.session_state['transcription_done'] = True
+                st.experimental_rerun()
+        

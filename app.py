@@ -1,55 +1,51 @@
 import streamlit as st
-from utils.transcription import transcribe_audio, transcribe_text, whisper_stt
+from utils.transcription import process_audio_input
 from utils.nlp import analyze_transcript
 from utils.email import generate_email
 from utils.attachment import generate_attachment
 
-# Streamlit UI Layout
+# Initialize session state variables
+if 'processing_complete' not in st.session_state:
+    st.session_state['processing_complete'] = False
+if 'transcription_done' not in st.session_state:
+    st.session_state['transcription_done'] = False
+if 'transcript' not in st.session_state:
+    st.session_state['transcript'] = ""
+
 st.title("Klantuitvraagtool")
 
 # Input Section
 st.header("Input Section")
-audio_file = st.file_uploader("Upload Audio File", type=["mp3", "wav", "mp4", "mpeg", "mpga", "m4a", "webm"])
-text_input = st.text_area("Type or Paste Text")
+input_method = st.radio("Kies de invoermethode", ["Upload audio", "Neem audio op"])
 
-if audio_file:
-    transcript = transcribe_audio(audio_file)
-    st.session_state['transcript'] = transcript
-    st.text_area("Transcription", transcript)
+process_audio_input(input_method)
 
-if text_input:
-    transcript = transcribe_text(text_input)
-    st.session_state['transcript'] = transcript
+# Display transcription result
+if st.session_state['transcription_done']:
+    st.header("Transcriptie Resultaat")
+    transcript = st.session_state['transcript']
+    st.text_area("Transcriptie", transcript)
 
-st.write("Record your voice:")
-recorded_text = whisper_stt(
-    start_prompt="Start recording",
-    stop_prompt="Stop recording",
-    just_once=True,
-    use_container_width=True,
-    language="nl",
-    key='recorder'
-)
-if recorded_text:
-    st.session_state['transcript'] = recorded_text
-    st.text_area("Transcription", recorded_text)
+    # Analyze transcript
+    if st.button("Analyseren Transcript"):
+        analysis = analyze_transcript(transcript)
+        st.session_state['analysis'] = analysis
+        st.session_state['processing_complete'] = True
 
-# Review Section
-st.header("Review Section")
-transcript = st.session_state.get('transcript', '')
-if transcript:
-    st.text_area("Transcription", transcript)
-    analysis = analyze_transcript(transcript)
-    st.session_state['analysis'] = analysis
+# Display analysis result
+if st.session_state.get('processing_complete', False):
+    st.header("Analyse Resultaat")
+    analysis = st.session_state.get('analysis', '')
+    st.text_area("Analyse", analysis)
 
-# Email Generation Section
-st.header("Email Generation Section")
-if st.button("Generate Email"):
-    email_content = generate_email(transcript, analysis)
-    st.text_area("Generated Email", email_content)
+    # Email Generation Section
+    st.header("Email Generatie")
+    if st.button("Genereer Email"):
+        email_content = generate_email(transcript, analysis)
+        st.text_area("Gegenereerde Email", email_content)
 
-# Attachment Generation Section
-st.header("Attachment Generation Section")
-if st.button("Generate Attachment"):
-    attachment_content = generate_attachment(analysis)
-    st.download_button("Download Attachment", attachment_content, file_name="attachment.pdf")
+    # Attachment Generation Section
+    st.header("Bijlage Generatie")
+    if st.button("Genereer Bijlage"):
+        attachment_content = generate_attachment(analysis)
+        st.download_button("Download Bijlage", attachment_content, file_name="bijlage.pdf")

@@ -1,19 +1,22 @@
-import openai
-import streamlit as st
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate
+import streamlit as st
 
-client = ChatOpenAI()
+def get_openai_client():
+    if 'openai_client' not in st.session_state:
+        st.session_state.openai_client = ChatOpenAI(
+            model_name="gpt-4o",
+            temperature=0,
+            api_key=st.secrets["OPENAI_API_KEY"]
+        )
+    return st.session_state.openai_client
 
-def transcribe_audio_api(audio_file, language=None):
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
-    transcription = client.Audio.transcriptions.create(
-        model="whisper-1",
-        file=audio_file,
-        response_format="text",
-        language=language
-    )
-    return transcription['text']
+
+
+
+
+
+##
 
 def analyze_text_api(text):
     prompt = f"Analyze the following transcript and extract relevant insurances, insured amounts, and general questions:\n\n{text}"

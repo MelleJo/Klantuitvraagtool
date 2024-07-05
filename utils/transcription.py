@@ -4,15 +4,49 @@ import tempfile
 from utils.api_calls import get_openai_client
 from streamlit_mic_recorder import mic_recorder
 
+import subprocess
+import json
+
 def split_audio(file_path, max_duration_ms=30000):
     try:
         log(f"Trying to load audio file from: {file_path}")
-        audio = AudioSegment.from_file(file_path)
+        
+        # Get audio duration using ffprobe
+        ffprobe_cmd = [
+            'ffprobe', 
+            '-v', 'quiet', 
+            '-print_format', 'json', 
+            '-show_format', 
+            '-show_streams', 
+            file_path
+        ]
+        
+        ffprobe_output = subprocess.check_output(ffprobe_cmd).decode('utf-8')
+        ffprobe_data = json.loads(ffprobe_output)
+        
+        duration = float(ffprobe_data['format']['duration']) * 1000  # Convert to milliseconds
+        
         chunks = []
-        for i in range(0, len(audio), max_duration_ms):
-            chunks.append(audio[i:i+max_duration_ms])
+        for i in range(0, int(duration), max_duration_ms):
+            output_file = f"/tmp/chunk_{i}.wav"
+            ffmpeg_cmd = [
+                'ffmpeg',
+                '-i', file_path,
+                '-ss', str(i / 1000),
+                '-t', str(max_duration_ms / 1000),
+                '-acodec', 'pcm_s16le',
+                '-ar', '16000',
+                '-ac', '1',
+                output_file
+            ]
+            subprocess.run(ffmpeg_cmd, check=True)
+            chunks.append(output_file)
+        
         log(f"Audio successfully split into {len(chunks)} chunks.")
         return chunks
+    except subprocess.CalledProcessError as e:
+        log(f"Error running ffmpeg or ffprobe: {str(e)}")
+        return None
     except Exception as e:
         log(f"Error loading or splitting audio file: {str(e)}")
         return None
@@ -31,21 +65,21 @@ def transcribe_audio(file_path):
     progress_bar = st.progress(0)
     progress_text = st.empty()
     progress_text.text("Starting transcription...")
-    for i, segment in enumerate(audio_segments):
+    for i, segment_file in enumerate(audio_segments):
         progress_text.text(f'Processing segment {i+1} of {total_segments} - {((i+1)/total_segments*100):.2f}% completed')
-        with tempfile.NamedTemporaryFile(delete=True, suffix='.wav') as temp_file:
-            segment.export(temp_file.name, format="wav")
-            log(f"Segment {i+1} exported to temporary file.")
-            with open(temp_file.name, "rb") as audio_file:
-                try:
-                    client = get_openai_client()
-                    transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
-                    if hasattr(transcription_response, 'text'):
-                        transcript_text += transcription_response.text + " "
-                        log(f"Segment {i+1} transcription: {transcription_response.text}")
-                except Exception as e:
-                    log(f"Error during transcription: {str(e)}")
-                    continue
+        try:
+            with open(segment_file, "rb") as audio_file:
+                client = get_openai_client()
+                transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
+                if hasattr(transcription_response, 'text'):
+                    transcript_text += transcription_response.text + " "
+                    log(f"Segment {i+1} transcription: {transcription_response.text}")
+        except Exception as e:
+            log(f"Error during transcription: {str(e)}")
+            continue
+        finally:
+            # Clean up the temporary file
+            subprocess.run(['rm', segment_file], check=True)
         progress_bar.progress((i + 1) / total_segments)
     progress_text.success("Transcription completed.")
     return transcript_text.strip()

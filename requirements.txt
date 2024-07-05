@@ -10,3 +10,5 @@ PyPDF2
 streamlit-mic-recorder
 pyperclip
 pydub
+ffmpeg-python
+ffmpy

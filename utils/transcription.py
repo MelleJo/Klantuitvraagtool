@@ -19,14 +19,13 @@ def split_audio(file_path, max_duration_ms=30000):
 
 def transcribe_audio(file_path):
     transcript_text = ""
-    with st.spinner('Audio segmentation started...'):
-        try:
-            audio_segments = split_audio(file_path)
-            if audio_segments is None:
-                return "Segmentation failed."
-        except Exception as e:
-            st.error(f"Error during audio segmentation: {str(e)}")
+    try:
+        audio_segments = split_audio(file_path)
+        if audio_segments is None:
             return "Segmentation failed."
+    except Exception as e:
+        st.error(f"Error during audio segmentation: {str(e)}")
+        return "Segmentation failed."
 
     total_segments = len(audio_segments)
     progress_bar = st.progress(0)
@@ -85,3 +84,13 @@ def process_audio_input(input_method):
                         tempfile.NamedTemporaryFile(delete=True)
                 st.session_state['transcription_done'] = True
                 st.experimental_rerun()
+
+def display_detailed_logs():
+    if st.session_state.get('log_details'):
+        st.text_area("Detailed Logs", st.session_state['log_details'], height=300)
+
+def log(message):
+    if 'log_details' not in st.session_state:
+        st.session_state['log_details'] = ""
+    st.session_state['log_details'] += f"{message}\n"
+    st.write(message)

@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.transcription import process_audio_input
+from utils.transcription import process_audio_input, display_detailed_logs, log
 from utils.nlp import analyze_transcript
 from utils.email import generate_email
 from utils.attachment import generate_attachment
@@ -19,6 +19,9 @@ st.header("Input Section")
 input_method = st.radio("Kies de invoermethode", ["Upload audio", "Neem audio op"])
 
 process_audio_input(input_method)
+
+# Display detailed logs
+display_detailed_logs()
 
 # Display transcription result
 if st.session_state['transcription_done']:

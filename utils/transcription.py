@@ -140,40 +140,42 @@ def process_audio_input(input_method):
             uploaded_file = st.file_uploader("Upload an audio file", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
             if uploaded_file is not None and not st.session_state.get('transcription_done', False):
                 with st.spinner("Transcribing audio..."):
-                    try:
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                        try:
                             tmp_audio.write(uploaded_file.getvalue())
                             tmp_audio.flush()
                             log(f"Uploaded audio file saved to temporary file: {tmp_audio.name}")
                             st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
-                    except Exception as e:
-                        log(f"Error processing uploaded audio file: {str(e)}")
-                        st.error("An error occurred while processing the audio file.")
-                    finally:
-                        try:
-                            os.unlink(tmp_audio.name)
                         except Exception as e:
-                            log(f"Error removing temporary file: {str(e)}")
+                            log(f"Error processing uploaded audio file: {str(e)}")
+                            st.error("An error occurred while processing the audio file.")
+                        finally:
+                            tmp_audio.close()
+                            try:
+                                os.unlink(tmp_audio.name)
+                            except Exception as e:
+                                log(f"Error removing temporary file: {str(e)}")
                 st.session_state['transcription_done'] = True
                 st.experimental_rerun()
         elif input_method == "Neem audio op":
             audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True, format="webm")
             if audio_data and 'bytes' in audio_data and not st.session_state.get('transcription_done', False):
                 with st.spinner("Transcribing audio..."):
-                    try:
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp_audio:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp_audio:
+                        try:
                             tmp_audio.write(audio_data['bytes'])
                             tmp_audio.flush()
                             log(f"Recorded audio saved to temporary file: {tmp_audio.name}")
                             st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
-                    except Exception as e:
-                        log(f"Error processing recorded audio file: {str(e)}")
-                        st.error("An error occurred while processing the recorded audio.")
-                    finally:
-                        try:
-                            os.unlink(tmp_audio.name)
                         except Exception as e:
-                            log(f"Error removing temporary file: {str(e)}")
+                            log(f"Error processing recorded audio file: {str(e)}")
+                            st.error("An error occurred while processing the recorded audio.")
+                        finally:
+                            tmp_audio.close()
+                            try:
+                                os.unlink(tmp_audio.name)
+                            except Exception as e:
+                                log(f"Error removing temporary file: {str(e)}")
                 st.session_state['transcription_done'] = True
                 st.experimental_rerun()
 

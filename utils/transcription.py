@@ -1,7 +1,7 @@
 import streamlit as st
 from pydub import AudioSegment
 import tempfile
-from utils.openai_service import get_openai_client
+from utils.api_calls import get_openai_client
 from streamlit_mic_recorder import mic_recorder
 from services.summarization_service import summarize_text
 from utils.text_processing import update_gesprekslog

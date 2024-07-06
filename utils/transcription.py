@@ -15,6 +15,20 @@ def is_ffmpeg_available():
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
+def split_audio_pydub(file_path, max_duration_ms):
+    try:
+        audio = AudioSegment.from_file(file_path)
+        chunks = []
+        for i, chunk in enumerate(audio[::max_duration_ms]):
+            output_file = f"/tmp/chunk_{i}.wav"
+            chunk.export(output_file, format="wav")
+            chunks.append(output_file)
+        log(f"Audio successfully split into {len(chunks)} chunks using pydub.")
+        return chunks
+    except Exception as e:
+        log(f"Error splitting audio with pydub: {str(e)}")
+        return None
+
 def split_audio(file_path, max_duration_ms=30000):
     try:
         log(f"Trying to load audio file from: {file_path}")

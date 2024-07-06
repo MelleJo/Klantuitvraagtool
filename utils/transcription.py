@@ -47,65 +47,41 @@ def split_audio(file_path, max_duration_ms=30000):
 
 def split_audio_ffmpeg(file_path, max_duration_ms):
     try:
-        ffprobe_cmd = [
-            'ffprobe', 
-            '-v', 'quiet', 
-            '-print_format', 'json', 
-            '-show_format', 
-            '-show_streams', 
-            file_path
+        output_dir = tempfile.mkdtemp()
+        output_template = os.path.join(output_dir, "chunk_%03d.wav")
+        
+        ffmpeg_cmd = [
+            'ffmpeg',
+            '-i', file_path,
+            '-f', 'segment',
+            '-segment_time', str(max_duration_ms / 1000),
+            '-c', 'pcm_s16le',
+            '-ar', '16000',
+            '-ac', '1',
+            output_template
         ]
         
-        ffprobe_output = subprocess.check_output(ffprobe_cmd, stderr=subprocess.STDOUT).decode('utf-8')
-        ffprobe_data = json.loads(ffprobe_output)
+        process = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
         
-        duration = float(ffprobe_data['format']['duration']) * 1000  # Convert to milliseconds
+        if process.returncode != 0:
+            log(f"Error running FFmpeg: {stderr.decode('utf-8')}")
+            return None
         
-        chunks = []
-        with tempfile.TemporaryDirectory() as temp_dir:
-            for i in range(0, int(duration), max_duration_ms):
-                output_file = os.path.join(temp_dir, f"chunk_{i}.wav")
-                ffmpeg_cmd = [
-                    'ffmpeg',
-                    '-i', file_path,
-                    '-ss', str(i / 1000),
-                    '-t', str(max_duration_ms / 1000),
-                    '-acodec', 'pcm_s16le',
-                    '-ar', '16000',
-                    '-ac', '1',
-                    '-y',
-                    output_file
-                ]
-                try:
-                    process = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    stdout, stderr = process.communicate()
-                    if process.returncode != 0:
-                        log(f"Error processing chunk {i}: {stderr.decode('utf-8')}")
-                    else:
-                        chunks.append(output_file)
-                except Exception as e:
-                    log(f"Error processing chunk {i}: {str(e)}")
-                    continue
-            
-            if not chunks:
-                log("No chunks were successfully created.")
-                return None
-            
-            # Copy chunks to a more persistent location
-            persistent_chunks = []
-            for i, chunk in enumerate(chunks):
-                persistent_path = f"/tmp/persistent_chunk_{i}.wav"
-                shutil.copy2(chunk, persistent_path)
-                persistent_chunks.append(persistent_path)
+        chunks = sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith('.wav')])
         
-        log(f"Audio successfully split into {len(persistent_chunks)} chunks using FFmpeg.")
-        return persistent_chunks
-    except subprocess.CalledProcessError as e:
-        log(f"Error running ffmpeg or ffprobe: {e.stderr.decode('utf-8') if e.stderr else str(e)}")
-        return None
+        if not chunks:
+            log("No chunks were created.")
+            return None
+        
+        log(f"Audio successfully split into {len(chunks)} chunks using FFmpeg.")
+        return chunks
     except Exception as e:
         log(f"Unexpected error in split_audio_ffmpeg: {str(e)}")
         return None
+    finally:
+        if 'output_dir' in locals():
+            shutil.rmtree(output_dir, ignore_errors=True)
 
 def transcribe_audio(file_path):
     transcript_text = ""

@@ -63,10 +63,14 @@ def split_audio_ffmpeg(file_path, max_duration_ms):
                     output_file
                 ]
                 try:
-                    subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    chunks.append(output_file)
-                except subprocess.CalledProcessError as e:
-                    log(f"Error processing chunk {i}: {e.stderr.decode('utf-8')}")
+                    process = subprocess.Popen(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout, stderr = process.communicate()
+                    if process.returncode != 0:
+                        log(f"Error processing chunk {i}: {stderr.decode('utf-8')}")
+                    else:
+                        chunks.append(output_file)
+                except Exception as e:
+                    log(f"Error processing chunk {i}: {str(e)}")
                     continue
             
             if not chunks:
@@ -83,24 +87,10 @@ def split_audio_ffmpeg(file_path, max_duration_ms):
         log(f"Audio successfully split into {len(persistent_chunks)} chunks using FFmpeg.")
         return persistent_chunks
     except subprocess.CalledProcessError as e:
-        log(f"Error running ffmpeg or ffprobe: {e.stderr.decode('utf-8')}")
+        log(f"Error running ffmpeg or ffprobe: {e.stderr.decode('utf-8') if e.stderr else str(e)}")
         return None
     except Exception as e:
         log(f"Unexpected error in split_audio_ffmpeg: {str(e)}")
-        return None
-
-def split_audio_pydub(file_path, max_duration_ms):
-    try:
-        audio = AudioSegment.from_file(file_path)
-        chunks = []
-        for i, chunk in enumerate(audio[::max_duration_ms]):
-            output_file = f"/tmp/chunk_{i}.wav"
-            chunk.export(output_file, format="wav")
-            chunks.append(output_file)
-        log(f"Audio successfully split into {len(chunks)} chunks using pydub.")
-        return chunks
-    except Exception as e:
-        log(f"Error splitting audio with pydub: {str(e)}")
         return None
 
 def transcribe_audio(file_path):

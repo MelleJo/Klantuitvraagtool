@@ -1,5 +1,5 @@
 import streamlit as st
-from pydub import AudioSegment
+import io
 import tempfile
 import os
 from openai_service import get_openai_client
@@ -7,44 +7,42 @@ from streamlit_mic_recorder import mic_recorder
 from services.summarization_service import summarize_text
 from utils.text_processing import update_gesprekslog
 
-def split_audio(file_path, max_duration_ms=30000):
-    try:
-        audio = AudioSegment.from_file(file_path)
-        chunks = [audio[i:i+max_duration_ms] for i in range(0, len(audio), max_duration_ms)]
-        return chunks
-    except Exception as e:
-        st.error(f"Error splitting audio: {str(e)}")
-        return None
+def process_audio(audio_file, chunk_size_mb=10):
+    chunk_size = chunk_size_mb * 1024 * 1024  # Convert MB to bytes
+    chunks = []
+    
+    while True:
+        chunk = audio_file.read(chunk_size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    
+    return chunks
 
 def transcribe_audio(file_path):
     transcript_text = ""
-    with st.spinner('Starting audio segmentation...'):
-        audio_segments = split_audio(file_path)
-        if not audio_segments:
-            return "Audio segmentation failed."
+    with st.spinner('Processing audio...'):
+        with open(file_path, 'rb') as audio_file:
+            audio_chunks = process_audio(audio_file)
 
-    total_segments = len(audio_segments)
+    total_chunks = len(audio_chunks)
     progress_bar = st.progress(0)
     progress_text = st.empty()
     progress_text.text("Starting transcription...")
     
-    for i, segment in enumerate(audio_segments):
-        progress_text.text(f'Processing segment {i+1} of {total_segments} - {((i+1)/total_segments*100):.2f}% complete')
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
-            segment.export(temp_file.name, format="wav")
-            try:
-                with open(temp_file.name, "rb") as audio_file:
-                    client = get_openai_client()
-                    transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
-                    if hasattr(transcription_response, 'text'):
-                        transcript_text += transcription_response.text + " "
-                    else:
-                        st.warning(f"Unexpected response format for segment {i+1}")
-            except Exception as e:
-                st.error(f"Error transcribing segment {i+1}: {str(e)}")
-            finally:
-                os.unlink(temp_file.name)
-        progress_bar.progress((i + 1) / total_segments)
+    for i, chunk in enumerate(audio_chunks):
+        progress_text.text(f'Processing chunk {i+1} of {total_chunks} - {((i+1)/total_chunks*100):.2f}% complete')
+        try:
+            client = get_openai_client()
+            with io.BytesIO(chunk) as audio_chunk:
+                transcription_response = client.audio.transcriptions.create(file=audio_chunk, model="whisper-1")
+                if hasattr(transcription_response, 'text'):
+                    transcript_text += transcription_response.text + " "
+                else:
+                    st.warning(f"Unexpected response format for chunk {i+1}")
+        except Exception as e:
+            st.error(f"Error transcribing chunk {i+1}: {str(e)}")
+        progress_bar.progress((i + 1) / total_chunks)
     
     progress_text.success("Transcription completed.")
     return transcript_text.strip()
@@ -55,7 +53,7 @@ def process_audio_input(input_method):
             uploaded_file = st.file_uploader("Upload an audio file", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
             if uploaded_file is not None and not st.session_state.get('transcription_done', False):
                 with st.spinner("Transcribing audio..."):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix="." + uploaded_file.name.split('.')[-1]) as tmp_audio:
                         tmp_audio.write(uploaded_file.getvalue())
                         tmp_audio.flush()
                         st.session_state['transcript'] = transcribe_audio(tmp_audio.name)

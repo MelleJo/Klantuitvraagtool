@@ -2,7 +2,7 @@ import streamlit as st
 import html
 
 def setup_page_style():
-    st.set_page_config(page_title="Gesprekssamenvatter", page_icon="🎙️", layout="wide")
+    st.set_page_config(page_title="Klantuitvraagtool", page_icon="🎙️", layout="wide")
     st.markdown("""
     <style>
     .main {
@@ -30,7 +30,7 @@ def setup_page_style():
         box-shadow: 0 15px 20px rgba(46, 229, 157, 0.4);
         transform: translateY(-7px);
     }
-    .summary-box {
+    .klantuitvraag-box {
         border: none;
         border-radius: 15px;
         padding: 25px;
@@ -39,11 +39,11 @@ def setup_page_style():
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
     }
-    .summary-box:hover {
+    .klantuitvraag-box:hover {
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         transform: translateY(-5px);
     }
-    .summary-box h3 {
+    .klantuitvraag-box h3 {
         color: #2c3e50;
         border-bottom: 2px solid #3498db;
         padding-bottom: 10px;
@@ -97,15 +97,15 @@ def display_transcript(transcript):
             st.markdown(f'<div class="content">{html.escape(transcript)}</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-def display_summary(summary):
-    if summary:
-        st.markdown('<div class="summary-box">', unsafe_allow_html=True)
-        st.markdown('<h3>Samenvatting</h3>', unsafe_allow_html=True)
-        st.markdown(summary, unsafe_allow_html=True)
+def display_klantuitvraag(klantuitvraag):
+    if klantuitvraag:
+        st.markdown('<div class="klantuitvraag-box">', unsafe_allow_html=True)
+        st.markdown('<h3>Klantuitvraag</h3>', unsafe_allow_html=True)
+        st.markdown(klantuitvraag, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 def display_input_method_selector(input_methods):
-    return st.radio("Wat wil je laten samenvatten?", input_methods, key='input_method_radio')
+    return st.radio("Wat wil je laten verwerken?", input_methods, key='input_method_radio')
 
 def display_text_input():
     return st.text_area("Voeg tekst hier in:", 
@@ -114,10 +114,10 @@ def display_text_input():
                         key='input_text_area')
 
 def display_file_uploader(file_types):
-    return st.file_uploader("Choose a file", type=file_types)
+    return st.file_uploader("Kies een bestand", type=file_types)
 
-def display_summarize_button():
-    return st.button("Samenvatten", key='summarize_button')
+def display_generate_button():
+    return st.button("Genereer klantuitvraag", key='generate_button')
 
 def display_copy_clipboard_button():
     return st.button("Kopieer naar klembord", key='copy_clipboard_button')

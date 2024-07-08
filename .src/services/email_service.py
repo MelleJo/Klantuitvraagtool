@@ -3,7 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-def send_feedback_email(transcript, summary, feedback, additional_feedback, user_first_name=""):
+def send_feedback_email(transcript, klantuitvraag, feedback, additional_feedback, user_first_name=""):
     try:
         email_secrets = st.secrets["email"]
         user_email = email_secrets.get("receiving_email")
@@ -14,12 +14,12 @@ def send_feedback_email(transcript, summary, feedback, additional_feedback, user
         msg = MIMEMultipart()
         msg['From'] = email_secrets["username"]
         msg['To'] = user_email
-        msg['Subject'] = "New Feedback Submission - Gesprekssamenvatter"
+        msg['Subject'] = "New Feedback Submission - Klantuitvraagtool"
         
         body = f"""
         Transcript: {transcript}
         
-        Summary: {summary}
+        Klantuitvraag: {klantuitvraag}
         
         Feedback: {feedback}
         

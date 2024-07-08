@@ -2,7 +2,10 @@ import streamlit as st
 from services.email_service import send_feedback_email
 import html
 
+print("Loading ui/pages.py")
+
 def render_feedback_form():
+    print("Rendering feedback form")
     with st.expander("Geef feedback"):
         with st.form(key="feedback_form"):
             user_first_name = st.text_input("Uw voornaam (verplicht bij feedback):")
@@ -27,6 +30,7 @@ def render_feedback_form():
                         st.error("Er is een fout opgetreden bij het verzenden van de feedback. Probeer het later opnieuw.")
 
 def render_conversation_history():
+    print("Rendering conversation history")
     st.subheader("Laatste vijf gesprekken")
     for i, gesprek in enumerate(st.session_state.get('gesprekslog', [])):
         with st.expander(f"Gesprek {i+1} op {gesprek['time']}"):
@@ -34,3 +38,5 @@ def render_conversation_history():
             st.markdown(f'<div class="content">{html.escape(gesprek["transcript"])}</div>', unsafe_allow_html=True)
             st.markdown("**Klantuitvraag:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
+
+print("ui/pages.py loaded successfully")

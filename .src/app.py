@@ -2,7 +2,19 @@ import os
 import sys
 import traceback
 import importlib.util
+import json
 import streamlit as st
+from openai_service import perform_gpt4_operation
+from utils.audio_processing import transcribe_audio, process_audio_input
+from utils.file_processing import process_uploaded_file
+from st_copy_to_clipboard import st_copy_to_clipboard
+from docx import Document
+from docx.shared import Pt
+from docx.enum.style import WD_STYLE_TYPE
+from io import BytesIO
+import bleach
+import base64
+import time
 
 print("Starting app.py")
 print(f"Python version: {sys.version}")
@@ -53,24 +65,36 @@ if summarization_service:
 else:
     print("Failed to import summarization_service")
 
-# Now import other necessary modules
+# Debug import of ui.pages
+print("Attempting to import ui.pages")
+try:
+    from ui.pages import render_feedback_form, render_conversation_history
+    print("Successfully imported render_feedback_form and render_conversation_history from ui.pages")
+except ImportError as e:
+    print(f"Error importing from ui.pages: {str(e)}")
+    print("Traceback:")
+    traceback.print_exc()
+    
+    # Try to load the module manually
+    ui_pages_path = os.path.join(current_dir, 'ui', 'pages.py')
+    ui_pages = debug_import("ui.pages", ui_pages_path)
+    
+    if ui_pages:
+        print("Content of ui.pages:")
+        print(dir(ui_pages))
+        if hasattr(ui_pages, 'render_conversation_history'):
+            render_conversation_history = ui_pages.render_conversation_history
+            print("Successfully imported render_conversation_history")
+        else:
+            print("render_conversation_history not found in ui.pages")
+    else:
+        print("Failed to import ui.pages")
+
+# Import other necessary modules
 print("Importing other modules")
 try:
-    from openai_service import perform_gpt4_operation
-    from utils.audio_processing import transcribe_audio, process_audio_input
-    from utils.file_processing import process_uploaded_file
     from ui.components import display_transcript, display_klantuitvraag
-    from ui.pages import render_feedback_form, render_conversation_history
     from utils.text_processing import update_gesprekslog, load_questions
-    from st_copy_to_clipboard import st_copy_to_clipboard
-    from docx import Document
-    from docx.shared import Pt
-    from docx.enum.style import WD_STYLE_TYPE
-    from io import BytesIO
-    import bleach
-    import base64
-    import time
-    import streamlit as st
     print("All modules imported successfully")
 except Exception as e:
     print(f"Error importing modules: {str(e)}")
@@ -181,7 +205,11 @@ def main():
             display_klantuitvraag(st.session_state.klantuitvraag)
 
     st.markdown("---")
-    render_conversation_history()
+    if 'render_conversation_history' in globals():
+        render_conversation_history()
+    else:
+        print("render_conversation_history is not defined")
+        st.error("Unable to render conversation history due to an import error.")
 
 def update_klantuitvraag(new_klantuitvraag):
     print("Updating klantuitvraag")

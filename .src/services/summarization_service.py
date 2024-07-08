@@ -29,7 +29,7 @@ def summarize_text(text, department):
             raise e
 
 
-def run_summarization(text, department):
+def run_summarization(text):
     try:
         summary = summarize_text(text)
         return {"summary": summary, "error": None}

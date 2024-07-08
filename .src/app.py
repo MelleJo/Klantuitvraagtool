@@ -1,46 +1,91 @@
 import os
 import sys
-import json
-import streamlit as st
+import traceback
+import importlib.util
 
-#caching weghalen
-st.cache_data.clear()
-st.cache_resource.clear()
+print("Starting app.py")
+print(f"Python version: {sys.version}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Content of current directory: {os.listdir('.')}")
+print(f"Initial sys.path: {sys.path}")
 
 # Add the current directory to the Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
 sys.path.append(current_dir)
+sys.path.append(parent_dir)
+print(f"Updated sys.path: {sys.path}")
 
-# Now import the service
-from services.summarization_service import run_klantuitvraag
+def debug_import(module_name, file_path):
+    print(f"Attempting to import {module_name} from {file_path}")
+    try:
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        print(f"Successfully imported {module_name}")
+        print(f"Content of {module_name}:")
+        print(dir(module))
+        return module
+    except Exception as e:
+        print(f"Error importing {module_name}: {str(e)}")
+        print("Traceback:")
+        traceback.print_exc()
+        try:
+            with open(file_path, 'r') as f:
+                print(f"Content of {file_path}:")
+                print(f.read())
+        except Exception as file_error:
+            print(f"Error reading {file_path}: {str(file_error)}")
+        return None
 
-from openai_service import perform_gpt4_operation
-from utils.audio_processing import transcribe_audio, process_audio_input
-from utils.file_processing import process_uploaded_file
-from .services.summarization_service import run_klantuitvraag
-#from services.summarization_service import run_klantuitvraag
-from ui.components import display_transcript, display_klantuitvraag
-from ui.pages import render_feedback_form, render_conversation_history
-from utils.text_processing import update_gesprekslog, load_questions
-from st_copy_to_clipboard import st_copy_to_clipboard
-from docx import Document
-from docx.shared import Pt
-from docx.enum.style import WD_STYLE_TYPE
-from io import BytesIO
-import bleach
-import base64
-import time
+# Debug import of summarization_service
+summarization_service_path = os.path.join(current_dir, 'services', 'summarization_service.py')
+summarization_service = debug_import("summarization_service", summarization_service_path)
 
+if summarization_service:
+    print("Attempting to access run_klantuitvraag")
+    if hasattr(summarization_service, 'run_klantuitvraag'):
+        run_klantuitvraag = summarization_service.run_klantuitvraag
+        print("Successfully imported run_klantuitvraag")
+    else:
+        print("run_klantuitvraag not found in summarization_service")
+else:
+    print("Failed to import summarization_service")
 
+# Now import other necessary modules
+print("Importing other modules")
+try:
+    from openai_service import perform_gpt4_operation
+    from utils.audio_processing import transcribe_audio, process_audio_input
+    from utils.file_processing import process_uploaded_file
+    from ui.components import display_transcript, display_klantuitvraag
+    from ui.pages import render_feedback_form, render_conversation_history
+    from utils.text_processing import update_gesprekslog, load_questions
+    from st_copy_to_clipboard import st_copy_to_clipboard
+    from docx import Document
+    from docx.shared import Pt
+    from docx.enum.style import WD_STYLE_TYPE
+    from io import BytesIO
+    import bleach
+    import base64
+    import time
+    import streamlit as st
+    print("All modules imported successfully")
+except Exception as e:
+    print(f"Error importing modules: {str(e)}")
+    print("Traceback:")
+    traceback.print_exc()
 
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"]
 
 def load_config():
+    print("Loading configuration")
     return {
         "INPUT_METHODS": INPUT_METHODS,
     }
 
 def load_product_descriptions():
+    print("Loading product descriptions")
     current_dir = os.path.dirname(os.path.abspath(__file__))
     json_path = os.path.join(current_dir, 'product_descriptions.json')
     
@@ -48,10 +93,11 @@ def load_product_descriptions():
         with open(json_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except Exception as e:
-        st.error(f"Error loading product descriptions: {str(e)}")
+        print(f"Error loading product descriptions: {str(e)}")
         return {}
 
 def initialize_session_state():
+    print("Initializing session state")
     defaults = {
         'klantuitvraag': "",
         'klantuitvraag_versions': [],
@@ -67,6 +113,7 @@ def initialize_session_state():
             st.session_state[key] = value
 
 def main():
+    print("Entering main function")
     st.set_page_config(page_title="Klantuitvraagtool", page_icon="🎙️", layout="wide")
     
     config = load_config()
@@ -80,15 +127,19 @@ def main():
     with col1:
         st.markdown("### 📋 Configuratie")
         input_method = st.radio("Invoermethode", config["INPUT_METHODS"], key='input_method_radio')
+        print(f"Selected input method: {input_method}")
 
     with col2:
         st.markdown("### 📝 Transcript & klantuitvraag")
         if input_method == "Upload tekst":
             uploaded_file = st.file_uploader("Kies een bestand", type=['txt', 'docx', 'pdf'])
             if uploaded_file:
+                print(f"File uploaded: {uploaded_file.name}")
                 st.session_state.transcript = process_uploaded_file(uploaded_file)
                 with st.spinner("Klantuitvraag genereren..."):
+                    print("Generating klantuitvraag")
                     result = run_klantuitvraag(st.session_state.transcript)
+                print(f"Klantuitvraag generation result: {result}")
                 if result["error"] is None:
                     update_klantuitvraag(result["klantuitvraag"])
                     update_gesprekslog(st.session_state.transcript, result["klantuitvraag"])
@@ -103,11 +154,12 @@ def main():
                                                        key='input_text_area')
             if st.button("Genereer klantuitvraag", key='generate_button'):
                 if st.session_state.input_text:
+                    print("Generating klantuitvraag from input text")
                     st.session_state.transcript = st.session_state.input_text
                     
                     with st.spinner("Klantuitvraag genereren..."):
                         result = run_klantuitvraag(st.session_state.transcript)
-                    
+                    print(f"Klantuitvraag generation result: {result}")
                     if result["error"] is None:
                         update_klantuitvraag(result["klantuitvraag"])
                         update_gesprekslog(st.session_state.transcript, result["klantuitvraag"])
@@ -118,6 +170,7 @@ def main():
                     st.warning("Voer alstublieft tekst in om een klantuitvraag te genereren.")
 
         elif input_method in ["Upload audio", "Neem audio op"]:
+            print(f"Processing audio input: {input_method}")
             process_audio_input(input_method)
 
         display_transcript(st.session_state.transcript)
@@ -130,10 +183,13 @@ def main():
     render_conversation_history()
 
 def update_klantuitvraag(new_klantuitvraag):
+    print("Updating klantuitvraag")
     st.session_state.klantuitvraag_versions.append(new_klantuitvraag)
     st.session_state.current_version_index = len(st.session_state.klantuitvraag_versions) - 1
     st.session_state.klantuitvraag = new_klantuitvraag
 
 if __name__ == "__main__":
+    print("Starting main execution")
     product_descriptions = load_product_descriptions()
     main()
+    print("Finished main execution")

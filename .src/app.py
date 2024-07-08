@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 import importlib.util
+import streamlit as st
 
 print("Starting app.py")
 print(f"Python version: {sys.version}")

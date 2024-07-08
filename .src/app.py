@@ -152,7 +152,7 @@ def main():
                     st.session_state.transcript = st.session_state.input_text
                     
                     with st.spinner("Samenvatting maken..."):
-                        result = run_summarization(st.session_state.transcript, st.session_state.department)
+                        result = run_summarization(st.session_state.transcript)
                     
                     if result["error"] is None:
                         update_summary(result["summary"])

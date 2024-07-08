@@ -1,9 +1,0 @@
-Slim kijken naar de input van de adviseur en daar de volgende punten uithalen:
-- Verzekeringen ontbreken
-- Specifieke risico's
-- Groei / veranderingen
-#- Dekkingspercentage CAO (indien relevant):
-#  - Bouw: x %
-#  - Horeca: x %
-#  - Detail: x %
-

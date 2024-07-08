@@ -86,7 +86,7 @@ def process_audio_input(input_method):
                     os.unlink(tmp_audio.name)
                     logger.debug(f"Temporary file deleted: {tmp_audio.name}")
                 st.session_state['transcription_done'] = True
-                st.experimental_rerun()
+                st.rerun()
         elif input_method == "Neem audio op":
             audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True, format="webm")
             if audio_data and 'bytes' in audio_data and not st.session_state.get('transcription_done', False):
@@ -100,17 +100,9 @@ def process_audio_input(input_method):
                     os.unlink(tmp_audio.name)
                     logger.debug(f"Temporary file deleted: {tmp_audio.name}")
                 st.session_state['transcription_done'] = True
-                st.experimental_rerun()
+                st.rerun()
         
-        if st.session_state.get('transcription_done', False) and not st.session_state.get('summarization_done', False):
-            logger.debug("Starting summarization process")
-            with st.spinner("Genereren van samenvatting..."):
-                st.session_state['summary'] = summarize_text(st.session_state['transcript'], st.session_state['department'])
-            update_gesprekslog(st.session_state['transcript'], st.session_state['summary'])
-            st.session_state['summarization_done'] = True
-            st.session_state['processing_complete'] = True
-            logger.debug("Summarization process completed")
-            st.experimental_rerun()
+        
 
 def main():
     st.title("Klantuitvraagtool")
@@ -131,11 +123,6 @@ def main():
         transcript = st.session_state['transcript']
         st.text_area("Transcriptie", transcript)
 
-    # Display analysis result
-    if st.session_state.get('processing_complete', False):
-        st.header("Analyse Resultaat")
-        summary = st.session_state.get('summary', '')
-        st.text_area("Samenvatting", summary)
 
 if __name__ == "__main__":
     try:

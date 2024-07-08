@@ -18,23 +18,11 @@ import bleach
 import base64
 import time
 
-# Configuration
-PROMPTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'prompts'))
-QUESTIONS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'questions'))
-
-DEPARTMENTS = [
-    "Bedrijven", "Financieel Advies", "Schadeafdeling", "Algemeen", "Arbo", "Algemene samenvatting",
-    "Ondersteuning Bedrijfsarts", "Onderhoudsadviesgesprek in tabelvorm", "Notulen van een vergadering",
-    "Verslag van een telefoongesprek", "Deelnemersgesprekken collectief pensioen", "test-prompt (alleen voor Melle!)"
-]
 
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"]
 
 def load_config():
     return {
-        "PROMPTS_DIR": PROMPTS_DIR,
-        "QUESTIONS_DIR": QUESTIONS_DIR,
-        "DEPARTMENTS": DEPARTMENTS,
         "INPUT_METHODS": INPUT_METHODS,
     }
 
@@ -54,7 +42,6 @@ def initialize_session_state():
         'summary': "",
         'summary_versions': [],
         'current_version_index': -1,
-        'department': DEPARTMENTS[0],
         'input_text': "",
         'transcript': "",
         'gesprekslog': [],
@@ -124,50 +111,30 @@ def update_summary(new_summary):
     st.session_state.current_version_index = len(st.session_state.summary_versions) - 1
     st.session_state.summary = new_summary
 
-def display_department_info(department):
-    if department == "Deelnemersgesprekken collectief pensioen":
-        st.info("Let op: Voor deze afdeling wordt een uitgebreider, rapportstijl verslag gemaakt.")
-        
-
 def main():
-    st.set_page_config(page_title="Gesprekssamenvatter", page_icon="🎙️", layout="wide")
+    st.set_page_config(page_title="Klantuitvraagtool", page_icon="🎙️", layout="wide")
     
     config = load_config()
     initialize_session_state()
     
-    st.title("Gesprekssamenvatter versie 0.2.5")
+    st.title("Klantuivraagtool versie 0.0.1")
     st.markdown("---")
 
     col1, col2 = st.columns([1, 3])
 
     with col1:
         st.markdown("### 📋 Configuratie")
-        department = st.selectbox(
-            "Kies je afdeling", 
-            config["DEPARTMENTS"], 
-            key='department_select',
-            index=config["DEPARTMENTS"].index(st.session_state.department)
-        )
-        st.session_state.department = department
-        
-        display_department_info(department)  # Add this line
-
         input_method = st.radio("Invoermethode", config["INPUT_METHODS"], key='input_method_radio')
 
-        if department in config["DEPARTMENTS"]:
-            with st.expander("💡 Vragen om te overwegen"):
-                questions = load_questions(f"{department.lower().replace(' ', '_')}.txt")
-                for question in questions:
-                    st.markdown(f"- {question.strip()}")
 
     with col2:
-        st.markdown("### 📝 Invoer & Samenvatting")
+        st.markdown("### 📝 Transcript & e-mailtekst")
         if input_method == "Upload tekst":
             uploaded_file = st.file_uploader("Kies een bestand", type=['txt', 'docx', 'pdf'])
             if uploaded_file:
                 st.session_state.transcript = process_uploaded_file(uploaded_file)
                 with st.spinner("Samenvatting maken..."):
-                    result = run_summarization(st.session_state.transcript, department)
+                    result = run_summarization(st.session_state.transcript)
                 if result["error"] is None:
                     update_summary(result["summary"])
                     update_gesprekslog(st.session_state.transcript, result["summary"])

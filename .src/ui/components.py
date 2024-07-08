@@ -104,9 +104,6 @@ def display_summary(summary):
         st.markdown(summary, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-def display_department_selector(departments):
-    return st.selectbox("Kies je afdeling", departments, key='department_select')
-
 def display_input_method_selector(input_methods):
     return st.radio("Wat wil je laten samenvatten?", input_methods, key='input_method_radio')
 

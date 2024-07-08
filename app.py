@@ -104,6 +104,13 @@ def process_audio_input(input_method):
         
         
 
+if 'processing_complete' not in st.session_state:
+    st.session_state['processing_complete'] = False
+if 'transcription_done' not in st.session_state:
+    st.session_state['transcription_done'] = False
+if 'transcript' not in st.session_state:
+    st.session_state['transcript'] = ""
+
 def main():
     st.title("Klantuitvraagtool")
 
@@ -121,8 +128,13 @@ def main():
     if st.session_state['transcription_done']:
         st.header("Transcriptie Resultaat")
         transcript = st.session_state['transcript']
-        st.text_area("Transcriptie", transcript)
+        st.text_area("Transcriptie", transcript, height=300)
 
+    # Add a debug section
+    st.header("Debug Information")
+    st.write(f"Processing complete: {st.session_state['processing_complete']}")
+    st.write(f"Transcription done: {st.session_state['transcription_done']}")
+    st.write(f"Transcript length: {len(st.session_state['transcript'])}")
 
 if __name__ == "__main__":
     try:

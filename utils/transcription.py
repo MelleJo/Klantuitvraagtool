@@ -74,11 +74,13 @@ def process_audio_input(input_method):
                         tmp_audio.write(uploaded_file.getvalue())
                         tmp_audio.flush()
                         logger.debug(f"Temporary file created: {tmp_audio.name}")
-                        st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                        transcript = transcribe_audio(tmp_audio.name)
+                        st.session_state['transcript'] = transcript
+                        logger.debug(f"Transcript generated: {transcript[:100]}...")  # Log first 100 chars
                     os.unlink(tmp_audio.name)
                     logger.debug(f"Temporary file deleted: {tmp_audio.name}")
                 st.session_state['transcription_done'] = True
-                st.rerun()
+                st.session_state['processing_complete'] = True
         elif input_method == "Neem audio op":
             audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True, format="webm")
             if audio_data and 'bytes' in audio_data and not st.session_state.get('transcription_done', False):
@@ -88,11 +90,15 @@ def process_audio_input(input_method):
                         tmp_audio.write(audio_data['bytes'])
                         tmp_audio.flush()
                         logger.debug(f"Temporary file created for recorded audio: {tmp_audio.name}")
-                        st.session_state['transcript'] = transcribe_audio(tmp_audio.name)
+                        transcript = transcribe_audio(tmp_audio.name)
+                        st.session_state['transcript'] = transcript
+                        logger.debug(f"Transcript generated: {transcript[:100]}...")  # Log first 100 chars
                     os.unlink(tmp_audio.name)
                     logger.debug(f"Temporary file deleted: {tmp_audio.name}")
                 st.session_state['transcription_done'] = True
-                st.rerun()
+                st.session_state['processing_complete'] = True
+    
+    logger.debug(f"Session state after processing: {st.session_state}")
 
         
     

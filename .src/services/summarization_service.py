@@ -31,7 +31,7 @@ def summarize_text(text, department):
 
 def run_summarization(text, department):
     try:
-        summary = summarize_text(text, department)
+        summary = summarize_text(text)
         return {"summary": summary, "error": None}
     except Exception as e:
         return {"summary": None, "error": str(e)}

@@ -7,6 +7,13 @@ import streamlit as st
 st.cache_data.clear()
 st.cache_resource.clear()
 
+# Add the current directory to the Python path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+
+# Now import the service
+from services.summarization_service import run_klantuitvraag
+
 from openai_service import perform_gpt4_operation
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file

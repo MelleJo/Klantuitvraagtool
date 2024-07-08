@@ -4,13 +4,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt, get_local_time
 
 
-def run_klantuitvraag(text):
-    try:
-        klantuitvraag = generate_klantuitvraag(text)
-        return {"klantuitvraag": klantuitvraag, "error": None}
-    except Exception as e:
-        return {"klantuitvraag": None, "error": str(e)}
-
 def generate_klantuitvraag(text):
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0)
@@ -36,3 +29,9 @@ def generate_klantuitvraag(text):
         else:
             raise e
 
+def run_klantuitvraag(text):
+    try:
+        klantuitvraag = generate_klantuitvraag(text)
+        return {"klantuitvraag": klantuitvraag, "error": None}
+    except Exception as e:
+        return {"klantuitvraag": None, "error": str(e)}

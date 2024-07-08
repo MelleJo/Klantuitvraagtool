@@ -93,5 +93,6 @@ def process_audio_input(input_method):
                     logger.debug(f"Temporary file deleted: {tmp_audio.name}")
                 st.session_state['transcription_done'] = True
                 st.rerun()
+
         
     

@@ -2,6 +2,11 @@ import os
 import sys
 import json
 import streamlit as st
+
+#caching weghalen
+st.cache_data.clear()
+st.cache_resource.clear()
+
 from openai_service import perform_gpt4_operation
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
@@ -17,6 +22,8 @@ from io import BytesIO
 import bleach
 import base64
 import time
+
+
 
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"]
 

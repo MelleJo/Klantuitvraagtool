@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt, get_local_time
 
-def summarize_text(text, department):
+def summarize_text(text):
     custom_prompt = 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0)
     

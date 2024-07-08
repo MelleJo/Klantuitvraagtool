@@ -144,7 +144,7 @@ def main():
     config = load_config()
     initialize_session_state()
     
-    st.title("Klantuivraagtool versie 0.0.1")
+    st.title("Klantuitvraagtool versie 0.0.1")
     st.markdown("---")
 
     col1, col2 = st.columns([1, 3])

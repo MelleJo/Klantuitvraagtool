@@ -101,7 +101,7 @@ def display_klantuitvraag(klantuitvraag):
     if klantuitvraag:
         st.markdown('<div class="klantuitvraag-box">', unsafe_allow_html=True)
         st.markdown('<h3>Klantuitvraag</h3>', unsafe_allow_html=True)
-        st.markdown(klantuitvraag, unsafe_allow_html=True)
+        st.markdown(f'<div class="content">{html.escape(klantuitvraag)}</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 def display_input_method_selector(input_methods):
@@ -136,3 +136,5 @@ def display_error(text):
 
 def display_warning(text):
     st.warning(text)
+
+print("ui/components.py loaded successfully")

@@ -30,7 +30,7 @@ def setup_page_style():
         box-shadow: 0 15px 20px rgba(46, 229, 157, 0.4);
         transform: translateY(-7px);
     }
-    .klantuitvraag-box {
+    .klantuitvraag-box, .transcript-box {
         border: none;
         border-radius: 15px;
         padding: 25px;
@@ -39,11 +39,11 @@ def setup_page_style():
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
     }
-    .klantuitvraag-box:hover {
+    .klantuitvraag-box:hover, .transcript-box:hover {
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         transform: translateY(-5px);
     }
-    .klantuitvraag-box h3 {
+    .klantuitvraag-box h3, .transcript-box h3 {
         color: #2c3e50;
         border-bottom: 2px solid #3498db;
         padding-bottom: 10px;
@@ -58,34 +58,6 @@ def setup_page_style():
         line-height: 1.8;
         color: #34495e;
     }
-    .transcript-box {
-        border: none;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 20px;
-        background-color: #f9f9f9;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-    .copy-button {
-        text-align: center;
-        margin-top: 20px;
-    }
-    .stProgress > div > div > div > div {
-        background-color: #3498db;
-    }
-    .stSelectbox {
-        color: #2c3e50;
-    }
-    .stSelectbox > div > div {
-        background-color: #ffffff;
-        border-radius: 5px;
-    }
-    .stRadio > div {
-        background-color: #ffffff;
-        border-radius: 5px;
-        padding: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -93,7 +65,7 @@ def display_transcript(transcript):
     if transcript:
         with st.expander("Toon Transcript", expanded=False):
             st.markdown('<div class="transcript-box">', unsafe_allow_html=True)
-            st.markdown('<h4>Transcript</h4>', unsafe_allow_html=True)
+            st.markdown('<h3>Transcript</h3>', unsafe_allow_html=True)
             st.markdown(f'<div class="content">{html.escape(transcript)}</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 

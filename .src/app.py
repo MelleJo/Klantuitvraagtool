@@ -182,6 +182,8 @@ def main():
                     print("Generating klantuitvraag from input text")
                     st.session_state['transcript'] = st.session_state.input_text
                     print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state['transcript']}")
+                    result = run_klantuitvraag(st.session_state['transcript'])
+                    print(f"Debug: Generated klantuitvraag result: {result}")
                     
                     with st.spinner("Klantuitvraag genereren..."):
                         result = run_klantuitvraag(st.session_state['transcript'])

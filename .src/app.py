@@ -8,7 +8,6 @@ from openai_service import perform_gpt4_operation
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from utils.text_processing import update_gesprekslog, load_questions
-from ui.components import display_transcript, display_klantuitvraag  # Make sure this line is present
 from st_copy_to_clipboard import st_copy_to_clipboard
 from docx import Document
 from docx.shared import Pt
@@ -22,7 +21,6 @@ print("Starting app.py")
 print(f"Python version: {sys.version}")
 print(f"Current working directory: {os.getcwd()}")
 print(f"Content of current directory: {os.listdir('.')}")
-print(f"Initial sys.path: {sys.path}")
 
 # Add the current directory to the Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -59,7 +57,7 @@ summarization_service = debug_import("summarization_service", summarization_serv
 
 if summarization_service:
     print("Attempting to access run_klantuitvraag")
-    print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state.transcript}")
+    print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state.get('transcript', 'No transcript available')}")
     if hasattr(summarization_service, 'run_klantuitvraag'):
         run_klantuitvraag = summarization_service.run_klantuitvraag
         print("Successfully imported run_klantuitvraag")
@@ -97,7 +95,6 @@ except ImportError as e:
 print("Importing other modules")
 try:
     from ui.components import display_transcript, display_klantuitvraag
-    from utils.text_processing import update_gesprekslog, load_questions
     print("All modules imported successfully")
 except Exception as e:
     print(f"Error importing modules: {str(e)}")
@@ -147,7 +144,7 @@ def main():
     config = load_config()
     initialize_session_state()
     
-    st.title("Klantuitvraagtool versie 0.0.1")
+    st.title("Klantuivraagtool versie 0.0.1")
     st.markdown("---")
 
     col1, col2 = st.columns([1, 3])
@@ -159,30 +156,21 @@ def main():
 
     with col2:
         st.markdown("### 📝 Transcript & klantuitvraag")
-        if input_method == "Voer tekst in of plak tekst":
-            st.session_state.input_text = st.text_area("Voer tekst in:", 
-                                                       value=st.session_state.input_text, 
-                                                       height=200,
-                                                       key='input_text_area')
-            if st.button("Genereer klantuitvraag", key='generate_button'):
-                if st.session_state.input_text:
-                    st.write("Debugging: Input text being used:")
-                    st.write(st.session_state.input_text)
-                    
-                    print("Generating klantuitvraag from input text")
-                    st.session_state.transcript = st.session_state.input_text
-                    
-                    with st.spinner("Klantuitvraag genereren..."):
-                        result = run_klantuitvraag(st.session_state.transcript)
-                    print(f"Klantuitvraag generation result: {result}")
-                    if result["error"] is None:
-                        update_klantuitvraag(result["klantuitvraag"])
-                        update_gesprekslog(st.session_state.transcript, result["klantuitvraag"])
-                        st.success("Klantuitvraag gegenereerd!")
-                    else:
-                        st.error(f"Er is een fout opgetreden: {result['error']}")
+        if input_method == "Upload tekst":
+            uploaded_file = st.file_uploader("Kies een bestand", type=['txt', 'docx', 'pdf'])
+            if uploaded_file:
+                print(f"File uploaded: {uploaded_file.name}")
+                st.session_state['transcript'] = process_uploaded_file(uploaded_file)
+                with st.spinner("Klantuitvraag genereren..."):
+                    print("Generating klantuitvraag")
+                    result = run_klantuitvraag(st.session_state['transcript'])
+                print(f"Klantuitvraag generation result: {result}")
+                if result["error"] is None:
+                    update_klantuitvraag(result["klantuitvraag"])
+                    update_gesprekslog(st.session_state['transcript'], result["klantuitvraag"])
+                    st.success("Klantuitvraag gegenereerd!")
                 else:
-                    st.warning("Voer alstublieft tekst in om een klantuitvraag te genereren.")
+                    st.error(f"Er is een fout opgetreden: {result['error']}")
 
         elif input_method == "Voer tekst in of plak tekst":
             st.session_state.input_text = st.text_area("Voer tekst in:", 
@@ -192,14 +180,15 @@ def main():
             if st.button("Genereer klantuitvraag", key='generate_button'):
                 if st.session_state.input_text:
                     print("Generating klantuitvraag from input text")
-                    st.session_state.transcript = st.session_state.input_text
+                    st.session_state['transcript'] = st.session_state.input_text
+                    print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state['transcript']}")
                     
                     with st.spinner("Klantuitvraag genereren..."):
-                        result = run_klantuitvraag(st.session_state.transcript)
+                        result = run_klantuitvraag(st.session_state['transcript'])
                     print(f"Klantuitvraag generation result: {result}")
                     if result["error"] is None:
                         update_klantuitvraag(result["klantuitvraag"])
-                        update_gesprekslog(st.session_state.transcript, result["klantuitvraag"])
+                        update_gesprekslog(st.session_state['transcript'], result["klantuitvraag"])
                         st.success("Klantuitvraag gegenereerd!")
                     else:
                         st.error(f"Er is een fout opgetreden: {result['error']}")
@@ -210,20 +199,14 @@ def main():
             print(f"Processing audio input: {input_method}")
             process_audio_input(input_method)
 
-        display_transcript(st.session_state.transcript)
+        display_transcript(st.session_state['transcript'])
 
         if st.session_state.klantuitvraag:
             st.markdown("### 📑 Klantuitvraag")
-            st.write("Debugging: Input text used for generation:")
-            st.write(st.session_state.transcript)
             display_klantuitvraag(st.session_state.klantuitvraag)
 
     st.markdown("---")
-    if 'render_conversation_history' in globals():
-        render_conversation_history()
-    else:
-        print("render_conversation_history is not defined")
-        st.error("Unable to render conversation history due to an import error.")
+    render_conversation_history()
 
 def update_klantuitvraag(new_klantuitvraag):
     print("Updating klantuitvraag")

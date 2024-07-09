@@ -3,7 +3,7 @@ from pydub import AudioSegment
 import tempfile
 from openai_service import get_openai_client
 from streamlit_mic_recorder import mic_recorder
-from services.summarization_service import summarize_text
+from services.summarization_service import run_klantuitvraag  # Updated this line
 from utils.text_processing import update_gesprekslog
 
 def split_audio(file_path, max_duration_ms=30000):
@@ -68,10 +68,14 @@ def process_audio_input(input_method):
                 st.session_state['transcription_done'] = True
                 st.experimental_rerun()
         
-        if st.session_state.get('transcription_done', False) and not st.session_state.get('summarization_done', False):
-            with st.spinner("Genereren van samenvatting..."):
-                st.session_state['summary'] = summarize_text(st.session_state['transcript'])
-            update_gesprekslog(st.session_state['transcript'], st.session_state['summary'])
-            st.session_state['summarization_done'] = True
+        if st.session_state.get('transcription_done', False) and not st.session_state.get('klantuitvraag_done', False):
+            with st.spinner("Genereren van klantuitvraag..."):
+                result = run_klantuitvraag(st.session_state['transcript'])  # Updated this line
+                if result["error"] is None:
+                    st.session_state['klantuitvraag'] = result["klantuitvraag"]
+                    update_gesprekslog(st.session_state['transcript'], st.session_state['klantuitvraag'])
+                    st.session_state['klantuitvraag_done'] = True
+                else:
+                    st.error(f"Er is een fout opgetreden: {result['error']}")
             st.session_state['processing_complete'] = True
             st.experimental_rerun()

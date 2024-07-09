@@ -52,11 +52,17 @@ def load_questions(file_name):
         return file.readlines()
 
 def update_gesprekslog(transcript, klantuitvraag):
-    current_time = get_local_time()
     if 'gesprekslog' not in st.session_state:
-        st.session_state['gesprekslog'] = []
-    st.session_state['gesprekslog'].insert(0, {'time': current_time, 'transcript': transcript, 'klantuitvraag': klantuitvraag})
-    st.session_state['gesprekslog'] = st.session_state['gesprekslog'][:5]
+        st.session_state.gesprekslog = []
+    
+    st.session_state.gesprekslog.append({
+        'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'transcript': transcript,
+        'klantuitvraag': klantuitvraag
+    })
+    
+    # Keep only the last 5 conversations
+    st.session_state.gesprekslog = st.session_state.gesprekslog[-5:]
 
 def copy_to_clipboard(transcript, klantuitvraag):
     text_to_copy = f"Transcript:\n\n{transcript}\n\nKlantuitvraag:\n\n{klantuitvraag}"

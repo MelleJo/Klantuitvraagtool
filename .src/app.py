@@ -158,21 +158,30 @@ def main():
 
     with col2:
         st.markdown("### 📝 Transcript & klantuitvraag")
-        if input_method == "Upload tekst":
-            uploaded_file = st.file_uploader("Kies een bestand", type=['txt', 'docx', 'pdf'])
-            if uploaded_file:
-                print(f"File uploaded: {uploaded_file.name}")
-                st.session_state.transcript = process_uploaded_file(uploaded_file)
-                with st.spinner("Klantuitvraag genereren..."):
-                    print("Generating klantuitvraag")
-                    result = run_klantuitvraag(st.session_state.transcript)
-                print(f"Klantuitvraag generation result: {result}")
-                if result["error"] is None:
-                    update_klantuitvraag(result["klantuitvraag"])
-                    update_gesprekslog(st.session_state.transcript, result["klantuitvraag"])
-                    st.success("Klantuitvraag gegenereerd!")
+        if input_method == "Voer tekst in of plak tekst":
+            st.session_state.input_text = st.text_area("Voer tekst in:", 
+                                                       value=st.session_state.input_text, 
+                                                       height=200,
+                                                       key='input_text_area')
+            if st.button("Genereer klantuitvraag", key='generate_button'):
+                if st.session_state.input_text:
+                    st.write("Debugging: Input text being used:")
+                    st.write(st.session_state.input_text)
+                    
+                    print("Generating klantuitvraag from input text")
+                    st.session_state.transcript = st.session_state.input_text
+                    
+                    with st.spinner("Klantuitvraag genereren..."):
+                        result = run_klantuitvraag(st.session_state.transcript)
+                    print(f"Klantuitvraag generation result: {result}")
+                    if result["error"] is None:
+                        update_klantuitvraag(result["klantuitvraag"])
+                        update_gesprekslog(st.session_state.transcript, result["klantuitvraag"])
+                        st.success("Klantuitvraag gegenereerd!")
+                    else:
+                        st.error(f"Er is een fout opgetreden: {result['error']}")
                 else:
-                    st.error(f"Er is een fout opgetreden: {result['error']}")
+                    st.warning("Voer alstublieft tekst in om een klantuitvraag te genereren.")
 
         elif input_method == "Voer tekst in of plak tekst":
             st.session_state.input_text = st.text_area("Voer tekst in:", 
@@ -204,6 +213,8 @@ def main():
 
         if st.session_state.klantuitvraag:
             st.markdown("### 📑 Klantuitvraag")
+            st.write("Debugging: Input text used for generation:")
+            st.write(st.session_state.transcript)
             display_klantuitvraag(st.session_state.klantuitvraag)
 
     st.markdown("---")

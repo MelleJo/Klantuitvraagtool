@@ -3,7 +3,6 @@ import pytz
 from datetime import datetime
 import streamlit as st
 import pyperclip
-from config import PROMPTS_DIR, QUESTIONS_DIR
 
 
 

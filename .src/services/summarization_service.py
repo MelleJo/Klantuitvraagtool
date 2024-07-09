@@ -4,6 +4,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt, get_local_time
 
 def generate_klantuitvraag(text):
+    print(f"Debug: generate_klantuitvraag received input: {text[:100]}...")  # Print first 100 chars
+    
     print(f"Entering generate_klantuitvraag with input: {text[:100]}...")  # Print first 100 chars of input
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")
     print(f"Loaded custom prompt: {custom_prompt[:100]}...")  # Print first 100 chars of prompt

@@ -59,6 +59,7 @@ summarization_service = debug_import("summarization_service", summarization_serv
 
 if summarization_service:
     print("Attempting to access run_klantuitvraag")
+    print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state.transcript}")
     if hasattr(summarization_service, 'run_klantuitvraag'):
         run_klantuitvraag = summarization_service.run_klantuitvraag
         print("Successfully imported run_klantuitvraag")

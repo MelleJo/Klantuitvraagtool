@@ -217,32 +217,38 @@ def main():
                     st.session_state['input_processed'] = True
                 display_success("Audio succesvol verwerkt en getranscribeerd.")
 
-        # Display and allow editing of the transcript
         if st.session_state.get('input_processed', False):
             st.subheader("Transcript")
             st.session_state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
-                value=st.session_state['transcript'], 
+                value=st.session_state.get('transcript', ''), 
                 height=300
             )
 
             if st.button("Analyseer"):
                 with st.spinner("Transcript analyseren..."):
-                    st.session_state['suggestions'] = analyze_transcript(st.session_state['edited_transcript'])
-                st.session_state['analysis_complete'] = True
+                    try:
+                        st.session_state['suggestions'] = analyze_transcript(st.session_state['edited_transcript'])
+                        st.session_state['analysis_complete'] = True
+                        display_success("Analyse voltooid!")
+                    except Exception as e:
+                        display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
 
             if st.session_state.get('analysis_complete', False):
                 st.session_state['selected_suggestions'] = render_suggestions(st.session_state['suggestions'])
 
                 if st.button("Genereer E-mail"):
                     with st.spinner("E-mail genereren..."):
-                        st.session_state['email_content'] = generate_email(
-                            st.session_state['edited_transcript'],
-                            st.session_state['selected_suggestions']
-                        )
-                    st.session_state['klantuitvraag'] = st.session_state['email_content']
-                    update_gesprekslog(st.session_state['edited_transcript'], st.session_state['email_content'])
-                    display_success("E-mail gegenereerd!")
+                        try:
+                            st.session_state['email_content'] = generate_email(
+                                st.session_state['edited_transcript'],
+                                st.session_state['selected_suggestions']
+                            )
+                            st.session_state['klantuitvraag'] = st.session_state['email_content']
+                            update_gesprekslog(st.session_state['edited_transcript'], st.session_state['email_content'])
+                            display_success("E-mail gegenereerd!")
+                        except Exception as e:
+                            display_error(f"Er is een fout opgetreden bij het genereren van de e-mail: {str(e)}")
 
             if st.session_state.get('klantuitvraag'):
                 display_klantuitvraag(st.session_state['klantuitvraag'])
@@ -264,6 +270,3 @@ def main():
     
     with st.expander("Feedback", expanded=False):
         render_feedback_form()
-
-if __name__ == "__main__":
-    main()

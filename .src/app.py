@@ -68,8 +68,8 @@ if summarization_service:
 else:
     print("Failed to import summarization_service")
 
-# Debug import of ui.pages
-print("Attempting to import ui.pages")
+# Debug import of ui.pages and ui.components
+print("Attempting to import UI modules")
 try:
     from ui.pages import render_feedback_form, render_conversation_history, render_suggestions
     from ui.components import (
@@ -83,6 +83,62 @@ except ImportError as e:
     print(f"Error importing UI modules: {str(e)}")
     print("Traceback:")
     traceback.print_exc()
+    
+    # Define basic versions of required functions if import fails
+    def setup_page_style():
+        st.set_page_config(page_title="Klantuitvraagtool", page_icon="🎙️", layout="wide")
+    
+    def display_transcript(transcript):
+        st.subheader("Transcript")
+        st.text_area("", value=transcript, height=200, disabled=True)
+    
+    def display_klantuitvraag(klantuitvraag):
+        st.subheader("Klantuitvraag")
+        st.text_area("", value=klantuitvraag, height=200, disabled=True)
+    
+    def display_input_method_selector(input_methods):
+        return st.radio("Selecteer invoermethode:", input_methods)
+    
+    def display_text_input():
+        return st.text_area("Voer tekst in:", height=200)
+    
+    def display_file_uploader(file_types):
+        return st.file_uploader("Upload een bestand", type=file_types)
+    
+    def display_generate_button():
+        return st.button("Genereer")
+    
+    def display_progress_bar():
+        return st.progress(0)
+    
+    def display_spinner(text):
+        return st.spinner(text)
+    
+    def display_success(text):
+        st.success(text)
+    
+    def display_error(text):
+        st.error(text)
+    
+    def display_warning(text):
+        st.warning(text)
+    
+    def render_feedback_form():
+        st.subheader("Feedback")
+        st.text_input("Uw naam:")
+        st.radio("Was deze klantuitvraag nuttig?", ["Ja", "Nee"])
+        st.text_area("Aanvullende opmerkingen:")
+        st.button("Verzend feedback")
+    
+    def render_conversation_history():
+        st.subheader("Gespreksgeschiedenis")
+        st.text("Geen eerdere gesprekken gevonden.")
+    
+    def render_suggestions(suggestions):
+        st.subheader("Suggesties")
+        for suggestion in suggestions:
+            st.checkbox(suggestion['title'], help=suggestion['description'])
+        return []
 
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"]
 
@@ -187,7 +243,7 @@ def main():
         # Existing klantuitvraag generation logic
         if not st.session_state.get('analysis_complete', False) and st.session_state.get('input_processed', False):
             if st.button("Genereer Klantuitvraag (Oude Methode)"):
-                with st.spinner("Klantuitvraag genereren..."):
+                with display_spinner("Klantuitvraag genereren..."):
                     result = run_klantuitvraag(st.session_state['edited_transcript'])
                 if result["error"] is None:
                     st.session_state['klantuitvraag'] = result["klantuitvraag"]

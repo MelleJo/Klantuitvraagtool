@@ -29,17 +29,24 @@ def run_klantuitvraag(text):
 
 def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
     prompt = """
-    Je bent een expert verzekeringsadviseur. Analyseer het volgende transcript en geef een lijst met verzekeringsvoorstellen.
-    Elk voorstel moet een titel, een korte beschrijving en een redenering bevatten op basis van de inhoud van het transcript.
-    Je let op risico's, ontbrekende producten, en meer.
-    Als er bijvoorbeeld over een bouwbedrijf gaat, dan zouden er normaal verzekering x, y, en z moeten zijn. Uit het transcript haal ik dat x en y er al zijn. Dus raad ik verzekering z aan, en geef ik ook even twee originele duidelijke voorbeelden van het risico wat je er mee afdekt.
-    
+    Je bent een expert verzekeringsadviseur. Analyseer het volgende transcript en geef een lijst met aanvullende verzekeringsvoorstellen die complementair zijn aan wat al besproken is.
+    Focus op:
+    1. Potentiële hiaten in de huidige dekking
+    2. Risico's die nog niet zijn afgedekt
+    3. Nieuwe of aanvullende verzekeringen die de klant mogelijk nodig heeft
+    4. Verbeteringen of uitbreidingen van bestaande polissen
+
+    Geef voor elk voorstel:
+    1. Een titel
+    2. Een korte beschrijving
+    3. Een redenering gebaseerd op het transcript, inclusief waarom dit een waardevolle aanvulling zou zijn
+
     Transcript:
     {transcript}
 
     Geef je analyse in het volgende JSON-formaat:
     [
-        {{"titel": "Voorstel Titel", "beschrijving": "Korte beschrijving", "redenering": "Redenering gebaseerd op transcript"}}
+        {{"titel": "Aanvullend Voorstel Titel", "beschrijving": "Korte beschrijving van aanvullende dekking", "redenering": "Uitgebreide redenering waarom dit voorstel complementair en waardevol is"}}
     ]
     """
 
@@ -57,19 +64,25 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
 def generate_email(transcript: str, selected_suggestions: List[Dict[str, str]]) -> str:
     suggestions_text = "\n".join([f"- {s['titel']}: {s['beschrijving']}" for s in selected_suggestions])
     prompt = f"""
-    Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant op basis van een gespreksverslag en geselecteerde verzekeringsvoorstellen.
+    Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht. 
+    Het doel is om de huidige situatie van de klant te verifiëren, vooral voor klanten die we minder vaak bezoeken of spreken.
     Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
-    1. Een samenvatting van het gesprek
-    2. De geselecteerde verzekeringsvoorstellen
-    3. Een uitnodiging voor een vervolgafspraak
+
+    1. Een korte introductie waarin je uitlegt waarom je contact opneemt (zorgplicht, periodieke check).
+    2. Vragen om de huidige situatie van de klant te verifiëren, gebaseerd op het transcript.
+    3. Vragen over mogelijke veranderingen in de situatie van de klant sinds het laatste contact.
+    4. Introductie van de geselecteerde verzekeringsvoorstellen als mogelijke aanvullingen of verbeteringen.
+    5. Een uitnodiging voor een vervolgafspraak om de situatie en eventuele aanpassingen te bespreken.
+
+    Gebruik de volgende informatie:
 
     Transcript:
     {transcript}
 
-    Geselecteerde Voorstellen:
+    Geselecteerde Verzekeringsvoorstellen:
     {suggestions_text}
 
-    Genereer de e-mailinhoud:
+    Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0.7)

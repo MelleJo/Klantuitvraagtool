@@ -60,44 +60,27 @@ if summarization_service:
     print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state.get('transcript', 'No transcript available')}")
     if hasattr(summarization_service, 'run_klantuitvraag'):
         run_klantuitvraag = summarization_service.run_klantuitvraag
-        print("Successfully imported run_klantuitvraag")
+        analyze_transcript = summarization_service.analyze_transcript
+        generate_email = summarization_service.generate_email
+        print("Successfully imported run_klantuitvraag, analyze_transcript, and generate_email")
     else:
-        print("run_klantuitvraag not found in summarization_service")
+        print("Required functions not found in summarization_service")
 else:
     print("Failed to import summarization_service")
 
 # Debug import of ui.pages
 print("Attempting to import ui.pages")
 try:
-    from ui.pages import render_feedback_form, render_conversation_history
-    print("Successfully imported render_feedback_form and render_conversation_history from ui.pages")
+    from ui.pages import render_feedback_form, render_conversation_history, render_suggestions
+    from ui.components import (
+        setup_page_style, display_transcript, display_klantuitvraag,
+        display_input_method_selector, display_text_input, display_file_uploader,
+        display_generate_button, display_progress_bar, display_spinner,
+        display_success, display_error, display_warning
+    )
+    print("Successfully imported UI modules")
 except ImportError as e:
-    print(f"Error importing from ui.pages: {str(e)}")
-    print("Traceback:")
-    traceback.print_exc()
-    
-    # Try to load the module manually
-    ui_pages_path = os.path.join(current_dir, 'ui', 'pages.py')
-    ui_pages = debug_import("ui.pages", ui_pages_path)
-    
-    if ui_pages:
-        print("Content of ui.pages:")
-        print(dir(ui_pages))
-        if hasattr(ui_pages, 'render_conversation_history'):
-            render_conversation_history = ui_pages.render_conversation_history
-            print("Successfully imported render_conversation_history")
-        else:
-            print("render_conversation_history not found in ui.pages")
-    else:
-        print("Failed to import ui.pages")
-
-# Import other necessary modules
-print("Importing other modules")
-try:
-    from ui.components import display_transcript, display_klantuitvraag
-    print("All modules imported successfully")
-except Exception as e:
-    print(f"Error importing modules: {str(e)}")
+    print(f"Error importing UI modules: {str(e)}")
     print("Traceback:")
     traceback.print_exc()
 
@@ -131,93 +114,91 @@ def initialize_session_state():
         'transcript': "",
         'gesprekslog': [],
         'product_info': "",
-        'selected_products': []
+        'selected_products': [],
+        'suggestions': [],
+        'selected_suggestions': [],
+        'email_content': "",
+        'input_processed': False,
+        'analysis_complete': False,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
 def main():
-    print("Entering main function")
-    st.set_page_config(page_title="Klantuitvraagtool", page_icon="🎙️", layout="wide")
-    
+    setup_page_style()
+    st.title("Klantuitvraagtool v0.0.2")
+    st.markdown("---")
+
     config = load_config()
     initialize_session_state()
     
-    st.title("Klantuivraagtool versie 0.0.1")
-    st.markdown("---")
-
     col1, col2 = st.columns([1, 3])
 
     with col1:
         st.markdown("### 📋 Configuratie")
-        input_method = st.radio("Invoermethode", config["INPUT_METHODS"], key='input_method_radio')
-        print(f"Selected input method: {input_method}")
+        input_method = display_input_method_selector(config["INPUT_METHODS"])
 
     with col2:
-        st.markdown("### 📝 Transcript & klantuitvraag")
+        st.markdown("### 📝 Transcript & Klantuitvraag")
         if input_method == "Upload tekst":
-            uploaded_file = st.file_uploader("Kies een bestand", type=['txt', 'docx', 'pdf'])
+            uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
             if uploaded_file:
-                print(f"File uploaded: {uploaded_file.name}")
                 st.session_state['transcript'] = process_uploaded_file(uploaded_file)
-                with st.spinner("Klantuitvraag genereren..."):
-                    print("Generating klantuitvraag")
-                    result = run_klantuitvraag(st.session_state['transcript'])
-                print(f"Klantuitvraag generation result: {result}")
-                if result["error"] is None:
-                    update_klantuitvraag(result["klantuitvraag"])
-                    update_gesprekslog(st.session_state['transcript'], result["klantuitvraag"])
-                    st.success("Klantuitvraag gegenereerd!")
-                else:
-                    st.error(f"Er is een fout opgetreden: {result['error']}")
+                st.session_state['input_processed'] = True
 
         elif input_method == "Voer tekst in of plak tekst":
-            st.session_state.input_text = st.text_area("Voer tekst in:", 
-                                                       value=st.session_state.input_text, 
-                                                       height=200,
-                                                       key='input_text_area')
-            if st.button("Genereer klantuitvraag", key='generate_button'):
-                if st.session_state.input_text:
-                    print("Generating klantuitvraag from input text")
-                    st.session_state['transcript'] = st.session_state.input_text
-                    print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state['transcript']}")
-                    result = run_klantuitvraag(st.session_state['transcript'])
-                    print(f"Debug: Generated klantuitvraag result: {result}")
-                    
-                    with st.spinner("Klantuitvraag genereren..."):
-                        result = run_klantuitvraag(st.session_state['transcript'])
-                    print(f"Klantuitvraag generation result: {result}")
-                    if result["error"] is None:
-                        update_klantuitvraag(result["klantuitvraag"])
-                        update_gesprekslog(st.session_state['transcript'], result["klantuitvraag"])
-                        st.success("Klantuitvraag gegenereerd!")
-                    else:
-                        st.error(f"Er is een fout opgetreden: {result['error']}")
-                else:
-                    st.warning("Voer alstublieft tekst in om een klantuitvraag te genereren.")
+            st.session_state['transcript'] = display_text_input()
+            if display_generate_button():
+                st.session_state['input_processed'] = True
 
         elif input_method in ["Upload audio", "Neem audio op"]:
-            print(f"Processing audio input: {input_method}")
             process_audio_input(input_method)
 
-        display_transcript(st.session_state['transcript'])
+        if st.session_state.get('input_processed', False):
+            display_transcript(st.session_state['transcript'])
+            st.session_state['edited_transcript'] = st.text_area(
+                "Bewerk het transcript indien nodig:", 
+                value=st.session_state['transcript'], 
+                height=300
+            )
 
-        if st.session_state.klantuitvraag:
-            st.markdown("### 📑 Klantuitvraag")
-            display_klantuitvraag(st.session_state.klantuitvraag)
+            if st.button("Analyseer"):
+                with display_spinner("Transcript analyseren..."):
+                    st.session_state['suggestions'] = analyze_transcript(st.session_state['edited_transcript'])
+                st.session_state['analysis_complete'] = True
+
+            if st.session_state.get('analysis_complete', False):
+                st.session_state['selected_suggestions'] = render_suggestions(st.session_state['suggestions'])
+
+                if st.button("Genereer E-mail"):
+                    with display_spinner("E-mail genereren..."):
+                        st.session_state['email_content'] = generate_email(
+                            st.session_state['edited_transcript'],
+                            st.session_state['selected_suggestions']
+                        )
+                    st.session_state['klantuitvraag'] = st.session_state['email_content']
+                    update_gesprekslog(st.session_state['edited_transcript'], st.session_state['email_content'])
+                    display_success("E-mail gegenereerd!")
+
+            if st.session_state.get('klantuitvraag'):
+                display_klantuitvraag(st.session_state['klantuitvraag'])
+
+        # Existing klantuitvraag generation logic
+        if not st.session_state.get('analysis_complete', False) and st.session_state.get('input_processed', False):
+            if st.button("Genereer Klantuitvraag (Oude Methode)"):
+                with st.spinner("Klantuitvraag genereren..."):
+                    result = run_klantuitvraag(st.session_state['edited_transcript'])
+                if result["error"] is None:
+                    st.session_state['klantuitvraag'] = result["klantuitvraag"]
+                    update_gesprekslog(st.session_state['edited_transcript'], result["klantuitvraag"])
+                    display_success("Klantuitvraag gegenereerd!")
+                else:
+                    display_error(f"Er is een fout opgetreden: {result['error']}")
 
     st.markdown("---")
     render_conversation_history()
-
-def update_klantuitvraag(new_klantuitvraag):
-    print("Updating klantuitvraag")
-    st.session_state.klantuitvraag_versions.append(new_klantuitvraag)
-    st.session_state.current_version_index = len(st.session_state.klantuitvraag_versions) - 1
-    st.session_state.klantuitvraag = new_klantuitvraag
+    render_feedback_form()
 
 if __name__ == "__main__":
-    print("Starting main execution")
-    product_descriptions = load_product_descriptions()
     main()
-    print("Finished main execution")

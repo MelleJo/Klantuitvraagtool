@@ -25,3 +25,5 @@ def process_uploaded_file(uploaded_file):
         transcript = uploaded_file.getvalue().decode("utf-8")
     
     return transcript
+
+print("file_processing.py loaded successfully")

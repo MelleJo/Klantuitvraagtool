@@ -36,10 +36,21 @@ def render_conversation_history():
 
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
-    selected_suggestions = []
     for i, suggestion in enumerate(suggestions):
-        if st.checkbox(suggestion['titel'], key=f"suggestion_{i}", help=suggestion['redenering']):
-            selected_suggestions.append(suggestion)
-    return selected_suggestions
+        key = f"suggestion_{i}"
+        if key not in st.session_state:
+            st.session_state[key] = suggestion.get('selected', False)
+        
+        suggestion['selected'] = st.checkbox(
+            suggestion['titel'],
+            value=st.session_state[key],
+            key=key,
+            help=suggestion['redenering'],
+            on_change=update_suggestion_state,
+            args=(key,)
+        )
+
+def update_suggestion_state(key):
+    st.session_state[key] = not st.session_state[key]
 
 print("ui/pages.py loaded successfully")

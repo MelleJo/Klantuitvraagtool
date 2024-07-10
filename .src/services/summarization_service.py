@@ -5,19 +5,29 @@ from utils.text_processing import load_prompt
 from typing import List, Dict
 import json
 
-def generate_klantuitvraag(text):
-    custom_prompt = load_prompt("klantuitvraag_prompt.txt")
-    full_prompt = f"{custom_prompt}\n\nInput tekst: \"{text}\"\n\nGenereer nu een klantuitvraag op basis van deze input:"
-    
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0)
+def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
+    prompt = f"""
+    Je bent een expert verzekeringsadviseur. Analyseer het volgende transcript en geef een lijst met verzekeringsvoorstellen.
+    Elk voorstel moet een titel, een korte beschrijving en een redenering bevatten op basis van de inhoud van het transcript.
+
+    Transcript:
+    {transcript}
+
+    Geef je analyse in het volgende JSON-formaat:
+    [
+        {{"titel": "Voorstel Titel", "beschrijving": "Korte beschrijving", "redenering": "Redenering gebaseerd op transcript"}}
+    ]
+    """
+
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0.7)
     
     try:
-        prompt_template = ChatPromptTemplate.from_template(full_prompt)
+        prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({}).content
-        return result
+        result = chain.invoke({"transcript": transcript}).content
+        return json.loads(result)
     except Exception as e:
-        print(f"Error in generate_klantuitvraag: {str(e)}")
+        print(f"Error in analyze_transcript: {str(e)}")
         raise e
 
 def run_klantuitvraag(text):

@@ -8,6 +8,10 @@ from utils.text_processing import update_gesprekslog
 from openai import OpenAI
 import logging
 
+#logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 client = OpenAI()
 OpenAI.api_key = st.secrets["OPENAI_API_KEY"]
 

@@ -217,8 +217,9 @@ def main():
                     st.session_state['input_processed'] = True
                 display_success("Audio succesvol verwerkt en getranscribeerd.")
 
+        # Display and allow editing of the transcript
         if st.session_state.get('input_processed', False):
-            display_transcript(st.session_state['transcript'])
+            st.subheader("Transcript")
             st.session_state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
                 value=st.session_state['transcript'], 

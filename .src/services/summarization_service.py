@@ -28,12 +28,12 @@ def run_klantuitvraag(text):
         return {"klantuitvraag": None, "error": str(e)}
 
 def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
-    prompt = f"""
+    prompt = """
     Je bent een expert verzekeringsadviseur. Analyseer het volgende transcript en geef een lijst met verzekeringsvoorstellen.
     Elk voorstel moet een titel, een korte beschrijving en een redenering bevatten op basis van de inhoud van het transcript.
 
     Transcript:
-    {{transcript}}
+    {transcript}
 
     Geef je analyse in het volgende JSON-formaat:
     [
@@ -46,8 +46,8 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({"transcript": transcript}).content
-        return json.loads(result)
+        result = chain.invoke({"transcript": transcript})
+        return json.loads(result.content)
     except Exception as e:
         print(f"Error in analyze_transcript: {str(e)}")
         raise e

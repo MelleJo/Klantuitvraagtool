@@ -202,6 +202,7 @@ def main():
             if uploaded_file:
                 st.session_state['transcript'] = process_uploaded_file(uploaded_file)
                 st.session_state['input_processed'] = True
+                display_success("Bestand succesvol geüpload en verwerkt.")
 
         elif input_method == "Voer tekst in of plak tekst":
             st.session_state['transcript'] = display_text_input()
@@ -209,7 +210,12 @@ def main():
                 st.session_state['input_processed'] = True
 
         elif input_method in ["Upload audio", "Neem audio op"]:
-            process_audio_input(input_method)
+            audio_data = process_audio_input(input_method)
+            if audio_data:
+                with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                    st.session_state['transcript'] = transcribe_audio(audio_data)
+                    st.session_state['input_processed'] = True
+                display_success("Audio succesvol verwerkt en getranscribeerd.")
 
         if st.session_state.get('input_processed', False):
             display_transcript(st.session_state['transcript'])
@@ -220,7 +226,7 @@ def main():
             )
 
             if st.button("Analyseer"):
-                with display_spinner("Transcript analyseren..."):
+                with st.spinner("Transcript analyseren..."):
                     st.session_state['suggestions'] = analyze_transcript(st.session_state['edited_transcript'])
                 st.session_state['analysis_complete'] = True
 
@@ -228,7 +234,7 @@ def main():
                 st.session_state['selected_suggestions'] = render_suggestions(st.session_state['suggestions'])
 
                 if st.button("Genereer E-mail"):
-                    with display_spinner("E-mail genereren..."):
+                    with st.spinner("E-mail genereren..."):
                         st.session_state['email_content'] = generate_email(
                             st.session_state['edited_transcript'],
                             st.session_state['selected_suggestions']
@@ -243,7 +249,7 @@ def main():
         # Existing klantuitvraag generation logic
         if not st.session_state.get('analysis_complete', False) and st.session_state.get('input_processed', False):
             if st.button("Genereer Klantuitvraag (Oude Methode)"):
-                with display_spinner("Klantuitvraag genereren..."):
+                with st.spinner("Klantuitvraag genereren..."):
                     result = run_klantuitvraag(st.session_state['edited_transcript'])
                 if result["error"] is None:
                     st.session_state['klantuitvraag'] = result["klantuitvraag"]
@@ -254,7 +260,9 @@ def main():
 
     st.markdown("---")
     render_conversation_history()
-    render_feedback_form()
+    
+    with st.expander("Feedback", expanded=False):
+        render_feedback_form()
 
 if __name__ == "__main__":
     main()

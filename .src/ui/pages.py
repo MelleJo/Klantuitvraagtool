@@ -3,28 +3,27 @@ from services.email_service import send_feedback_email
 import html
 
 def render_feedback_form():
-    with st.expander("Geef feedback"):
-        with st.form(key="feedback_form"):
-            user_first_name = st.text_input("Uw voornaam (verplicht bij feedback):")
-            feedback = st.radio("Was deze klantuitvraag nuttig?", ["Positief", "Negatief"])
-            additional_feedback = st.text_area("Laat aanvullende feedback achter:")
-            submit_button = st.form_submit_button(label="Verzenden")
+    with st.form(key="feedback_form"):
+        user_first_name = st.text_input("Uw voornaam (verplicht bij feedback):")
+        feedback = st.radio("Was deze klantuitvraag nuttig?", ["Positief", "Negatief"])
+        additional_feedback = st.text_area("Laat aanvullende feedback achter:")
+        submit_button = st.form_submit_button(label="Verzend feedback")
 
-            if submit_button:
-                if not user_first_name:
-                    st.warning("Voornaam is verplicht bij het geven van feedback.", icon="⚠️")
+        if submit_button:
+            if not user_first_name:
+                st.warning("Voornaam is verplicht bij het geven van feedback.", icon="⚠️")
+            else:
+                success = send_feedback_email(
+                    transcript=st.session_state.get('transcript', ''),
+                    klantuitvraag=st.session_state.get('klantuitvraag', ''),
+                    feedback=feedback,
+                    additional_feedback=additional_feedback,
+                    user_first_name=user_first_name
+                )
+                if success:
+                    st.success("Bedankt voor uw feedback!")
                 else:
-                    success = send_feedback_email(
-                        transcript=st.session_state.get('transcript', ''),
-                        klantuitvraag=st.session_state.get('klantuitvraag', ''),
-                        feedback=feedback,
-                        additional_feedback=additional_feedback,
-                        user_first_name=user_first_name
-                    )
-                    if success:
-                        st.success("Bedankt voor uw feedback!")
-                    else:
-                        st.error("Er is een fout opgetreden bij het verzenden van de feedback. Probeer het later opnieuw.")
+                    st.error("Er is een fout opgetreden bij het verzenden van de feedback. Probeer het later opnieuw.")
 
 def render_conversation_history():
     st.subheader("Laatste vijf gesprekken")

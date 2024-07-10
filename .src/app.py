@@ -7,7 +7,7 @@ import streamlit as st
 from openai_service import perform_gpt4_operation
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
-from utils.text_processing import update_gesprekslog, load_questions
+from utils.text_processing import update_gesprekslog
 from st_copy_to_clipboard import st_copy_to_clipboard
 from docx import Document
 from docx.shared import Pt

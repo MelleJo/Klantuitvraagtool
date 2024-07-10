@@ -87,29 +87,31 @@ def main():
         st.markdown("### 📝 Transcript & Klantuitvraag")
         if input_method == "Upload tekst":
             uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
-            if uploaded_file:
+            if uploaded_file and 'transcript' not in st.session_state:
                 st.session_state['transcript'] = process_uploaded_file(uploaded_file)
                 st.session_state['input_processed'] = True
                 display_success("Bestand succesvol geüpload en verwerkt.")
 
         elif input_method == "Voer tekst in of plak tekst":
-            st.session_state['transcript'] = display_text_input()
+            if 'transcript' not in st.session_state:
+                st.session_state['transcript'] = display_text_input()
             if display_generate_button():
                 st.session_state['input_processed'] = True
 
         elif input_method in ["Upload audio", "Neem audio op"]:
-            audio_data = process_audio_input(input_method)
-            if audio_data:
-                with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
-                    st.session_state['transcript'] = transcribe_audio(audio_data)
-                    st.session_state['input_processed'] = True
-                display_success("Audio succesvol verwerkt en getranscribeerd.")
+            if 'transcript' not in st.session_state:
+                audio_data = process_audio_input(input_method)
+                if audio_data:
+                    with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                        st.session_state['transcript'] = transcribe_audio(audio_data)
+                        st.session_state['input_processed'] = True
+                    display_success("Audio succesvol verwerkt en getranscribeerd.")
 
-        if st.session_state.get('input_processed', False):
-            display_transcript(st.session_state['transcript'])
+        if 'transcript' in st.session_state:
+            st.subheader("Transcript")
             st.session_state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
-                value=st.session_state.get('transcript', ''), 
+                value=st.session_state['transcript'], 
                 height=300
             )
 

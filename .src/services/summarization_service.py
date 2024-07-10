@@ -33,7 +33,7 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
     Elk voorstel moet een titel, een korte beschrijving en een redenering bevatten op basis van de inhoud van het transcript.
 
     Transcript:
-    {transcript}
+    {{transcript}}
 
     Geef je analyse in het volgende JSON-formaat:
     [

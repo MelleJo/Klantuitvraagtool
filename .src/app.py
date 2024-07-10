@@ -270,3 +270,6 @@ def main():
     
     with st.expander("Feedback", expanded=False):
         render_feedback_form()
+
+if __name__ == "__main__":
+    main()

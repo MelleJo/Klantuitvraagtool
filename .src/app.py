@@ -4,18 +4,17 @@ import traceback
 import importlib.util
 import json
 import streamlit as st
-from openai_service import perform_gpt4_operation
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from utils.text_processing import update_gesprekslog
-from st_copy_to_clipboard import st_copy_to_clipboard
-from docx import Document
-from docx.shared import Pt
-from docx.enum.style import WD_STYLE_TYPE
-from io import BytesIO
-import bleach
-import base64
-import time
+from services.summarization_service import run_klantuitvraag, analyze_transcript, generate_email
+from ui.components import (
+    setup_page_style, display_transcript, display_klantuitvraag,
+    display_input_method_selector, display_text_input, display_file_uploader,
+    display_generate_button, display_progress_bar, display_spinner,
+    display_success, display_error, display_warning
+)
+from ui.pages import render_feedback_form, render_conversation_history, render_suggestions
 
 print("Starting app.py")
 print(f"Python version: {sys.version}")
@@ -28,117 +27,6 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(current_dir)
 sys.path.append(parent_dir)
 print(f"Updated sys.path: {sys.path}")
-
-def debug_import(module_name, file_path):
-    print(f"Attempting to import {module_name} from {file_path}")
-    try:
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        print(f"Successfully imported {module_name}")
-        print(f"Content of {module_name}:")
-        print(dir(module))
-        return module
-    except Exception as e:
-        print(f"Error importing {module_name}: {str(e)}")
-        print("Traceback:")
-        traceback.print_exc()
-        try:
-            with open(file_path, 'r') as f:
-                print(f"Content of {file_path}:")
-                print(f.read())
-        except Exception as file_error:
-            print(f"Error reading {file_path}: {str(file_error)}")
-        return None
-
-# Debug import of summarization_service
-summarization_service_path = os.path.join(current_dir, 'services', 'summarization_service.py')
-summarization_service = debug_import("summarization_service", summarization_service_path)
-
-if summarization_service:
-    print("Attempting to access run_klantuitvraag")
-    print(f"Debug: Input text being sent to run_klantuitvraag: {st.session_state.get('transcript', 'No transcript available')}")
-    if hasattr(summarization_service, 'run_klantuitvraag'):
-        run_klantuitvraag = summarization_service.run_klantuitvraag
-        analyze_transcript = summarization_service.analyze_transcript
-        generate_email = summarization_service.generate_email
-        print("Successfully imported run_klantuitvraag, analyze_transcript, and generate_email")
-    else:
-        print("Required functions not found in summarization_service")
-else:
-    print("Failed to import summarization_service")
-
-# Debug import of ui.pages and ui.components
-print("Attempting to import UI modules")
-try:
-    from ui.pages import render_feedback_form, render_conversation_history, render_suggestions
-    from ui.components import (
-        setup_page_style, display_transcript, display_klantuitvraag,
-        display_input_method_selector, display_text_input, display_file_uploader,
-        display_generate_button, display_progress_bar, display_spinner,
-        display_success, display_error, display_warning
-    )
-    print("Successfully imported UI modules")
-except ImportError as e:
-    print(f"Error importing UI modules: {str(e)}")
-    print("Traceback:")
-    traceback.print_exc()
-    
-    # Define basic versions of required functions if import fails
-    def setup_page_style():
-        st.set_page_config(page_title="Klantuitvraagtool", page_icon="🎙️", layout="wide")
-    
-    def display_transcript(transcript):
-        st.subheader("Transcript")
-        st.text_area("", value=transcript, height=200, disabled=True)
-    
-    def display_klantuitvraag(klantuitvraag):
-        st.subheader("Klantuitvraag")
-        st.text_area("", value=klantuitvraag, height=200, disabled=True)
-    
-    def display_input_method_selector(input_methods):
-        return st.radio("Selecteer invoermethode:", input_methods)
-    
-    def display_text_input():
-        return st.text_area("Voer tekst in:", height=200)
-    
-    def display_file_uploader(file_types):
-        return st.file_uploader("Upload een bestand", type=file_types)
-    
-    def display_generate_button():
-        return st.button("Genereer")
-    
-    def display_progress_bar():
-        return st.progress(0)
-    
-    def display_spinner(text):
-        return st.spinner(text)
-    
-    def display_success(text):
-        st.success(text)
-    
-    def display_error(text):
-        st.error(text)
-    
-    def display_warning(text):
-        st.warning(text)
-    
-    def render_feedback_form():
-        st.subheader("Feedback")
-        st.text_input("Uw naam:")
-        st.radio("Was deze klantuitvraag nuttig?", ["Ja", "Nee"])
-        st.text_area("Aanvullende opmerkingen:")
-        st.button("Verzend feedback")
-    
-    def render_conversation_history():
-        st.subheader("Gespreksgeschiedenis")
-        st.text("Geen eerdere gesprekken gevonden.")
-    
-    def render_suggestions(suggestions):
-        st.subheader("Suggesties")
-        for suggestion in suggestions:
-            st.checkbox(suggestion['title'], help=suggestion['description'])
-        return []
 
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"]
 
@@ -218,7 +106,7 @@ def main():
                 display_success("Audio succesvol verwerkt en getranscribeerd.")
 
         if st.session_state.get('input_processed', False):
-            st.subheader("Transcript")
+            display_transcript(st.session_state['transcript'])
             st.session_state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
                 value=st.session_state.get('transcript', ''), 
@@ -252,18 +140,6 @@ def main():
 
             if st.session_state.get('klantuitvraag'):
                 display_klantuitvraag(st.session_state['klantuitvraag'])
-
-        # Existing klantuitvraag generation logic
-        if not st.session_state.get('analysis_complete', False) and st.session_state.get('input_processed', False):
-            if st.button("Genereer Klantuitvraag (Oude Methode)"):
-                with st.spinner("Klantuitvraag genereren..."):
-                    result = run_klantuitvraag(st.session_state['edited_transcript'])
-                if result["error"] is None:
-                    st.session_state['klantuitvraag'] = result["klantuitvraag"]
-                    update_gesprekslog(st.session_state['edited_transcript'], result["klantuitvraag"])
-                    display_success("Klantuitvraag gegenereerd!")
-                else:
-                    display_error(f"Er is een fout opgetreden: {result['error']}")
 
     st.markdown("---")
     render_conversation_history()

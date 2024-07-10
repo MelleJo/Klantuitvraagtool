@@ -6,8 +6,10 @@ from streamlit_mic_recorder import mic_recorder
 from services.summarization_service import run_klantuitvraag  # Updated this line
 from utils.text_processing import update_gesprekslog
 from openai import OpenAI
+import logging
 
-client = OpenAI
+client = OpenAI()
+OpenAI.api_key = st.secrets["OPENAI_API_KEY"]
 
 def split_audio(file_path, max_duration_ms=30000):
     audio = AudioSegment.from_file(file_path)
@@ -17,11 +19,14 @@ def split_audio(file_path, max_duration_ms=30000):
     return chunks
 
 def transcribe_audio(file_path):
+    logger.debug(f"Starting transcribe_audio for file: {file_path}")
     transcript_text = ""
     with st.spinner('Audio segmentatie wordt gestart...'):
         try:
             audio_segments = split_audio(file_path)
+            logger.debug(f"Audio split into {len(audio_segments)} segments")
         except Exception as e:
+            logger.error(f"Error splitting audio: {str(e)}")
             st.error(f"Fout bij het segmenteren van het audio: {str(e)}")
             return "Segmentatie mislukt."
 
@@ -30,20 +35,30 @@ def transcribe_audio(file_path):
     progress_text = st.empty()
     progress_text.text("Start transcriptie...")
     for i, segment in enumerate(audio_segments):
+        logger.debug(f"Processing segment {i+1} of {total_segments}")
         progress_text.text(f'Bezig met verwerken van segment {i+1} van {total_segments} - {((i+1)/total_segments*100):.2f}% voltooid')
         with tempfile.NamedTemporaryFile(delete=True, suffix='.wav') as temp_file:
             segment.export(temp_file.name, format="wav")
+            logger.debug(f"Segment exported to temporary file: {temp_file.name}")
             with open(temp_file.name, "rb") as audio_file:
                 try:
-                    transcription_response = client.audio.transcriptions.create(file=audio_file, model="whisper-1")
-                    if hasattr(transcription_response, 'text'):
-                        transcript_text += transcription_response.text + " "
+                    transcription_response = client.audio.transcriptions.create(
+                        file=audio_file,
+                        model="whisper-1",
+                        response_format="text"
+                    )
+                    logger.debug(f"Transcription response received for segment {i+1}")
+                    transcript_text += transcription_response + " "
                 except Exception as e:
+                    logger.error(f"Error transcribing segment {i+1}: {str(e)}")
                     st.error(f"Fout bij het transcriberen: {str(e)}")
                     continue
         progress_bar.progress((i + 1) / total_segments)
     progress_text.success("Transcriptie voltooid.")
+    logger.debug(f"Transcription completed. Total length: {len(transcript_text)}")
+    st.info(f"Transcript gegenereerd. Lengte: {len(transcript_text)}")
     return transcript_text.strip()
+
 
 def process_audio_input(input_method):
     if not st.session_state.get('processing_complete', False):

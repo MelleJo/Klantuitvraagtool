@@ -37,8 +37,8 @@ def render_conversation_history():
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
     selected_suggestions = []
-    for suggestion in suggestions:
-        if st.checkbox(suggestion['titel'], help=suggestion['redenering']):
+    for i, suggestion in enumerate(suggestions):
+        if st.checkbox(suggestion['titel'], key=f"suggestion_{i}", help=suggestion['redenering']):
             selected_suggestions.append(suggestion)
     return selected_suggestions
 

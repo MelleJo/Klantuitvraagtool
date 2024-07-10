@@ -70,7 +70,7 @@ def display_file_uploader(file_types):
     return st.file_uploader("Kies een bestand", type=file_types)
 
 def display_generate_button():
-    return st.button("Genereer Klantuitvraag", key='generate_button')
+    return st.button("Genereer", key='generate_button')
 
 def display_progress_bar():
     return st.progress(0)
@@ -86,15 +86,5 @@ def display_error(text):
 
 def display_warning(text):
     st.warning(text)
-
-def display_suggestions(suggestions):
-    st.markdown('<div class="content-box">', unsafe_allow_html=True)
-    st.markdown('<h3>Verzekeringsvoorstellen</h3>', unsafe_allow_html=True)
-    selected_suggestions = []
-    for suggestion in suggestions:
-        if st.checkbox(suggestion['titel'], help=suggestion['redenering']):
-            selected_suggestions.append(suggestion)
-    st.markdown('</div>', unsafe_allow_html=True)
-    return selected_suggestions
 
 print("ui/components.py loaded successfully")

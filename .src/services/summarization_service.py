@@ -31,7 +31,9 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
     prompt = """
     Je bent een expert verzekeringsadviseur. Analyseer het volgende transcript en geef een lijst met verzekeringsvoorstellen.
     Elk voorstel moet een titel, een korte beschrijving en een redenering bevatten op basis van de inhoud van het transcript.
-
+    Je let op risico's, ontbrekende producten, en meer.
+    Als er bijvoorbeeld over een bouwbedrijf gaat, dan zouden er normaal verzekering x, y, en z moeten zijn. Uit het transcript haal ik dat x en y er al zijn. Dus raad ik verzekering z aan, en geef ik ook even twee originele duidelijke voorbeelden van het risico wat je er mee afdekt.
+    
     Transcript:
     {transcript}
 
@@ -41,7 +43,7 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
     ]
     """
 
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0.7)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.4)
     
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)

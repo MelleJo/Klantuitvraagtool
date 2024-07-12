@@ -59,4 +59,4 @@ def render_suggestions(suggestions):
     selected_suggestions = [suggestion for i, suggestion in enumerate(suggestions) if st.session_state.suggestion_states[f"suggestion_{i}"]]
     return selected_suggestions
 
-print("ui/pages.py loaded successfully") 
+print("ui/pages.py loaded successfully")  

@@ -76,25 +76,26 @@ def main():
 
     with col2:
         st.markdown("### 📝 Transcript & Klantuitvraag")
-        if input_method == "Upload tekst":
-            uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
-            if uploaded_file:
-                st.session_state['transcript'] = process_uploaded_file(uploaded_file)
-                st.session_state['input_processed'] = True
-                display_success("Bestand succesvol geüpload en verwerkt.")
-
-        elif input_method == "Voer tekst in of plak tekst":
-            st.session_state['transcript'] = display_text_input()
-            if display_generate_button():
-                st.session_state['input_processed'] = True
-
-        elif input_method in ["Upload audio", "Neem audio op"]:
-            audio_data = process_audio_input(input_method)
-            if audio_data:
-                with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
-                    st.session_state['transcript'] = transcribe_audio(audio_data)
+        if not st.session_state.get('input_processed', False):
+            if input_method == "Upload tekst":
+                uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
+                if uploaded_file:
+                    st.session_state['transcript'] = process_uploaded_file(uploaded_file)
                     st.session_state['input_processed'] = True
-                display_success("Audio succesvol verwerkt en getranscribeerd.")
+                    display_success("Bestand succesvol geüpload en verwerkt.")
+
+            elif input_method == "Voer tekst in of plak tekst":
+                st.session_state['transcript'] = display_text_input()
+                if display_generate_button():
+                    st.session_state['input_processed'] = True
+
+            elif input_method in ["Upload audio", "Neem audio op"]:
+                audio_data = process_audio_input(input_method)
+                if audio_data:
+                    with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                        st.session_state['transcript'] = transcribe_audio(audio_data)
+                        st.session_state['input_processed'] = True
+                    display_success("Audio succesvol verwerkt en getranscribeerd.")
 
         if st.session_state.get('input_processed', False):
             st.subheader("Transcript")

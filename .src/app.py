@@ -7,7 +7,7 @@ import streamlit as st
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from utils.text_processing import update_gesprekslog
-from services.summarization_service import run_klantuitvraag, analyze_transcript, generate_email
+from services.summarization_service import analyze_transcript, generate_email
 from ui.components import (
     setup_page_style, display_transcript, display_klantuitvraag,
     display_input_method_selector, display_text_input, display_file_uploader,
@@ -54,7 +54,14 @@ def initialize_session_state():
             'transcript': "",
             'edited_transcript': "",
             'klantuitvraag': "",
-            'analysis': "",
+            'klantuitvraag_versions': [],
+            'current_version_index': -1,
+            'input_text': "",
+            'gesprekslog': [],
+            'product_info': "",
+            'selected_products': [],
+            'suggestions': [],
+            'selected_suggestions': [],
             'email_content': "",
             'input_processed': False,
             'analysis_complete': False,
@@ -76,32 +83,32 @@ def main():
 
     with col2:
         st.markdown("### 📝 Transcript & Klantuitvraag")
-        if not st.session_state.get('input_processed', False):
+        if not st.session_state.state['input_processed']:
             if input_method == "Upload tekst":
                 uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
                 if uploaded_file:
-                    st.session_state['transcript'] = process_uploaded_file(uploaded_file)
-                    st.session_state['input_processed'] = True
+                    st.session_state.state['transcript'] = process_uploaded_file(uploaded_file)
+                    st.session_state.state['input_processed'] = True
                     display_success("Bestand succesvol geüpload en verwerkt.")
 
             elif input_method == "Voer tekst in of plak tekst":
-                st.session_state['transcript'] = display_text_input()
+                st.session_state.state['transcript'] = display_text_input()
                 if display_generate_button():
-                    st.session_state['input_processed'] = True
+                    st.session_state.state['input_processed'] = True
 
             elif input_method in ["Upload audio", "Neem audio op"]:
                 audio_data = process_audio_input(input_method)
                 if audio_data:
                     with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
-                        st.session_state['transcript'] = transcribe_audio(audio_data)
-                        st.session_state['input_processed'] = True
+                        st.session_state.state['transcript'] = transcribe_audio(audio_data)
+                        st.session_state.state['input_processed'] = True
                     display_success("Audio succesvol verwerkt en getranscribeerd.")
 
-        if st.session_state.get('input_processed', False):
+        if st.session_state.state['input_processed']:
             st.subheader("Transcript")
-            st.session_state['edited_transcript'] = st.text_area(
+            st.session_state.state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
-                value=st.session_state['transcript'], 
+                value=st.session_state.state['transcript'], 
                 height=300,
                 key='transcript_editor'
             )
@@ -109,30 +116,30 @@ def main():
             if st.button("Analyseer"):
                 with st.spinner("Transcript analyseren..."):
                     try:
-                        st.session_state['suggestions'] = analyze_transcript(st.session_state['edited_transcript'])
-                        st.session_state['analysis_complete'] = True
+                        st.session_state.state['suggestions'] = analyze_transcript(st.session_state.state['edited_transcript'])
+                        st.session_state.state['analysis_complete'] = True
                         display_success("Analyse voltooid!")
                     except Exception as e:
                         display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
 
-            if st.session_state.get('analysis_complete', False):
-                st.session_state['selected_suggestions'] = render_suggestions(st.session_state['suggestions'])
+            if st.session_state.state['analysis_complete']:
+                st.session_state.state['selected_suggestions'] = render_suggestions(st.session_state.state['suggestions'])
 
                 if st.button("Genereer E-mail"):
                     with st.spinner("E-mail genereren..."):
                         try:
-                            st.session_state['email_content'] = generate_email(
-                                st.session_state['edited_transcript'],
-                                st.session_state['selected_suggestions']
+                            st.session_state.state['email_content'] = generate_email(
+                                st.session_state.state['edited_transcript'],
+                                st.session_state.state['selected_suggestions']
                             )
-                            st.session_state['klantuitvraag'] = st.session_state['email_content']
-                            update_gesprekslog(st.session_state['edited_transcript'], st.session_state['email_content'])
+                            st.session_state.state['klantuitvraag'] = st.session_state.state['email_content']
+                            update_gesprekslog(st.session_state.state['edited_transcript'], st.session_state.state['email_content'])
                             display_success("E-mail gegenereerd!")
                         except Exception as e:
                             display_error(f"Er is een fout opgetreden bij het genereren van de e-mail: {str(e)}")
 
-            if st.session_state.get('klantuitvraag'):
-                display_klantuitvraag(st.session_state['klantuitvraag'])
+            if st.session_state.state['klantuitvraag']:
+                display_klantuitvraag(st.session_state.state['klantuitvraag'])
 
     st.markdown("---")
     render_conversation_history()

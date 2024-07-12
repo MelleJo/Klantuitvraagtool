@@ -14,8 +14,8 @@ def render_feedback_form():
                 st.warning("Voornaam is verplicht bij het geven van feedback.", icon="⚠️")
             else:
                 success = send_feedback_email(
-                    transcript=st.session_state.get('transcript', ''),
-                    klantuitvraag=st.session_state.get('klantuitvraag', ''),
+                    transcript=st.session_state.state.get('transcript', ''),
+                    klantuitvraag=st.session_state.state.get('klantuitvraag', ''),
                     feedback=feedback,
                     additional_feedback=additional_feedback,
                     user_first_name=user_first_name
@@ -27,43 +27,36 @@ def render_feedback_form():
 
 def render_conversation_history():
     st.subheader("Laatste vijf gesprekken")
-    for i, gesprek in enumerate(st.session_state.get('gesprekslog', [])):
+    for i, gesprek in enumerate(st.session_state.state.get('gesprekslog', [])):
         with st.expander(f"Gesprek {i+1} op {gesprek['time']}"):
             st.markdown("**Transcript:**")
             st.markdown(f'<div class="content">{html.escape(gesprek["transcript"])}</div>', unsafe_allow_html=True)
             st.markdown("**Gegenereerde E-mail:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
 
+def update_suggestion_state(suggestion_key):
+    st.session_state.suggestion_states[suggestion_key] = not st.session_state.suggestion_states[suggestion_key]
+
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
-    selected_suggestions = []
     
     # Initialize the suggestions state if it doesn't exist
     if 'suggestion_states' not in st.session_state:
-        st.session_state.suggestion_states = {}
+        st.session_state.suggestion_states = {f"suggestion_{i}": False for i in range(len(suggestions))}
 
     for i, suggestion in enumerate(suggestions):
-        # Create a unique key for each suggestion
         key = f"suggestion_{i}"
         
-        # Initialize the state for this suggestion if it doesn't exist
-        if key not in st.session_state.suggestion_states:
-            st.session_state.suggestion_states[key] = False
-        
-        # Use the session state to maintain the checkbox state
-        is_checked = st.checkbox(
+        st.checkbox(
             suggestion['titel'],
             value=st.session_state.suggestion_states[key],
             key=key,
+            on_change=update_suggestion_state,
+            args=(key,),
             help=suggestion['redenering']
         )
-        
-        # Update the session state
-        st.session_state.suggestion_states[key] = is_checked
-        
-        if is_checked:
-            selected_suggestions.append(suggestion)
     
+    selected_suggestions = [suggestion for i, suggestion in enumerate(suggestions) if st.session_state.suggestion_states[f"suggestion_{i}"]]
     return selected_suggestions
 
 print("ui/pages.py loaded successfully")

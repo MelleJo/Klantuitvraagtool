@@ -54,13 +54,7 @@ def initialize_session_state():
             'transcript': "",
             'edited_transcript': "",
             'klantuitvraag': "",
-            'klantuitvraag_versions': [],
-            'current_version_index': -1,
-            'input_text': "",
-            'gesprekslog': [],
-            'product_info': "",
-            'selected_products': [],
-            'suggestions': [],
+            'analysis': "",
             'email_content': "",
             'input_processed': False,
             'analysis_complete': False,
@@ -120,22 +114,22 @@ def main():
             if st.button("Analyseer") and not st.session_state.state['analysis_complete']:
                 with st.spinner("Transcript analyseren..."):
                     try:
-                        st.session_state.state['suggestions'] = analyze_transcript(st.session_state.state['edited_transcript'])
+                        st.session_state.state['analysis'] = analyze_transcript(st.session_state.state['edited_transcript'])
                         st.session_state.state['analysis_complete'] = True
                         display_success("Analyse voltooid!")
                     except Exception as e:
                         display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
 
             if st.session_state.state['analysis_complete']:
-                render_suggestions(st.session_state.state['suggestions'])
+                st.subheader("Analyse")
+                st.text_area("Analyse resultaat:", value=st.session_state.state['analysis'], height=300, disabled=True)
 
                 if st.button("Genereer E-mail"):
                     with st.spinner("E-mail genereren..."):
                         try:
-                            selected_suggestions = [suggestion for suggestion in st.session_state.state['suggestions'] if suggestion.get('selected', False)]
                             st.session_state.state['email_content'] = generate_email(
                                 st.session_state.state['edited_transcript'],
-                                selected_suggestions
+                                st.session_state.state['analysis']
                             )
                             st.session_state.state['klantuitvraag'] = st.session_state.state['email_content']
                             update_gesprekslog(st.session_state.state['edited_transcript'], st.session_state.state['email_content'])

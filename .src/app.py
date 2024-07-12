@@ -66,6 +66,7 @@ def initialize_session_state():
             'input_processed': False,
             'analysis_complete': False,
         }
+    print("Session state initialized:", st.session_state.state)
 
 def main():
     setup_page_style()
@@ -80,6 +81,7 @@ def main():
     with col1:
         st.markdown("### 📋 Configuratie")
         input_method = display_input_method_selector(config["INPUT_METHODS"])
+        print(f"Selected input method: {input_method}")
 
     with col2:
         st.markdown("### 📝 Transcript & Klantuitvraag")
@@ -90,12 +92,14 @@ def main():
                     st.session_state.state['transcript'] = process_uploaded_file(uploaded_file)
                     st.session_state.state['input_processed'] = True
                     display_success("Bestand succesvol geüpload en verwerkt.")
+                    print("Text file processed. Transcript:", st.session_state.state['transcript'][:100])
 
             elif input_method == "Voer tekst in of plak tekst":
                 input_text = display_text_input()
                 if display_generate_button():
                     st.session_state.state['transcript'] = input_text
                     st.session_state.state['input_processed'] = True
+                    print("Text input processed. Transcript:", st.session_state.state['transcript'][:100])
 
             elif input_method in ["Upload audio", "Neem audio op"]:
                 audio_data = process_audio_input(input_method)
@@ -104,9 +108,14 @@ def main():
                         st.session_state.state['transcript'] = transcribe_audio(audio_data)
                         st.session_state.state['input_processed'] = True
                     display_success("Audio succesvol verwerkt en getranscribeerd.")
+                    print("Audio processed. Transcript:", st.session_state.state['transcript'][:100])
+
+        print("Input processed:", st.session_state.state['input_processed'])
+        print("Transcript available:", bool(st.session_state.state['transcript']))
 
         # Display transcript if it's available
         if st.session_state.state['input_processed'] and st.session_state.state['transcript']:
+            print("Attempting to display transcript")
             st.subheader("Transcript")
             st.session_state.state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
@@ -114,20 +123,26 @@ def main():
                 height=300,
                 key='transcript_editor'
             )
+            print("Transcript displayed")
 
             if st.button("Analyseer"):
+                print("Analyse button clicked")
                 with st.spinner("Transcript analyseren..."):
                     try:
                         st.session_state.state['suggestions'] = analyze_transcript(st.session_state.state['edited_transcript'])
                         st.session_state.state['analysis_complete'] = True
                         display_success("Analyse voltooid!")
+                        print("Analysis complete")
                     except Exception as e:
                         display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
+                        print(f"Error during analysis: {str(e)}")
 
             if st.session_state.state['analysis_complete']:
+                print("Rendering suggestions")
                 st.session_state.state['selected_suggestions'] = render_suggestions(st.session_state.state['suggestions'])
 
                 if st.button("Genereer E-mail"):
+                    print("Generate email button clicked")
                     with st.spinner("E-mail genereren..."):
                         try:
                             st.session_state.state['email_content'] = generate_email(
@@ -137,10 +152,13 @@ def main():
                             st.session_state.state['klantuitvraag'] = st.session_state.state['email_content']
                             update_gesprekslog(st.session_state.state['edited_transcript'], st.session_state.state['email_content'])
                             display_success("E-mail gegenereerd!")
+                            print("Email generated")
                         except Exception as e:
                             display_error(f"Er is een fout opgetreden bij het genereren van de e-mail: {str(e)}")
+                            print(f"Error generating email: {str(e)}")
 
             if st.session_state.state['klantuitvraag']:
+                print("Displaying klantuitvraag")
                 display_klantuitvraag(st.session_state.state['klantuitvraag'])
 
     st.markdown("---")
@@ -150,4 +168,4 @@ def main():
         render_feedback_form()
 
 if __name__ == "__main__":
-    main() 
+    main()

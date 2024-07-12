@@ -92,8 +92,9 @@ def main():
                     display_success("Bestand succesvol geüpload en verwerkt.")
 
             elif input_method == "Voer tekst in of plak tekst":
-                st.session_state.state['transcript'] = display_text_input()
+                input_text = display_text_input()
                 if display_generate_button():
+                    st.session_state.state['transcript'] = input_text
                     st.session_state.state['input_processed'] = True
 
             elif input_method in ["Upload audio", "Neem audio op"]:
@@ -104,7 +105,8 @@ def main():
                         st.session_state.state['input_processed'] = True
                     display_success("Audio succesvol verwerkt en getranscribeerd.")
 
-        if st.session_state.state['input_processed']:
+        # Display transcript if it's available
+        if st.session_state.state['input_processed'] and st.session_state.state['transcript']:
             st.subheader("Transcript")
             st.session_state.state['edited_transcript'] = st.text_area(
                 "Bewerk het transcript indien nodig:", 
@@ -148,4 +150,4 @@ def main():
         render_feedback_form()
 
 if __name__ == "__main__":
-    main() 
+    main()

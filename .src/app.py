@@ -113,18 +113,20 @@ def main():
             st.session_state.state['input_processed'] = True
             print(f"DEBUG: Transcript stored in session state: {st.session_state.state['transcript'][:100]}")
 
+            st.subheader("Gegenereerd Transcript")
+            st.text_area("Transcript", value=transcript, height=300, key='generated_transcript', disabled=True)
+
         print(f"DEBUG: Input processed: {st.session_state.state['input_processed']}")
         print(f"DEBUG: Transcript available: {bool(st.session_state.state['transcript'])}")
-        print(f"DEBUG: Transcript content: {st.session_state.state['transcript'][:100]}")
 
-        # Force display of transcript content for debugging
-        st.text(f"DEBUG: Raw transcript content: {st.session_state.state['transcript'][:500]}")
+        if st.session_state.state.get('transcript'):
+            display_transcript(st.session_state.state['transcript'])
 
-        # Always attempt to display the transcript
-        st.subheader("Transcript")
+        # Always attempt to display the transcript editor
+        st.subheader("Bewerk Transcript")
         edited_transcript = st.text_area(
             "Bewerk het transcript indien nodig:", 
-            value=st.session_state.state['transcript'], 
+            value=st.session_state.state.get('transcript', ''), 
             height=300,
             key='transcript_editor'
         )

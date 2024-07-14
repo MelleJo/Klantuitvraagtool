@@ -44,7 +44,7 @@ def setup_page_style():
 
 def display_transcript(transcript):
     if transcript:
-        with st.expander("Toon Transcript", expanded=False):
+        with st.expander("Toon Transcript", expanded=True):
             st.markdown('<div class="content-box">', unsafe_allow_html=True)
             st.markdown('<h3>Transcript</h3>', unsafe_allow_html=True)
             st.markdown(f'<div class="content">{html.escape(transcript)}</div>', unsafe_allow_html=True)

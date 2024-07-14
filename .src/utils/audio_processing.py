@@ -1,29 +1,13 @@
-import streamlit as st
-from pydub import AudioSegment
-import tempfile
-from streamlit_mic_recorder import mic_recorder
-from openai import OpenAI
 import logging
+import tempfile
+from pydub import AudioSegment
+from openai import OpenAI
+import streamlit as st
+from streamlit_mic_recorder import mic_recorder
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-def split_audio(file_path, max_duration_ms=30000):
-    audio = AudioSegment.from_file(file_path)
-    chunks = []
-    for i in range(0, len(audio), max_duration_ms):
-        chunks.append(audio[i:i+max_duration_ms])
-    return chunks
-
-import logging
-import tempfile
-from pydub import AudioSegment
-from openai import OpenAI
-import streamlit as st
-
-logger = logging.getLogger(__name__)
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def split_audio(file_path, max_duration_ms=30000):
@@ -64,10 +48,14 @@ def transcribe_audio(file_path):
                     )
                     logger.debug(f"Transcription response received for segment {i+1}")
                     transcript_text += transcription_response + " "
+                except json.decoder.JSONDecodeError as e:
+                    logger.error(f"Failed to decode JSON response for segment {i+1}: {e}")
+                    response_content = transcription_response.content if hasattr(transcription_response, 'content') else "No content available"
+                    logger.error(f"Response content for segment {i+1}: {response_content}")
+                    st.error(f"Fout bij het transcriberen van segment {i+1}: {str(e)}")
                 except Exception as e:
                     logger.error(f"Error transcribing segment {i+1}: {str(e)}")
-                    st.error(f"Fout bij het transcriberen: {str(e)}")
-                    continue
+                    st.error(f"Fout bij het transcriberen van segment {i+1}: {str(e)}")
         progress_bar.progress((i + 1) / total_segments)
     progress_text.success("Transcriptie voltooid.")
     logger.debug(f"Transcription completed. Total length: {len(transcript_text)}")

@@ -86,7 +86,7 @@ def main():
     with col2:
         st.markdown("### 📝 Transcript & Klantuitvraag")
         
-        transcript = ""  # Initialize transcript variable
+        transcript = ""
 
         if input_method == "Upload tekst":
             uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
@@ -113,14 +113,12 @@ def main():
             st.session_state.state['input_processed'] = True
             print(f"DEBUG: Transcript stored in session state: {st.session_state.state['transcript'][:100]}")
 
+            # Display the generated transcript
             st.subheader("Gegenereerd Transcript")
             st.text_area("Transcript", value=transcript, height=300, key='generated_transcript', disabled=True)
 
         print(f"DEBUG: Input processed: {st.session_state.state['input_processed']}")
         print(f"DEBUG: Transcript available: {bool(st.session_state.state['transcript'])}")
-
-        if st.session_state.state.get('transcript'):
-            display_transcript(st.session_state.state['transcript'])
 
         # Always attempt to display the transcript editor
         st.subheader("Bewerk Transcript")

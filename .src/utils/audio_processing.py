@@ -17,6 +17,22 @@ def split_audio(file_path, max_duration_ms=30000):
         chunks.append(audio[i:i+max_duration_ms])
     return chunks
 
+import logging
+import tempfile
+from pydub import AudioSegment
+from openai import OpenAI
+import streamlit as st
+
+logger = logging.getLogger(__name__)
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+def split_audio(file_path, max_duration_ms=30000):
+    audio = AudioSegment.from_file(file_path)
+    chunks = []
+    for i in range(0, len(audio), max_duration_ms):
+        chunks.append(audio[i:i+max_duration_ms])
+    return chunks
+
 def transcribe_audio(file_path):
     logger.debug(f"Starting transcribe_audio for file: {file_path}")
     transcript_text = ""

@@ -20,6 +20,9 @@ def split_audio(file_path, max_duration_ms=30000):
     return chunks
 
 def transcribe_audio(file_path):
+    if st.session_state.state['transcription_complete']:
+        return st.session_state.state['transcript']
+
     logger.debug(f"Starting transcribe_audio for file: {file_path}")
     transcript_text = ""
     with st.spinner('Audio segmentatie wordt gestart...'):
@@ -66,6 +69,9 @@ def transcribe_audio(file_path):
     logger.debug(f"Transcription completed. Total length: {len(transcript_text)}")
     st.info(f"Transcript gegenereerd. Lengte: {len(transcript_text)}")
     
+    st.session_state.state['transcription_complete'] = True
+    st.session_state.state['transcript'] = transcript_text.strip()
+
     unique_key = f"generated_transcript_{uuid.uuid4()}"
     st.text_area("Gegenereerd Transcript", value=transcript_text, height=300, key=unique_key)
     
@@ -73,13 +79,12 @@ def transcribe_audio(file_path):
 
 def process_audio_input(input_method):
     if input_method == "Upload audio":
-        uploaded_file = st.file_uploader("Upload een audiobestand", type=['wav', 'mp3', 'mp4', 'm4a', 'ogg', 'webm'])
-        if uploaded_file is not None:
-            with st.spinner("Transcriberen van audio..."):
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
-                    tmp_audio.write(uploaded_file.getvalue())
-                    tmp_audio.flush()
-                    tmp_audio_path = tmp_audio.name
+        uploaded_file = st.file_uploader("Upload een audiobestand", type=["wav", "mp3", "m4a", "ogg", "weba", "mp4"])
+        if uploaded_file:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                tmp_audio.write(uploaded_file.getvalue())
+                tmp_audio.flush()
+                tmp_audio_path = tmp_audio.name
             st.session_state['audio_file_path'] = tmp_audio_path  # Save the file path in the session state
             st.session_state['input_processed'] = True
             return tmp_audio_path  # Return the file path instead of the transcript

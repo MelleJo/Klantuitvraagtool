@@ -64,7 +64,7 @@ def generate_email(transcript: str, analysis: str) -> str:
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
     """
 
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0.7)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)
     
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)

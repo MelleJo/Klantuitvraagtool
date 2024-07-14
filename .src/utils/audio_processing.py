@@ -20,6 +20,7 @@ def split_audio(file_path, max_duration_ms=30000):
     return chunks
 
 def transcribe_audio(file_path):
+    # If transcription is complete, return the existing transcript
     if st.session_state.state['transcription_complete']:
         return st.session_state.state['transcript']
 

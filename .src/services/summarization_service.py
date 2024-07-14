@@ -8,7 +8,7 @@ def generate_klantuitvraag(text: str) -> str:
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")
     full_prompt = f"{custom_prompt}\n\nInput tekst: \"{text}\"\n\nGenereer nu een klantuitvraag op basis van deze input:"
     
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0)
     
     try:
         prompt_template = ChatPromptTemplate.from_template(full_prompt)
@@ -29,7 +29,7 @@ def run_klantuitvraag(text: str) -> Dict[str, Any]:
 def analyze_transcript(transcript: str) -> str:
     prompt_template = load_prompt("insurance_advisor_prompt.txt")
     
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4", temperature=0.4)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.4)
     
     try:
         prompt = ChatPromptTemplate.from_template(prompt_template)

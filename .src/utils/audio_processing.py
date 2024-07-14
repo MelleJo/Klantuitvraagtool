@@ -4,6 +4,7 @@ from pydub import AudioSegment
 from openai import OpenAI
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
+import json
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -47,6 +48,8 @@ def transcribe_audio(file_path):
                         response_format="text"
                     )
                     logger.debug(f"Transcription response received for segment {i+1}")
+                    logger.debug(f"Transcription response content: {transcription_response}")
+                    
                     transcript_text += transcription_response + " "
                 except json.decoder.JSONDecodeError as e:
                     logger.error(f"Failed to decode JSON response for segment {i+1}: {e}")

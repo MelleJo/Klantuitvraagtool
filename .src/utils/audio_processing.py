@@ -48,9 +48,10 @@ def transcribe_audio(file_path):
                         response_format="text"
                     )
                     logger.debug(f"Transcription response received for segment {i+1}")
-                    logger.debug(f"Transcription response content: {transcription_response}")
+                    response_content = transcription_response.get('text', '') if isinstance(transcription_response, dict) else transcription_response
+                    logger.debug(f"Transcription response content: {response_content}")
                     
-                    transcript_text += transcription_response + " "
+                    transcript_text += response_content + " "
                 except json.decoder.JSONDecodeError as e:
                     logger.error(f"Failed to decode JSON response for segment {i+1}: {e}")
                     response_content = transcription_response.content if hasattr(transcription_response, 'content') else "No content available"

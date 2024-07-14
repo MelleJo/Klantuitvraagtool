@@ -5,6 +5,7 @@ from openai import OpenAI
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
 import json
+import uuid
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -64,7 +65,10 @@ def transcribe_audio(file_path):
     progress_text.success("Transcriptie voltooid.")
     logger.debug(f"Transcription completed. Total length: {len(transcript_text)}")
     st.info(f"Transcript gegenereerd. Lengte: {len(transcript_text)}")
-    st.text_area("Gegenereerd Transcript", value=transcript_text, height=300, key='generated_transcript')
+    
+    unique_key = f"generated_transcript_{uuid.uuid4()}"
+    st.text_area("Gegenereerd Transcript", value=transcript_text, height=300, key=unique_key)
+    
     return transcript_text.strip()
 
 def process_audio_input(input_method):

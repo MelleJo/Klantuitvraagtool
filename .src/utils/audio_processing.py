@@ -79,11 +79,7 @@ def process_audio_input(input_method):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
                     tmp_audio.write(uploaded_file.getvalue())
                     tmp_audio.flush()
-                    transcript = transcribe_audio(tmp_audio.name)
-                tempfile.NamedTemporaryFile(delete=True)
-            st.session_state['transcript'] = transcript
-            st.session_state['input_processed'] = True
-            return tmp_audio.name  # Return the file path instead of the transcript
+                    return tmp_audio.name  # Return the file path instead of the transcript
     elif input_method == "Neem audio op":
         audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
         if audio_data and 'bytes' in audio_data:
@@ -91,9 +87,5 @@ def process_audio_input(input_method):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
                     tmp_audio.write(audio_data['bytes'])
                     tmp_audio.flush()
-                    transcript = transcribe_audio(tmp_audio.name)
-                tempfile.NamedTemporaryFile(delete=True)
-            st.session_state['transcript'] = transcript
-            st.session_state['input_processed'] = True
-            return tmp_audio.name  # Return the file path instead of the transcript
+                    return tmp_audio.name  # Return the file path instead of the transcript
     return None

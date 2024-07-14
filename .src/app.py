@@ -35,7 +35,6 @@ def initialize_session_state():
             'input_processed': False,
             'analysis_complete': False,
             'transcription_complete': False,
-            'audio_file_path': None
         }
 
 def main():
@@ -73,17 +72,15 @@ def main():
                     st.session_state.state['transcription_complete'] = True
 
             elif input_method in ["Upload audio", "Neem audio op"]:
-                if not st.session_state.state['audio_file_path']:
-                    st.session_state.state['audio_file_path'] = process_audio_input(input_method)
-                audio_file_path = st.session_state.state['audio_file_path']
-                if audio_file_path and not st.session_state.state['transcription_complete']:
-                    with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
-                        transcript = transcribe_audio(audio_file_path)
-                        st.session_state.state['transcript'] = transcript
-                        st.session_state.state['input_processed'] = True
-                        st.session_state.state['transcription_complete'] = True
-                    os.unlink(audio_file_path)
-                    st.session_state.state['audio_file_path'] = None
+                if not st.session_state.state['transcription_complete']:
+                    audio_file_path = process_audio_input(input_method)
+                    if audio_file_path:
+                        with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                            transcript = transcribe_audio(audio_file_path)
+                            st.session_state.state['transcript'] = transcript
+                            st.session_state.state['input_processed'] = True
+                            st.session_state.state['transcription_complete'] = True
+                        os.unlink(audio_file_path)
         
         transcript = st.session_state.state.get('transcript', '')
         if transcript:

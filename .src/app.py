@@ -1,6 +1,4 @@
 import os
-import sys
-import json
 import streamlit as st
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
@@ -55,17 +53,13 @@ def main():
     with col2:
         st.markdown("### 📝 Transcript & Klantuitvraag")
         
-        if not st.session_state.state.get('input_processed', False):
-            transcript = st.session_state.state.get('transcript', '')
-            print(f"DEBUG: Initial Transcript: {transcript}")
-
+        if not st.session_state.state['input_processed']:
             if input_method == "Upload tekst":
                 uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
                 if uploaded_file:
                     transcript = process_uploaded_file(uploaded_file)
                     st.session_state.state['transcript'] = transcript
                     st.session_state.state['input_processed'] = True
-                    print(f"DEBUG: Text file processed. Transcript: {transcript[:100]}")
 
             elif input_method == "Voer tekst in of plak tekst":
                 input_text = display_text_input()
@@ -73,7 +67,6 @@ def main():
                     transcript = input_text
                     st.session_state.state['transcript'] = transcript
                     st.session_state.state['input_processed'] = True
-                    print(f"DEBUG: Text input processed. Transcript: {transcript[:100]}")
 
             elif input_method in ["Upload audio", "Neem audio op"]:
                 audio_file_path = process_audio_input(input_method)
@@ -83,14 +76,9 @@ def main():
                         st.session_state.state['transcript'] = transcript
                         st.session_state.state['input_processed'] = True
                     os.unlink(audio_file_path)
-                    print(f"DEBUG: Audio processed. Transcript: {transcript[:100]}")
-
-            print(f"DEBUG: Processed Transcript: {transcript}")
-            st.session_state.state['transcript'] = transcript
-            display_transcript(transcript)
-        else:
-            transcript = st.session_state.state.get('transcript', '')
-            display_transcript(transcript)
+        
+        transcript = st.session_state.state.get('transcript', '')
+        display_transcript(transcript)
 
         st.subheader("Bewerk Transcript")
         edited_transcript = st.text_area(

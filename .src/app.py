@@ -78,7 +78,9 @@ def main():
                     os.unlink(audio_file_path)
         
         transcript = st.session_state.state.get('transcript', '')
-        display_transcript(transcript)
+        if transcript:
+            st.subheader("Transcript")
+            st.text_area("Gegenereerd Transcript:", value=transcript, height=200, key="generated_transcript", disabled=True)
 
         st.subheader("Bewerk Transcript")
         edited_transcript = st.text_area(

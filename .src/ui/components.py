@@ -86,5 +86,3 @@ def display_error(text):
 
 def display_warning(text):
     st.warning(text)
-
-print("ui/components.py loaded successfully")

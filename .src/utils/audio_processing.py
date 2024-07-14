@@ -97,5 +97,3 @@ def process_audio_input(input_method):
             st.session_state['input_processed'] = True
             return tmp_audio.name  # Return the file path instead of the transcript
     return None
-
-print("audio_processing.py loaded successfully")

@@ -115,7 +115,7 @@ def main():
 
             # Display the generated transcript
             st.subheader("Gegenereerd Transcript")
-            st.text_area("Transcript", value=transcript, height=300, key='generated_transcript')
+            st.text_area("Transcript", value=transcript, height=300, key='generated_transcript', disabled=True)
 
         print(f"DEBUG: Input processed: {st.session_state.state['input_processed']}")
         print(f"DEBUG: Transcript available: {bool(st.session_state.state['transcript'])}")

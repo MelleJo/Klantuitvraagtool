@@ -34,6 +34,8 @@ def render_conversation_history():
             st.markdown("**Gegenereerde E-mail:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
 
+import streamlit as st
+
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
     
@@ -43,33 +45,44 @@ def render_suggestions(suggestions):
 
     selected_suggestions = []
 
-    for i, suggestion in enumerate(suggestions):
-        key = f"suggestion_{i}"
-        
-        # Initialize the state for this suggestion if it doesn't exist
-        if key not in st.session_state.suggestion_states:
-            st.session_state.suggestion_states[key] = False
+    # Log the type and content of suggestions
+    st.write(f"Type of suggestions: {type(suggestions)}")
+    st.write(f"Content of suggestions: {suggestions}")
 
-        # Check if suggestion is a dictionary and has a 'titel' key
-        if isinstance(suggestion, dict) and 'titel' in suggestion:
-            title = suggestion['titel']
-            reasoning = suggestion.get('redenering', '')
-        else:
-            # If suggestion is not in the expected format, use a default title
-            title = f"Voorstel {i+1}"
-            reasoning = str(suggestion)  # Convert suggestion to string for display
+    # Check if suggestions is a list or string
+    if isinstance(suggestions, list):
+        for i, suggestion in enumerate(suggestions):
+            key = f"suggestion_{i}"
+            
+            # Initialize the state for this suggestion if it doesn't exist
+            if key not in st.session_state.suggestion_states:
+                st.session_state.suggestion_states[key] = False
 
-        is_selected = st.checkbox(
-            title,
-            value=st.session_state.suggestion_states[key],
-            key=key,
-            help=reasoning
-        )
+            # Check if suggestion is a dictionary and has a 'titel' key
+            if isinstance(suggestion, dict) and 'titel' in suggestion:
+                title = suggestion['titel']
+                reasoning = suggestion.get('redenering', '')
+            else:
+                # If suggestion is not in the expected format, use a default title
+                title = f"Voorstel {i+1}"
+                reasoning = str(suggestion)  # Convert suggestion to string for display
 
-        # Update the state
-        st.session_state.suggestion_states[key] = is_selected
+            is_selected = st.checkbox(
+                title,
+                value=st.session_state.suggestion_states[key],
+                key=key,
+                help=reasoning
+            )
 
-        if is_selected:
-            selected_suggestions.append(suggestion)
+            # Update the state
+            st.session_state.suggestion_states[key] = is_selected
+
+            if is_selected:
+                selected_suggestions.append(suggestion)
+    elif isinstance(suggestions, str):
+        st.write("Suggestions is a string. Displaying as is:")
+        st.write(suggestions)
+    else:
+        st.error("Unexpected type for suggestions. Expected list or string.")
 
     return selected_suggestions

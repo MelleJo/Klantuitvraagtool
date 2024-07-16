@@ -50,11 +50,20 @@ def render_suggestions(suggestions):
         if key not in st.session_state.suggestion_states:
             st.session_state.suggestion_states[key] = False
 
+        # Check if suggestion is a dictionary and has a 'titel' key
+        if isinstance(suggestion, dict) and 'titel' in suggestion:
+            title = suggestion['titel']
+            reasoning = suggestion.get('redenering', '')
+        else:
+            # If suggestion is not in the expected format, use a default title
+            title = f"Voorstel {i+1}"
+            reasoning = str(suggestion)  # Convert suggestion to string for display
+
         is_selected = st.checkbox(
-            suggestion['titel'],
+            title,
             value=st.session_state.suggestion_states[key],
             key=key,
-            help=suggestion.get('redenering', '')
+            help=reasoning
         )
 
         # Update the state

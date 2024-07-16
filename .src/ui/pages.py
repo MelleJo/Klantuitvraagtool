@@ -34,27 +34,33 @@ def render_conversation_history():
             st.markdown("**Gegenereerde E-mail:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
 
-def update_suggestion_state(suggestion_key):
-    st.session_state.suggestion_states[suggestion_key] = not st.session_state.suggestion_states[suggestion_key]
-
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
     
     # Initialize the suggestions state if it doesn't exist
     if 'suggestion_states' not in st.session_state:
-        st.session_state.suggestion_states = {f"suggestion_{i}": False for i in range(len(suggestions))}
+        st.session_state.suggestion_states = {}
+
+    selected_suggestions = []
 
     for i, suggestion in enumerate(suggestions):
         key = f"suggestion_{i}"
         
-        st.checkbox(
+        # Initialize the state for this suggestion if it doesn't exist
+        if key not in st.session_state.suggestion_states:
+            st.session_state.suggestion_states[key] = False
+
+        is_selected = st.checkbox(
             suggestion['titel'],
             value=st.session_state.suggestion_states[key],
             key=key,
-            on_change=update_suggestion_state,
-            args=(key,),
-            help=suggestion['redenering']
+            help=suggestion.get('redenering', '')
         )
-    
-    selected_suggestions = [suggestion for i, suggestion in enumerate(suggestions) if st.session_state.suggestion_states[f"suggestion_{i}"]]
+
+        # Update the state
+        st.session_state.suggestion_states[key] = is_selected
+
+        if is_selected:
+            selected_suggestions.append(suggestion)
+
     return selected_suggestions

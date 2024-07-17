@@ -3,7 +3,9 @@ from ui.components import *
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from services.summarization_service import analyze_transcript, generate_email
+from services.email_service import send_feedback_email
 import os
+import html
 
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -152,3 +154,17 @@ def render_conversation_history():
             st.markdown(f'<div class="content">{html.escape(gesprek["transcript"])}</div>', unsafe_allow_html=True)
             st.markdown("**Gegenereerde E-mail:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
+
+def render_suggestions(suggestions):
+    selected_suggestions = []
+
+    for i, suggestion in enumerate(suggestions):
+        with st.expander(f"Recommendation {i+1}: {suggestion['title']}"):
+            st.write(f"**Description:** {suggestion['description']}")
+            st.write(f"**Justification:** {suggestion['justification']}")
+            st.write(f"**Specific Risks:** {suggestion['specific_risks']}")
+            is_selected = st.checkbox("Select this recommendation", key=f"rec_{i}")
+            if is_selected:
+                selected_suggestions.append(suggestion)
+
+    return selected_suggestions

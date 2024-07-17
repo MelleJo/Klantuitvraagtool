@@ -17,8 +17,8 @@ def display_text_input():
 def display_file_uploader(allowed_types):
     return st.file_uploader("Upload een bestand:", type=allowed_types)
 
-def display_generate_button():
-    return st.button("Genereer")
+def display_generate_button(label="Genereer"):
+    return st.button(label)
 
 def display_progress_bar(progress):
     st.progress(progress)

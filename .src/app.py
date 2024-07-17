@@ -99,7 +99,8 @@ def main():
         if st.button("Analyseer"):
             with st.spinner("Transcript analyseren..."):
                 try:
-                    st.session_state.state['suggestions'] = analyze_transcript(edited_transcript)
+                    transcript = st.session_state.state['edited_transcript']
+                    st.session_state.state['suggestions'] = analyze_transcript(transcript)
                     st.session_state.state['analysis_complete'] = True
                     display_success("Analyse voltooid!")
                 except Exception as e:

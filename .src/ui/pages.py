@@ -38,32 +38,45 @@ def render_conversation_history():
 
 
 
+import streamlit as st
+import xml.etree.ElementTree as ET
+
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
     
+    if 'suggestion_states' not in st.session_state:
+        st.session_state.suggestion_states = {}
+
+    selected_suggestions = []
+
     if isinstance(suggestions, str):
-        # Parse the XML-like structure
         try:
             root = ET.fromstring(suggestions)
             
-            # Bestaande Dekking
             st.markdown("### Bestaande Dekking")
             bestaande_dekking = root.find('bestaande_dekking').text.strip()
             st.write(bestaande_dekking)
             
-            # Dekkingshiaten
             st.markdown("### Dekkingshiaten")
             dekkingshiaten = root.find('dekkingshiaten').text.strip().split('-')
             for hiaat in dekkingshiaten:
                 if hiaat.strip():
                     st.write(f"- {hiaat.strip()}")
             
-            # Verzekeringsaanbevelingen
             st.markdown("### Verzekeringsaanbevelingen")
-            for aanbeveling in root.find('verzekeringsaanbevelingen').findall('aanbeveling'):
+            for i, aanbeveling in enumerate(root.find('verzekeringsaanbevelingen').findall('aanbeveling')):
                 title = aanbeveling.text.strip()
-                st.markdown(f"#### {title}")
+                key = f"suggestion_{i}"
                 
+                if key not in st.session_state.suggestion_states:
+                    st.session_state.suggestion_states[key] = False
+
+                is_selected = st.checkbox(title, key=key)
+                st.session_state.suggestion_states[key] = is_selected
+
+                if is_selected:
+                    selected_suggestions.append(aanbeveling)
+
                 rechtvaardiging = aanbeveling.find('rechtvaardiging').text.strip()
                 st.markdown("**Rechtvaardiging:**")
                 st.write(rechtvaardiging)
@@ -74,7 +87,6 @@ def render_suggestions(suggestions):
                 
                 st.write("---")
             
-            # Aanvullende Opmerkingen
             st.markdown("### Aanvullende Opmerkingen")
             opmerkingen = root.find('aanvullende_opmerkingen').text.strip().split('\n')
             for opmerking in opmerkingen:
@@ -88,4 +100,4 @@ def render_suggestions(suggestions):
     else:
         st.error("Onverwacht type voor suggesties. Verwacht een string.")
     
-    return []  # We're not using checkboxes anymore, so we return an empty list
+    return selected_suggestions

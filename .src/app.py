@@ -100,11 +100,19 @@ def main():
             with st.spinner("Transcript analyseren..."):
                 try:
                     transcript = st.session_state.state['edited_transcript']
-                    st.session_state.state['suggestions'] = analyze_transcript(transcript)
+                    st.write(f"Debug: Transcript content (first 100 chars): {transcript[:100]}...")
+                    st.write(f"Debug: Transcript length: {len(transcript)}")
+                    
+                    analysis_result = analyze_transcript(transcript)
+                    st.write(f"Debug: Analysis result (first 100 chars): {analysis_result[:100]}...")
+                    st.write(f"Debug: Analysis result length: {len(analysis_result)}")
+                    
+                    st.session_state.state['suggestions'] = analysis_result
                     st.session_state.state['analysis_complete'] = True
                     display_success("Analyse voltooid!")
                 except Exception as e:
                     display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
+                    st.write(f"Debug: Full error: {e}")
 
         if st.session_state.state['analysis_complete']:
             st.session_state.state['selected_suggestions'] = render_suggestions(st.session_state.state['suggestions'])

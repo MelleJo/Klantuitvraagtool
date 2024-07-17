@@ -26,15 +26,21 @@ def run_klantuitvraag(text: str) -> Dict[str, Any]:
     except Exception as e:
         return {"klantuitvraag": None, "error": str(e)}
 
+
+
 def analyze_transcript(transcript: str) -> str:
     prompt_template = load_prompt("insurance_advisor_prompt.txt")
     
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.4)
     
     try:
+        # Create a ChatPromptTemplate with the loaded template
         prompt = ChatPromptTemplate.from_template(prompt_template)
+        
+        # Create the chain and invoke it with the transcript
         chain = prompt | chat_model
         result = chain.invoke({"TRANSCRIPT": transcript})
+        
         return result.content
     except Exception as e:
         print(f"Error in analyze_transcript: {str(e)}")

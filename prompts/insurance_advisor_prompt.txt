@@ -3,7 +3,7 @@ Je bent een expert verzekeringsadviseur die de taak heeft om een transcript van 
 Hier is het transcript van het gesprek met de klant:
 
 <transcript>
-{{TRANSCRIPT}}
+{TRANSCRIPT}
 </transcript>
 
 Volg deze stappen om je taak te voltooien:

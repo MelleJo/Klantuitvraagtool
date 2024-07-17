@@ -1,8 +1,5 @@
 import streamlit as st
-from services.email_service import send_feedback_email
 import html
-import xml.etree.ElementTree as ET
-from io import StringIO
 
 def render_feedback_form():
     with st.form(key="feedback_form"):
@@ -36,68 +33,16 @@ def render_conversation_history():
             st.markdown("**Gegenereerde E-mail:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
 
-
-
-import streamlit as st
-import xml.etree.ElementTree as ET
-
 def render_suggestions(suggestions):
-    st.subheader("Verzekeringsvoorstellen")
-    
-    if 'suggestion_states' not in st.session_state:
-        st.session_state.suggestion_states = {}
-
     selected_suggestions = []
 
-    if isinstance(suggestions, str):
-        try:
-            root = ET.fromstring(suggestions)
-            
-            st.markdown("### Bestaande Dekking")
-            bestaande_dekking = root.find('bestaande_dekking').text.strip()
-            st.write(bestaande_dekking)
-            
-            st.markdown("### Dekkingshiaten")
-            dekkingshiaten = root.find('dekkingshiaten').text.strip().split('-')
-            for hiaat in dekkingshiaten:
-                if hiaat.strip():
-                    st.write(f"- {hiaat.strip()}")
-            
-            st.markdown("### Verzekeringsaanbevelingen")
-            for i, aanbeveling in enumerate(root.find('verzekeringsaanbevelingen').findall('aanbeveling')):
-                title = aanbeveling.text.strip()
-                key = f"suggestion_{i}"
-                
-                if key not in st.session_state.suggestion_states:
-                    st.session_state.suggestion_states[key] = False
+    for i, suggestion in enumerate(suggestions):
+        with st.expander(f"Recommendation {i+1}: {suggestion['title']}"):
+            st.write(f"**Description:** {suggestion['description']}")
+            st.write(f"**Justification:** {suggestion['justification']}")
+            st.write(f"**Specific Risks:** {suggestion['specific_risks']}")
+            is_selected = st.checkbox("Select this recommendation", key=f"rec_{i}")
+            if is_selected:
+                selected_suggestions.append(suggestion)
 
-                is_selected = st.checkbox(title, key=key)
-                st.session_state.suggestion_states[key] = is_selected
-
-                if is_selected:
-                    selected_suggestions.append(aanbeveling)
-
-                rechtvaardiging = aanbeveling.find('rechtvaardiging').text.strip()
-                st.markdown("**Rechtvaardiging:**")
-                st.write(rechtvaardiging)
-                
-                risicos = aanbeveling.find('bedrijfsspecifieke_risicos').text.strip()
-                st.markdown("**Bedrijfsspecifieke risico's:**")
-                st.write(risicos)
-                
-                st.write("---")
-            
-            st.markdown("### Aanvullende Opmerkingen")
-            opmerkingen = root.find('aanvullende_opmerkingen').text.strip().split('\n')
-            for opmerking in opmerkingen:
-                if opmerking.strip():
-                    st.write(f"- {opmerking.strip()}")
-        
-        except ET.ParseError as e:
-            st.error(f"Er is een fout opgetreden bij het verwerken van de suggesties: {str(e)}")
-            st.write("Ruwe suggesties:")
-            st.write(suggestions)
-    else:
-        st.error("Onverwacht type voor suggesties. Verwacht een string.")
-    
     return selected_suggestions

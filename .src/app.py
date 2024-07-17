@@ -1,5 +1,5 @@
-import os
 import streamlit as st
+import os
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from utils.text_processing import update_gesprekslog
@@ -35,104 +35,141 @@ def initialize_session_state():
             'input_processed': False,
             'analysis_complete': False,
             'transcription_complete': False,
+            'active_step': 1,
         }
 
 def main():
     setup_page_style()
-    st.title("Klantuitvraagtool v0.0.2")
+    st.title("Klantuitvraagtool v0.0.3")
     st.markdown("---")
 
     config = load_config()
     initialize_session_state()
+
+    steps = ["Input Data", "Analyze", "Recommendations", "Client Report"]
     
-    col1, col2 = st.columns([1, 3])
+    col1, col2, col3, col4 = st.columns(4)
+    for i, step in enumerate(steps, 1):
+        with locals()[f"col{i}"]:
+            if st.session_state.state['active_step'] == i:
+                st.markdown(f"**{i}. {step}**")
+            elif st.session_state.state['active_step'] > i:
+                st.markdown(f"~~{i}. {step}~~")
+            else:
+                st.markdown(f"{i}. {step}")
 
-    with col1:
-        st.markdown("### 📋 Configuratie")
-        input_method = display_input_method_selector(config["INPUT_METHODS"])
+    if st.session_state.state['active_step'] == 1:
+        render_input_step(config)
+    elif st.session_state.state['active_step'] == 2:
+        render_analysis_step()
+    elif st.session_state.state['active_step'] == 3:
+        render_recommendations_step()
+    elif st.session_state.state['active_step'] == 4:
+        render_client_report_step()
 
-    with col2:
-        st.markdown("### 📝 Transcript & Klantuitvraag")
-        
-        if not st.session_state.state['input_processed']:
-            if input_method == "Upload tekst":
-                uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
-                if uploaded_file:
-                    transcript = process_uploaded_file(uploaded_file)
+def render_input_step(config):
+    st.subheader("Input Client Data")
+    input_method = display_input_method_selector(config["INPUT_METHODS"])
+
+    if input_method == "Upload tekst":
+        uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
+        if uploaded_file:
+            transcript = process_uploaded_file(uploaded_file)
+            st.session_state.state['transcript'] = transcript
+            st.session_state.state['input_processed'] = True
+            st.session_state.state['transcription_complete'] = True
+
+    elif input_method == "Voer tekst in of plak tekst":
+        input_text = display_text_input()
+        if display_generate_button():
+            st.session_state.state['transcript'] = input_text
+            st.session_state.state['input_processed'] = True
+            st.session_state.state['transcription_complete'] = True
+
+    elif input_method in ["Upload audio", "Neem audio op"]:
+        if not st.session_state.state['transcription_complete']:
+            audio_file_path = process_audio_input(input_method)
+            if audio_file_path:
+                with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                    transcript = transcribe_audio(audio_file_path)
                     st.session_state.state['transcript'] = transcript
                     st.session_state.state['input_processed'] = True
                     st.session_state.state['transcription_complete'] = True
+                os.unlink(audio_file_path)
 
-            elif input_method == "Voer tekst in of plak tekst":
-                input_text = display_text_input()
-                if display_generate_button():
-                    transcript = input_text
-                    st.session_state.state['transcript'] = transcript
-                    st.session_state.state['input_processed'] = True
-                    st.session_state.state['transcription_complete'] = True
+    if st.session_state.state['input_processed']:
+        st.text_area("Transcript:", value=st.session_state.state['transcript'], height=200, key="transcript_display")
+        if st.button("Proceed to Analysis"):
+            st.session_state.state['active_step'] = 2
 
-            elif input_method in ["Upload audio", "Neem audio op"]:
-                if not st.session_state.state['transcription_complete']:
-                    audio_file_path = process_audio_input(input_method)
-                    if audio_file_path:
-                        with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
-                            transcript = transcribe_audio(audio_file_path)
-                            st.session_state.state['transcript'] = transcript
-                            st.session_state.state['input_processed'] = True
-                            st.session_state.state['transcription_complete'] = True
-                        os.unlink(audio_file_path)
+def render_analysis_step():
+    st.subheader("Analysis Results")
+    
+    if not st.session_state.state['analysis_complete']:
+        with st.spinner("Analyzing transcript..."):
+            try:
+                analysis_result = analyze_transcript(st.session_state.state['transcript'])
+                st.session_state.state['suggestions'] = analysis_result
+                st.session_state.state['analysis_complete'] = True
+                display_success("Analysis completed!")
+            except Exception as e:
+                display_error(f"An error occurred during analysis: {str(e)}")
+
+    if st.session_state.state['analysis_complete']:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### Current Coverage")
+            # Display current coverage from analysis result
+            st.write("AVB - €1,500,000")
+            st.write("Business Interruption - €350,000")
         
-        transcript = st.session_state.state.get('transcript', '')
-        if transcript:
-            st.subheader("Transcript")
-            st.text_area("Gegenereerd Transcript:", value=transcript, height=200, key="generated_transcript", disabled=True)
+        with col2:
+            st.markdown("### Identified Risks")
+            # Display identified risks from analysis result
+            st.write("- Online platform vulnerability")
+            st.write("- Potential underinsurance")
 
-        st.subheader("Bewerk Transcript")
-        edited_transcript = st.text_area(
-            "Bewerk het transcript indien nodig:", 
-            value=transcript, 
-            height=300,
-            key='transcript_editor'
+        if st.button("View Recommendations"):
+            st.session_state.state['active_step'] = 3
+
+def render_recommendations_step():
+    st.subheader("Recommendations")
+    selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
+    st.session_state.state['selected_suggestions'] = selected_suggestions
+
+    if st.button("Generate Client Report"):
+        st.session_state.state['active_step'] = 4
+
+def render_client_report_step():
+    st.subheader("Client Report")
+    
+    if 'email_content' not in st.session_state.state or not st.session_state.state['email_content']:
+        with st.spinner("Generating client report..."):
+            try:
+                email_content = generate_email(
+                    st.session_state.state['transcript'],
+                    st.session_state.state['selected_suggestions']
+                )
+                st.session_state.state['email_content'] = email_content
+                display_success("Client report generated!")
+            except Exception as e:
+                display_error(f"An error occurred while generating the report: {str(e)}")
+
+    if st.session_state.state.get('email_content'):
+        st.download_button(
+            label="Download Report",
+            data=st.session_state.state['email_content'],
+            file_name="InsuranceReport_Client.txt",
+            mime="text/plain"
         )
-        st.session_state.state['edited_transcript'] = edited_transcript
 
-        if st.button("Analyseer"):
-            with st.spinner("Transcript analyseren..."):
-                try:
-                    st.session_state.state['suggestions'] = analyze_transcript(edited_transcript)
-                    st.session_state.state['analysis_complete'] = True
-                    display_success("Analyse voltooid!")
-                except Exception as e:
-                    display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
-
-        if st.session_state.state['analysis_complete']:
-            selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
-            
-            if selected_suggestions:
-                st.write("Geselecteerde aanbevelingen:")
-                for suggestion in selected_suggestions:
-                    st.write(f"- {suggestion.text.strip()}")
-
-            if st.button("Genereer E-mail"):
-                with st.spinner("E-mail genereren..."):
-                    try:
-                        email_content = generate_email(
-                            edited_transcript,
-                            selected_suggestions
-                        )
-                        st.session_state.state['email_content'] = email_content
-                        display_success("E-mail gegenereerd!")
-                    except Exception as e:
-                        display_error(f"Er is een fout opgetreden bij het genereren van de e-mail: {str(e)}")
-
-        if st.session_state.state.get('email_content'):
-            display_klantuitvraag(st.session_state.state['email_content'])
-
-    st.markdown("---")
-    render_conversation_history()
-    
-    with st.expander("Feedback", expanded=False):
-        render_feedback_form()
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Schedule Follow-up"):
+            st.write("Follow-up scheduled!")  # Replace with actual scheduling logic
+    with col2:
+        if st.button("Send to Client"):
+            st.write("Report sent to client!")  # Replace with actual email sending logic
 
 if __name__ == "__main__":
     main()

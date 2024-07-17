@@ -1,6 +1,8 @@
 import streamlit as st
 from services.email_service import send_feedback_email
 import html
+import xml.etree.ElementTree as ET
+from io import StringIO
 
 def render_feedback_form():
     with st.form(key="feedback_form"):
@@ -34,55 +36,56 @@ def render_conversation_history():
             st.markdown("**Gegenereerde E-mail:**")
             st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
 
-import streamlit as st
+
 
 def render_suggestions(suggestions):
     st.subheader("Verzekeringsvoorstellen")
     
-    # Initialize the suggestions state if it doesn't exist
-    if 'suggestion_states' not in st.session_state:
-        st.session_state.suggestion_states = {}
-
-    selected_suggestions = []
-
-    # Log the type and content of suggestions
-    st.write(f"Type of suggestions: {type(suggestions)}")
-    st.write(f"Content of suggestions: {suggestions}")
-
-    # Check if suggestions is a list or string
-    if isinstance(suggestions, list):
-        for i, suggestion in enumerate(suggestions):
-            key = f"suggestion_{i}"
+    if isinstance(suggestions, str):
+        # Parse the XML-like structure
+        try:
+            root = ET.fromstring(suggestions)
             
-            # Initialize the state for this suggestion if it doesn't exist
-            if key not in st.session_state.suggestion_states:
-                st.session_state.suggestion_states[key] = False
-
-            # Check if suggestion is a dictionary and has a 'titel' key
-            if isinstance(suggestion, dict) and 'titel' in suggestion:
-                title = suggestion['titel']
-                reasoning = suggestion.get('redenering', '')
-            else:
-                # If suggestion is not in the expected format, use a default title
-                title = f"Voorstel {i+1}"
-                reasoning = str(suggestion)  # Convert suggestion to string for display
-
-            is_selected = st.checkbox(
-                title,
-                value=st.session_state.suggestion_states[key],
-                key=key,
-                help=reasoning
-            )
-
-            # Update the state
-            st.session_state.suggestion_states[key] = is_selected
-
-            if is_selected:
-                selected_suggestions.append(suggestion)
-    elif isinstance(suggestions, str):
-        st.write("Suggestions is a string. Displaying as is:")
-        st.write(suggestions)
+            # Bestaande Dekking
+            st.markdown("### Bestaande Dekking")
+            bestaande_dekking = root.find('bestaande_dekking').text.strip()
+            st.write(bestaande_dekking)
+            
+            # Dekkingshiaten
+            st.markdown("### Dekkingshiaten")
+            dekkingshiaten = root.find('dekkingshiaten').text.strip().split('-')
+            for hiaat in dekkingshiaten:
+                if hiaat.strip():
+                    st.write(f"- {hiaat.strip()}")
+            
+            # Verzekeringsaanbevelingen
+            st.markdown("### Verzekeringsaanbevelingen")
+            for aanbeveling in root.find('verzekeringsaanbevelingen').findall('aanbeveling'):
+                title = aanbeveling.text.strip()
+                st.markdown(f"#### {title}")
+                
+                rechtvaardiging = aanbeveling.find('rechtvaardiging').text.strip()
+                st.markdown("**Rechtvaardiging:**")
+                st.write(rechtvaardiging)
+                
+                risicos = aanbeveling.find('bedrijfsspecifieke_risicos').text.strip()
+                st.markdown("**Bedrijfsspecifieke risico's:**")
+                st.write(risicos)
+                
+                st.write("---")
+            
+            # Aanvullende Opmerkingen
+            st.markdown("### Aanvullende Opmerkingen")
+            opmerkingen = root.find('aanvullende_opmerkingen').text.strip().split('\n')
+            for opmerking in opmerkingen:
+                if opmerking.strip():
+                    st.write(f"- {opmerking.strip()}")
+        
+        except ET.ParseError as e:
+            st.error(f"Er is een fout opgetreden bij het verwerken van de suggesties: {str(e)}")
+            st.write("Ruwe suggesties:")
+            st.write(suggestions)
     else:
-        st.error("Unexpected type for suggestions. Expected list or string.")
-
-    return selected_suggestions
+        st.error("Onverwacht type voor suggesties. Verwacht een string.")
+    
+    return []  # We're not using checkboxes anymore, so we return an empty list

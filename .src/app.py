@@ -99,39 +99,34 @@ def main():
         if st.button("Analyseer"):
             with st.spinner("Transcript analyseren..."):
                 try:
-                    transcript = st.session_state.state['edited_transcript']
-                    st.write(f"Debug: Transcript content (first 100 chars): {transcript[:100]}...")
-                    st.write(f"Debug: Transcript length: {len(transcript)}")
-                    
-                    analysis_result = analyze_transcript(transcript)
-                    st.write(f"Debug: Analysis result (first 100 chars): {analysis_result[:100]}...")
-                    st.write(f"Debug: Analysis result length: {len(analysis_result)}")
-                    
-                    st.session_state.state['suggestions'] = analysis_result
+                    st.session_state.state['suggestions'] = analyze_transcript(edited_transcript)
                     st.session_state.state['analysis_complete'] = True
                     display_success("Analyse voltooid!")
                 except Exception as e:
                     display_error(f"Er is een fout opgetreden bij het analyseren van het transcript: {str(e)}")
-                    st.write(f"Debug: Full error: {e}")
 
         if st.session_state.state['analysis_complete']:
-            st.session_state.state['selected_suggestions'] = render_suggestions(st.session_state.state['suggestions'])
+            selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
+            
+            if selected_suggestions:
+                st.write("Geselecteerde aanbevelingen:")
+                for suggestion in selected_suggestions:
+                    st.write(f"- {suggestion.text.strip()}")
 
             if st.button("Genereer E-mail"):
                 with st.spinner("E-mail genereren..."):
                     try:
-                        st.session_state.state['email_content'] = generate_email(
+                        email_content = generate_email(
                             edited_transcript,
-                            st.session_state.state['selected_suggestions']
+                            selected_suggestions
                         )
-                        st.session_state.state['klantuitvraag'] = st.session_state.state['email_content']
-                        update_gesprekslog(edited_transcript, st.session_state.state['email_content'])
+                        st.session_state.state['email_content'] = email_content
                         display_success("E-mail gegenereerd!")
                     except Exception as e:
                         display_error(f"Er is een fout opgetreden bij het genereren van de e-mail: {str(e)}")
 
-        if st.session_state.state['klantuitvraag']:
-            display_klantuitvraag(st.session_state.state['klantuitvraag'])
+        if st.session_state.state.get('email_content'):
+            display_klantuitvraag(st.session_state.state['email_content'])
 
     st.markdown("---")
     render_conversation_history()

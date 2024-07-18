@@ -6,7 +6,8 @@ from services.summarization_service import analyze_transcript, generate_email
 from services.email_service import send_feedback_email
 import os
 import html
-from utils.session_state import update_session_state
+from utils.session_state import initialize_session_state, update_session_state
+
 
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -88,11 +89,22 @@ def render_recommendations_step():
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         st.warning("No recommendations available. Please complete the analysis step first.")
     else:
-        selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
+        suggestions = st.session_state.state['suggestions']
+        if isinstance(suggestions, dict) and 'recommendations' in suggestions:
+            selected_suggestions = render_suggestions(suggestions['recommendations'])
+        elif isinstance(suggestions, list):
+            selected_suggestions = render_suggestions(suggestions)
+        else:
+            st.error("Unexpected format for suggestions. Please contact support.")
+            return
+
         update_session_state('selected_suggestions', selected_suggestions)
 
         if selected_suggestions:
             st.success(f"{len(selected_suggestions)} recommendations selected.")
+            if st.button("Generate Client Report", key="generate_client_report"):
+                st.session_state.state['active_step'] = 4
+                st.experimental_rerun()
         else:
             st.info("Please select at least one recommendation to generate a client report.")
     
@@ -170,15 +182,18 @@ def render_suggestions(suggestions):
     selected_suggestions = []
 
     for i, suggestion in enumerate(suggestions):
-        title = suggestion.get('title', f'Recommendation {i+1}')
-        justification = suggestion.get('justification', 'No justification provided')
-        specific_risks = suggestion.get('specific_risks', 'No specific risks identified')
+        if isinstance(suggestion, dict):
+            title = suggestion.get('title', f'Recommendation {i+1}')
+            justification = suggestion.get('justification', 'No justification provided')
+            specific_risks = suggestion.get('specific_risks', 'No specific risks identified')
 
-        with st.expander(title):
-            st.write(f"**Justification:** {justification}")
-            st.write(f"**Specific Risks:** {specific_risks}")
-            is_selected = st.checkbox("Select this recommendation", key=f"rec_{i}")
-            if is_selected:
-                selected_suggestions.append(suggestion)
+            with st.expander(title):
+                st.write(f"**Justification:** {justification}")
+                st.write(f"**Specific Risks:** {specific_risks}")
+                is_selected = st.checkbox("Select this recommendation", key=f"rec_{i}")
+                if is_selected:
+                    selected_suggestions.append(suggestion)
+        else:
+            st.error(f"Unexpected suggestion format for item {i+1}")
 
     return selected_suggestions

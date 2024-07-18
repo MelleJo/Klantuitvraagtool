@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Dict
+from typing import List, Dict, Any
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -79,7 +79,7 @@ def parse_suggestions(content: str) -> List[Dict[str, str]]:
     return suggestions
 
 def generate_email(transcript: str, analysis: List[Dict[str, str]]) -> str:
-    prompt = f"""
+    prompt = """
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
     Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
@@ -92,11 +92,9 @@ def generate_email(transcript: str, analysis: List[Dict[str, str]]) -> str:
 
     Gebruik de volgende informatie:
 
-    Transcript:
-    {transcript}
+    Transcript: {transcript}
 
-    Analyse:
-    {analysis}
+    Analyse: {analysis}
 
     Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
@@ -107,8 +105,11 @@ def generate_email(transcript: str, analysis: List[Dict[str, str]]) -> str:
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({"transcript": transcript, "analysis": json.dumps(analysis, ensure_ascii=False)}).content
-        return result
+        result = chain.invoke({
+            "transcript": transcript,
+            "analysis": json.dumps(analysis, ensure_ascii=False)
+        })
+        return result.content
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}")
         raise e

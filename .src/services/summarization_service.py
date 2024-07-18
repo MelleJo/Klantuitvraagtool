@@ -128,7 +128,7 @@ def parse_recommendation(lines: List[str]) -> Dict[str, str]:
     return recommendation
 
 def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
-    prompt = f"""
+    prompt = """
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
     Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
@@ -141,14 +141,9 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
 
     Gebruik de volgende informatie:
 
-    Transcript:
-    {transcript}
+    Transcript: {transcript}
 
-    Analyse:
-    Huidige dekking: {analysis.get('current_coverage', [])}
-    Geïdentificeerde risico's: {analysis.get('identified_risks', [])}
-    Aanbevelingen: {analysis.get('recommendations', [])}
-    Aanvullende opmerkingen: {analysis.get('additional_comments', [])}
+    Analyse: {analysis}
 
     Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
@@ -160,7 +155,10 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({"transcript": transcript, "analysis": json.dumps(analysis, ensure_ascii=False)})
+        result = chain.invoke({
+            "transcript": transcript,
+            "analysis": json.dumps(analysis, ensure_ascii=False)
+        })
         return result.content
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}")

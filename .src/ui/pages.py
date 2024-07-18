@@ -125,6 +125,7 @@ def render_client_report_step():
                 display_success("Client report generated successfully!")
             except Exception as e:
                 display_error(f"An error occurred while generating the report: {str(e)}")
+                st.stop()  # Stop execution if there's an error
 
     if st.session_state.state.get('email_content'):
         st.markdown("### 📥 Report Content")
@@ -134,24 +135,16 @@ def render_client_report_step():
             label="Download Report",
             data=st.session_state.state['email_content'],
             file_name="InsuranceReport_Client.txt",
-            mime="text/plain"
+            mime="text/plain",
+            key="download_report_button"
         )
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📅 Schedule Follow-up", key="schedule_followup"):
+        if st.button("📅 Schedule Follow-up", key="schedule_followup_button"):
             st.write("Follow-up scheduled!")
     with col2:
-        if st.button("📤 Send to Client", key="send_to_client"):
-            st.write("Report sent to client!")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📅 Schedule Follow-up", key="schedule_followup"):
-            st.write("Follow-up scheduled!")
-    with col2:
-        if st.button("📤 Send to Client", key="send_to_client"):
+        if st.button("📤 Send to Client", key="send_to_client_button"):
             st.write("Report sent to client!")
     st.markdown("</div>", unsafe_allow_html=True)
 

@@ -26,15 +26,15 @@ def render_navigation():
     
     with col1:
         if st.session_state.state['active_step'] > 1:
-            if st.button("⬅️ Vorige"):
+            if st.button("⬅️ Vorige", key="previous_button"):
                 st.session_state.state['active_step'] -= 1
-                st.experimental_rerun()
+                st.rerun()
 
     with col3:
         if st.session_state.state['active_step'] < 4:
-            if st.button("Volgende ➡️"):
+            if st.button("Volgende ➡️", key="next_button"):
                 st.session_state.state['active_step'] += 1
-                st.experimental_rerun()
+                st.rerun()
 
 def render_progress_bar(active_step: int) -> None:
     """Render the progress bar for the current step."""

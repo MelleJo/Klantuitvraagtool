@@ -48,9 +48,4 @@ def add_to_conversation_history(transcript: str, klantuitvraag: str) -> None:
         'klantuitvraag': klantuitvraag
     })
     
-    # Keep only the last 5 conversations
-    st.session_state.state['gesprekslog'] = st.session_state.state['gesprekslog'][-5:]
-
-def get_conversation_history() -> List[Dict[str, str]]:
-    """Get the current conversation history."""
-    return st.session_state.state.get('gesprekslog', [])
+    # Keep only the last 5

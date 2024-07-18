@@ -8,7 +8,7 @@ from ui.pages import (
     render_feedback_form,
     render_conversation_history
 )
-from utils.session_state import initialize_session_state
+from utils.session_state import initialize_session_state, update_session_state
 from utils.styles import apply_custom_css
 
 # Set page config at the very beginning
@@ -19,6 +19,22 @@ def load_config() -> Dict[str, Any]:
     return {
         "INPUT_METHODS": ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"],
     }
+
+def render_navigation():
+    """Render navigation buttons."""
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.session_state.state['active_step'] > 1:
+            if st.button("⬅️ Vorige"):
+                st.session_state.state['active_step'] -= 1
+                st.experimental_rerun()
+
+    with col3:
+        if st.session_state.state['active_step'] < 4:
+            if st.button("Volgende ➡️"):
+                st.session_state.state['active_step'] += 1
+                st.experimental_rerun()
 
 def render_progress_bar(active_step: int) -> None:
     """Render the progress bar for the current step."""
@@ -37,7 +53,7 @@ def main() -> None:
     """Main function to run the Streamlit app."""
     try:
         apply_custom_css()
-        st.title("🔒 Klantuitvraagtool v0.0.4")
+        st.title("🔒 Klantuitvraagtool v0.0.5")
         
         config = load_config()
         initialize_session_state()
@@ -54,6 +70,8 @@ def main() -> None:
             render_recommendations_step()
         elif st.session_state.state['active_step'] == 4:
             render_client_report_step()
+
+        render_navigation()
 
         st.markdown("---")
         render_conversation_history()

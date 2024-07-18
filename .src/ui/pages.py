@@ -6,6 +6,7 @@ from services.summarization_service import analyze_transcript, generate_email
 from services.email_service import send_feedback_email
 import os
 import html
+from utils.session_state import update_session_state
 
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -16,16 +17,16 @@ def render_input_step(config):
         uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
         if uploaded_file:
             transcript = process_uploaded_file(uploaded_file)
-            st.session_state.state['transcript'] = transcript
-            st.session_state.state['input_processed'] = True
-            st.session_state.state['transcription_complete'] = True
+            update_session_state('transcript', transcript)
+            update_session_state('input_processed', True)
+            update_session_state('transcription_complete', True)
 
     elif input_method == "Voer tekst in of plak tekst":
         input_text = display_text_input()
         if display_generate_button("Process Text"):
-            st.session_state.state['transcript'] = input_text
-            st.session_state.state['input_processed'] = True
-            st.session_state.state['transcription_complete'] = True
+            update_session_state('transcript', input_text)
+            update_session_state('input_processed', True)
+            update_session_state('transcription_complete', True)
 
     elif input_method in ["Upload audio", "Neem audio op"]:
         if not st.session_state.state['transcription_complete']:
@@ -33,16 +34,14 @@ def render_input_step(config):
             if audio_file_path:
                 with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
                     transcript = transcribe_audio(audio_file_path)
-                    st.session_state.state['transcript'] = transcript
-                    st.session_state.state['input_processed'] = True
-                    st.session_state.state['transcription_complete'] = True
+                    update_session_state('transcript', transcript)
+                    update_session_state('input_processed', True)
+                    update_session_state('transcription_complete', True)
                 os.unlink(audio_file_path)
 
     if st.session_state.state['input_processed']:
         st.markdown("### 📄 Generated Transcript")
         st.text_area("", value=st.session_state.state['transcript'], height=200, key="transcript_display")
-        if st.button("Proceed to Analysis", key="proceed_to_analysis"):
-            st.session_state.state['active_step'] = 2
     st.markdown("</div>", unsafe_allow_html=True)
 
 def render_analysis_step():
@@ -53,14 +52,11 @@ def render_analysis_step():
         with st.spinner("Analyzing transcript..."):
             try:
                 analysis_result = analyze_transcript(st.session_state.state['transcript'])
-                st.session_state.state['suggestions'] = analysis_result
-                st.session_state.state['analysis_complete'] = True
+                update_session_state('suggestions', analysis_result)
+                update_session_state('analysis_complete', True)
                 display_success("Analysis completed successfully!")
-                st.write(f"Debug: Analysis result type: {type(analysis_result)}")
-                st.write(f"Debug: Analysis result: {analysis_result}")
             except Exception as e:
                 display_error(f"An error occurred during analysis: {str(e)}")
-                st.write(f"Debug: Full error: {e}")
 
     if st.session_state.state['analysis_complete']:
         col1, col2 = st.columns(2)
@@ -78,37 +74,24 @@ def render_analysis_step():
             st.write("• Potential underinsurance")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        if st.button("View Recommendations", key="view_recommendations"):
-            st.session_state.state['active_step'] = 3
     st.markdown("</div>", unsafe_allow_html=True)
-
-
 
 def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
     
-    st.write("Debug: Entering render_recommendations_step")
-    st.write(f"Debug: Session state: {st.session_state.state}")
-    
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         st.warning("No recommendations available. Please complete the analysis step first.")
-        st.write(f"Debug: Suggestions in session state: {st.session_state.state.get('suggestions')}")
     else:
-        st.write(f"Debug: Suggestions type: {type(st.session_state.state['suggestions'])}")
-        st.write(f"Debug: Suggestions content: {st.session_state.state['suggestions']}")
         selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
-        st.session_state.state['selected_suggestions'] = selected_suggestions
+        update_session_state('selected_suggestions', selected_suggestions)
 
         if selected_suggestions:
             st.success(f"{len(selected_suggestions)} recommendations selected.")
-            if st.button("Generate Client Report", key="generate_client_report"):
-                st.session_state.state['active_step'] = 4
         else:
             st.info("Please select at least one recommendation to generate a client report.")
     
     st.markdown("</div>", unsafe_allow_html=True)
-    st.write("Debug: Exiting render_recommendations_step")
 
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -121,13 +104,15 @@ def render_client_report_step():
                     st.session_state.state['transcript'],
                     st.session_state.state['selected_suggestions']
                 )
-                st.session_state.state['email_content'] = email_content
+                update_session_state('email_content', email_content)
                 display_success("Client report generated successfully!")
             except Exception as e:
                 display_error(f"An error occurred while generating the report: {str(e)}")
 
     if st.session_state.state.get('email_content'):
-        st.markdown("### 📥 Download Report")
+        st.markdown("### 📥 Report Content")
+        st.text_area("Generated Report", value=st.session_state.state['email_content'], height=300, key="report_display")
+        
         st.download_button(
             label="Download Report",
             data=st.session_state.state['email_content'],
@@ -179,22 +164,7 @@ def render_conversation_history():
 def render_suggestions(suggestions):
     selected_suggestions = []
 
-    st.write(f"Debug: Inside render_suggestions. Suggestions: {suggestions}")
-
-    if not isinstance(suggestions, list):
-        st.warning(f"Unexpected suggestions type: {type(suggestions)}")
-        if isinstance(suggestions, str):
-            st.write("Debug: Suggestions content (string):")
-            st.write(suggestions)
-        return selected_suggestions
-
     for i, suggestion in enumerate(suggestions):
-        st.write(f"Debug: Processing suggestion {i}: {suggestion}")
-        
-        if not isinstance(suggestion, dict):
-            st.warning(f"Unexpected suggestion type: {type(suggestion)}")
-            continue
-
         title = suggestion.get('title', f'Recommendation {i+1}')
         justification = suggestion.get('justification', 'No justification provided')
         specific_risks = suggestion.get('specific_risks', 'No specific risks identified')
@@ -206,5 +176,4 @@ def render_suggestions(suggestions):
             if is_selected:
                 selected_suggestions.append(suggestion)
 
-    st.write(f"Debug: Selected suggestions: {selected_suggestions}")
     return selected_suggestions

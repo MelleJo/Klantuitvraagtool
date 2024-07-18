@@ -61,7 +61,6 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         'additional_comments': []
     }
     
-    # Parse the content and populate the result dictionary
     lines = content.split('\n')
     current_section = None
     current_recommendation = None
@@ -89,16 +88,13 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
             if line.startswith('<aanbeveling>'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)
-                current_recommendation = {'title': line[12:].strip()}
-            elif line.startswith('<rechtvaardiging>'):
-                current_recommendation['justification'] = line[16:].strip()
-            elif line.startswith('<bedrijfsspecifieke_risicos>'):
-                current_recommendation['specific_risks'] = line[28:].strip()
-            elif current_recommendation:
-                if 'justification' in current_recommendation:
-                    current_recommendation['justification'] += ' ' + line
-                elif 'specific_risks' in current_recommendation:
-                    current_recommendation['specific_risks'] += ' ' + line
+                current_recommendation = {'title': line[12:].strip(), 'specific_risks': [], 'benefits': []}
+            elif line.startswith('<beschrijving>'):
+                current_recommendation['description'] = line[13:].strip()
+            elif line.startswith('<specifiek_risico>'):
+                current_recommendation['specific_risks'].append(line[17:].strip())
+            elif line.startswith('<voordeel>'):
+                current_recommendation['benefits'].append(line[10:].strip())
         elif current_section == 'additional_comments' and line:
             result['additional_comments'].append(line)
     
@@ -107,28 +103,8 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     
     return result
 
-def parse_recommendation(lines: List[str]) -> Dict[str, str]:
-    recommendation = {}
-    current_key = None
-    for line in lines:
-        line = line.strip()
-        if line.startswith('<aanbeveling>'):
-            current_key = 'title'
-        elif line.startswith('<rechtvaardiging>'):
-            current_key = 'justification'
-        elif line.startswith('<bedrijfsspecifieke_risicos>'):
-            current_key = 'specific_risks'
-        elif line.startswith('</aanbeveling>'):
-            break
-        elif current_key:
-            if current_key in recommendation:
-                recommendation[current_key] += ' ' + line
-            else:
-                recommendation[current_key] = line
-    return recommendation
-
 def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
-    prompt = """
+    prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
     Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
@@ -141,9 +117,11 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
 
     Gebruik de volgende informatie:
 
-    Transcript: {transcript}
+    Transcript:
+    {transcript}
 
-    Analyse: {analysis}
+    Analyse:
+    {json.dumps(analysis, ensure_ascii=False, indent=2)}
 
     Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
@@ -163,3 +141,5 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}")
         raise e
+
+logger.info("summarization_service.py loaded successfully")

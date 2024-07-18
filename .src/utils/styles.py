@@ -1,6 +1,6 @@
 import streamlit as st
 
-def apply_custom_css() -> None:
+def apply_custom_css():
     """Apply custom CSS to improve the app's appearance and user experience."""
     st.markdown("""
         <style>
@@ -58,6 +58,50 @@ def apply_custom_css() -> None:
         .stExpander {
             border: 1px solid #e0e0e0;
             border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .stExpander > div:first-child {
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            background-color: #f0f0f0;
+        }
+        .stExpander > div:last-child {
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+            background-color: white;
+        }
+        .recommendation-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .recommendation-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .recommendation-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .recommendation-content {
+            margin-top: 10px;
+        }
+        .recommendation-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .recommendation-list li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .recommendation-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
         }
         </style>
         """, unsafe_allow_html=True)

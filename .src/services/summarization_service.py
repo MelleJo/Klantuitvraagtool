@@ -1,10 +1,12 @@
+import json
+import logging
+from typing import List, Dict
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt
-from typing import Dict, Any, List
-import logging
 
+# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -20,7 +22,7 @@ def generate_klantuitvraag(text: str) -> str:
         result = chain.invoke({}).content
         return result
     except Exception as e:
-        print(f"Error in generate_klantuitvraag: {str(e)}")
+        logger.error(f"Error in generate_klantuitvraag: {str(e)}")
         raise e
 
 def run_klantuitvraag(text: str) -> Dict[str, Any]:
@@ -28,6 +30,7 @@ def run_klantuitvraag(text: str) -> Dict[str, Any]:
         klantuitvraag = generate_klantuitvraag(text)
         return {"klantuitvraag": klantuitvraag, "error": None}
     except Exception as e:
+        logger.error(f"Error in run_klantuitvraag: {str(e)}")
         return {"klantuitvraag": None, "error": str(e)}
 
 def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
@@ -39,16 +42,15 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
         chain = prompt | chat_model
         result = chain.invoke({"TRANSCRIPT": transcript})
         
-        st.write(f"Debug: Raw analysis result: {result.content}")  # Changed from print to st.write
+        logger.info(f"Raw analysis result: {result.content}")
         
-        # Parse the result content into a list of dictionaries
         suggestions = parse_suggestions(result.content)
         
-        st.write(f"Debug: Parsed suggestions: {suggestions}")  # Changed from print to st.write
+        logger.info(f"Parsed suggestions: {suggestions}")
         
         return suggestions
     except Exception as e:
-        st.error(f"Error in analyze_transcript: {str(e)}")  # Changed from print to st.error
+        logger.error(f"Error in analyze_transcript: {str(e)}")
         raise e
 
 def parse_suggestions(content: str) -> List[Dict[str, str]]:
@@ -108,5 +110,7 @@ def generate_email(transcript: str, analysis: List[Dict[str, str]]) -> str:
         result = chain.invoke({"transcript": transcript, "analysis": json.dumps(analysis, ensure_ascii=False)}).content
         return result
     except Exception as e:
-        logging.error(f"Error in generate_email: {str(e)}")
+        logger.error(f"Error in generate_email: {str(e)}")
         raise e
+
+logger.info("summarization_service.py loaded successfully")

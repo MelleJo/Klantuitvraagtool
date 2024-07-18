@@ -61,8 +61,10 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         'additional_comments': []
     }
     
+    # Parse the content and populate the result dictionary
     lines = content.split('\n')
     current_section = None
+    current_recommendation = None
     for line in lines:
         line = line.strip()
         if line.startswith('<bestaande_dekking>'):
@@ -74,14 +76,34 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         elif line.startswith('<aanvullende_opmerkingen>'):
             current_section = 'additional_comments'
         elif line.startswith('</'):
+            if current_recommendation:
+                result['recommendations'].append(current_recommendation)
+                current_recommendation = None
             current_section = None
         elif current_section == 'current_coverage' and ':' in line:
             name, value = line.split(':', 1)
             result['current_coverage'].append({'name': name.strip(), 'value': value.strip()})
-        elif current_section in ['identified_risks', 'additional_comments'] and line:
-            result[current_section].append(line)
-        elif current_section == 'recommendations' and line.startswith('<aanbeveling>'):
-            result['recommendations'].append(parse_recommendation(lines[lines.index(line):]))
+        elif current_section == 'identified_risks' and line:
+            result['identified_risks'].append(line)
+        elif current_section == 'recommendations':
+            if line.startswith('<aanbeveling>'):
+                if current_recommendation:
+                    result['recommendations'].append(current_recommendation)
+                current_recommendation = {'title': line[12:].strip()}
+            elif line.startswith('<rechtvaardiging>'):
+                current_recommendation['justification'] = line[16:].strip()
+            elif line.startswith('<bedrijfsspecifieke_risicos>'):
+                current_recommendation['specific_risks'] = line[28:].strip()
+            elif current_recommendation:
+                if 'justification' in current_recommendation:
+                    current_recommendation['justification'] += ' ' + line
+                elif 'specific_risks' in current_recommendation:
+                    current_recommendation['specific_risks'] += ' ' + line
+        elif current_section == 'additional_comments' and line:
+            result['additional_comments'].append(line)
+    
+    if current_recommendation:
+        result['recommendations'].append(current_recommendation)
     
     return result
 

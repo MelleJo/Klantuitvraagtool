@@ -100,14 +100,27 @@ def render_recommendations_step():
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []
     for i, rec in enumerate(recommendations):
-        with st.expander(f"{rec['title']}", expanded=False):
-            st.write(f"**Description:** {rec['description']}")
+        title = rec.get('title', f'Recommendation {i+1}')
+        with st.expander(title, expanded=False):
+            description = rec.get('description', 'No description provided.')
+            st.write(f"**Description:** {description}")
+            
             st.write("**Specific Risks:**")
-            for risk in rec['specific_risks']:
-                st.write(f"• {risk}")
+            risks = rec.get('specific_risks', [])
+            if risks:
+                for risk in risks:
+                    st.write(f"• {risk}")
+            else:
+                st.write("No specific risks provided.")
+            
             st.write("**Benefits:**")
-            for benefit in rec['benefits']:
-                st.write(f"• {benefit}")
+            benefits = rec.get('benefits', [])
+            if benefits:
+                for benefit in benefits:
+                    st.write(f"• {benefit}")
+            else:
+                st.write("No benefits provided.")
+            
             if st.checkbox("Select this recommendation", key=f"rec_{i}"):
                 selected_recommendations.append(rec)
     return selected_recommendations

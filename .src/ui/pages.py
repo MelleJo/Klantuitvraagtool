@@ -82,11 +82,19 @@ def render_analysis_step():
 def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
-    selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
-    st.session_state.state['selected_suggestions'] = selected_suggestions
+    
+    if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
+        st.warning("No recommendations available. Please complete the analysis step first.")
+    else:
+        selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
+        st.session_state.state['selected_suggestions'] = selected_suggestions
 
-    if st.button("Generate Client Report", key="generate_client_report"):
-        st.session_state.state['active_step'] = 4
+        if selected_suggestions:
+            if st.button("Generate Client Report", key="generate_client_report"):
+                st.session_state.state['active_step'] = 4
+        else:
+            st.info("Please select at least one recommendation to generate a client report.")
+    
     st.markdown("</div>", unsafe_allow_html=True)
 
 def render_client_report_step():
@@ -158,11 +166,28 @@ def render_conversation_history():
 def render_suggestions(suggestions):
     selected_suggestions = []
 
+    if not isinstance(suggestions, list):
+        st.warning("No recommendations available.")
+        return selected_suggestions
+
     for i, suggestion in enumerate(suggestions):
-        with st.expander(f"Recommendation {i+1}: {suggestion['title']}"):
-            st.write(f"**Description:** {suggestion['description']}")
-            st.write(f"**Justification:** {suggestion['justification']}")
-            st.write(f"**Specific Risks:** {suggestion['specific_risks']}")
+        if isinstance(suggestion, dict):
+            title = suggestion.get('title', f'Recommendation {i+1}')
+            description = suggestion.get('description', 'No description available')
+            justification = suggestion.get('justification', 'No justification provided')
+            specific_risks = suggestion.get('specific_risks', 'No specific risks identified')
+        elif isinstance(suggestion, str):
+            title = f'Recommendation {i+1}'
+            description = suggestion
+            justification = 'No justification provided'
+            specific_risks = 'No specific risks identified'
+        else:
+            continue  # Skip this suggestion if it's neither a dict nor a string
+
+        with st.expander(title):
+            st.write(f"**Description:** {description}")
+            st.write(f"**Justification:** {justification}")
+            st.write(f"**Specific Risks:** {specific_risks}")
             is_selected = st.checkbox("Select this recommendation", key=f"rec_{i}")
             if is_selected:
                 selected_suggestions.append(suggestion)

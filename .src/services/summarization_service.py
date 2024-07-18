@@ -33,7 +33,7 @@ def run_klantuitvraag(text: str) -> Dict[str, Any]:
         logger.error(f"Error in run_klantuitvraag: {str(e)}")
         return {"klantuitvraag": None, "error": str(e)}
 
-def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
+def analyze_transcript(transcript: str) -> Dict[str, Any]:
     prompt_template = load_prompt("insurance_advisor_prompt.txt")
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.4)
 
@@ -44,41 +44,68 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
         
         logger.info(f"Raw analysis result: {result.content}")
         
-        suggestions = parse_suggestions(result.content)
+        parsed_result = parse_analysis_result(result.content)
         
-        logger.info(f"Parsed suggestions: {suggestions}")
+        logger.info(f"Parsed analysis result: {parsed_result}")
         
-        return suggestions
+        return parsed_result
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}")
         raise e
 
-def parse_suggestions(content: str) -> List[Dict[str, str]]:
-    suggestions = []
-    current_suggestion = {}
-    current_key = None
+def parse_analysis_result(content: str) -> Dict[str, Any]:
+    result = {
+        'current_coverage': [],
+        'identified_risks': [],
+        'recommendations': [],
+        'additional_comments': []
+    }
+    
+    lines = content.split('\n')
+    current_section = None
+    for line in lines:
+        line = line.strip()
+        if line.startswith('<bestaande_dekking>'):
+            current_section = 'current_coverage'
+        elif line.startswith('<dekkingshiaten>'):
+            current_section = 'identified_risks'
+        elif line.startswith('<verzekeringsaanbevelingen>'):
+            current_section = 'recommendations'
+        elif line.startswith('<aanvullende_opmerkingen>'):
+            current_section = 'additional_comments'
+        elif line.startswith('</'):
+            current_section = None
+        elif current_section == 'current_coverage' and ':' in line:
+            name, value = line.split(':', 1)
+            result['current_coverage'].append({'name': name.strip(), 'value': value.strip()})
+        elif current_section in ['identified_risks', 'additional_comments'] and line:
+            result[current_section].append(line)
+        elif current_section == 'recommendations' and line.startswith('<aanbeveling>'):
+            result['recommendations'].append(parse_recommendation(lines[lines.index(line):]))
+    
+    return result
 
-    for line in content.split('\n'):
+def parse_recommendation(lines: List[str]) -> Dict[str, str]:
+    recommendation = {}
+    current_key = None
+    for line in lines:
         line = line.strip()
         if line.startswith('<aanbeveling>'):
-            current_suggestion = {'title': line[13:].strip()}
+            current_key = 'title'
         elif line.startswith('<rechtvaardiging>'):
             current_key = 'justification'
         elif line.startswith('<bedrijfsspecifieke_risicos>'):
             current_key = 'specific_risks'
         elif line.startswith('</aanbeveling>'):
-            suggestions.append(current_suggestion)
-            current_suggestion = {}
-            current_key = None
+            break
         elif current_key:
-            if current_key in current_suggestion:
-                current_suggestion[current_key] += ' ' + line
+            if current_key in recommendation:
+                recommendation[current_key] += ' ' + line
             else:
-                current_suggestion[current_key] = line
+                recommendation[current_key] = line
+    return recommendation
 
-    return suggestions
-
-def generate_email(transcript: str, analysis: List[Dict[str, str]]) -> str:
+def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     prompt = """
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.

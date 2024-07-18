@@ -49,31 +49,36 @@ def render_analysis_step():
     st.subheader("🔍 Analysis Results")
     
     if not st.session_state.state['analysis_complete']:
-        with st.spinner("Analyzing transcript..."):
-            try:
-                analysis_result = analyze_transcript(st.session_state.state['transcript'])
-                update_session_state('suggestions', analysis_result)
-                update_session_state('analysis_complete', True)
-                display_success("Analysis completed successfully!")
-            except Exception as e:
-                display_error(f"An error occurred during analysis: {str(e)}")
-
-    if st.session_state.state['analysis_complete']:
+        if st.session_state.state['transcript']:
+            with st.spinner("Analyzing transcript..."):
+                try:
+                    analysis_result = analyze_transcript(st.session_state.state['transcript'])
+                    update_session_state('suggestions', analysis_result)
+                    update_session_state('analysis_complete', True)
+                    display_success("Analysis completed successfully!")
+                except Exception as e:
+                    display_error(f"An error occurred during analysis: {str(e)}")
+        else:
+            st.warning("No transcript available for analysis. Please provide input in the previous step.")
+    
+    if st.session_state.state['analysis_complete'] and st.session_state.state['suggestions']:
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### 📊 Current Coverage")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            display_metric("AVB", "€1,500,000")
-            display_metric("Business Interruption", "€350,000")
+            for coverage in st.session_state.state['suggestions'].get('current_coverage', []):
+                display_metric(coverage['name'], coverage['value'])
             st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
             st.markdown("### ⚠️ Identified Risks")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            st.write("• Online platform vulnerability")
-            st.write("• Potential underinsurance")
+            for risk in st.session_state.state['suggestions'].get('identified_risks', []):
+                st.write(f"• {risk}")
             st.markdown("</div>", unsafe_allow_html=True)
-
+    elif st.session_state.state['analysis_complete']:
+        st.info("No analysis results available. The transcript may not contain relevant insurance information.")
+    
     st.markdown("</div>", unsafe_allow_html=True)
 
 def render_recommendations_step():

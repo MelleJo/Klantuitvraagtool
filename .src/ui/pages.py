@@ -56,8 +56,11 @@ def render_analysis_step():
                 st.session_state.state['suggestions'] = analysis_result
                 st.session_state.state['analysis_complete'] = True
                 display_success("Analysis completed successfully!")
+                st.write(f"Debug: Analysis result type: {type(analysis_result)}")
+                st.write(f"Debug: Analysis result: {analysis_result}")
             except Exception as e:
                 display_error(f"An error occurred during analysis: {str(e)}")
+                st.write(f"Debug: Full error: {e}")
 
     if st.session_state.state['analysis_complete']:
         col1, col2 = st.columns(2)
@@ -79,13 +82,20 @@ def render_analysis_step():
             st.session_state.state['active_step'] = 3
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+
 def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
     
+    st.write(f"Debug: Session state: {st.session_state.state}")
+    
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         st.warning("No recommendations available. Please complete the analysis step first.")
+        st.write(f"Debug: Suggestions in session state: {st.session_state.state.get('suggestions')}")
     else:
+        st.write(f"Debug: Suggestions type: {type(st.session_state.state['suggestions'])}")
+        st.write(f"Debug: Suggestions content: {st.session_state.state['suggestions']}")
         selected_suggestions = render_suggestions(st.session_state.state['suggestions'])
         st.session_state.state['selected_suggestions'] = selected_suggestions
 

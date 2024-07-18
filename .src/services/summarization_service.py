@@ -2,14 +2,14 @@ import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 def generate_klantuitvraag(text: str) -> str:
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")
     full_prompt = f"{custom_prompt}\n\nInput tekst: \"{text}\"\n\nGenereer nu een klantuitvraag op basis van deze input:"
-    
+
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0)
-    
+
     try:
         prompt_template = ChatPromptTemplate.from_template(full_prompt)
         chain = prompt_template | chat_model
@@ -26,29 +26,50 @@ def run_klantuitvraag(text: str) -> Dict[str, Any]:
     except Exception as e:
         return {"klantuitvraag": None, "error": str(e)}
 
-
-
-def analyze_transcript(transcript: str) -> str:
+def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
     prompt_template = load_prompt("insurance_advisor_prompt.txt")
-    
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.4)
-    
+
     try:
-        # Create a ChatPromptTemplate with the loaded template
         prompt = ChatPromptTemplate.from_template(prompt_template)
-        
-        # Create the chain and invoke it with the transcript
         chain = prompt | chat_model
         result = chain.invoke({"TRANSCRIPT": transcript})
         
-        return result.content
+        # Parse the result content into a list of dictionaries
+        suggestions = parse_suggestions(result.content)
+        return suggestions
     except Exception as e:
         print(f"Error in analyze_transcript: {str(e)}")
         raise e
 
+def parse_suggestions(content: str) -> List[Dict[str, str]]:
+    suggestions = []
+    current_suggestion = {}
+    current_key = None
+
+    for line in content.split('\n'):
+        line = line.strip()
+        if line.startswith('<aanbeveling>'):
+            current_suggestion = {'title': line[13:].strip()}
+        elif line.startswith('<rechtvaardiging>'):
+            current_key = 'justification'
+        elif line.startswith('<bedrijfsspecifieke_risicos>'):
+            current_key = 'specific_risks'
+        elif line.startswith('</aanbeveling>'):
+            suggestions.append(current_suggestion)
+            current_suggestion = {}
+            current_key = None
+        elif current_key:
+            if current_key in current_suggestion:
+                current_suggestion[current_key] += ' ' + line
+            else:
+                current_suggestion[current_key] = line
+
+    return suggestions
+
 def generate_email(transcript: str, analysis: str) -> str:
     prompt = f"""
-    Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht. 
+    Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
     Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
 
@@ -71,7 +92,7 @@ def generate_email(transcript: str, analysis: str) -> str:
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)
-    
+
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model

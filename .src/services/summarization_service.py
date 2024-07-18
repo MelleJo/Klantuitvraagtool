@@ -3,6 +3,10 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt
 from typing import Dict, Any, List
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def generate_klantuitvraag(text: str) -> str:
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")
@@ -72,7 +76,7 @@ def parse_suggestions(content: str) -> List[Dict[str, str]]:
 
     return suggestions
 
-def generate_email(transcript: str, analysis: str) -> str:
+def generate_email(transcript: str, analysis: List[Dict[str, str]]) -> str:
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
@@ -101,10 +105,8 @@ def generate_email(transcript: str, analysis: str) -> str:
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({"transcript": transcript, "analysis": analysis}).content
+        result = chain.invoke({"transcript": transcript, "analysis": json.dumps(analysis, ensure_ascii=False)}).content
         return result
     except Exception as e:
-        print(f"Error in generate_email: {str(e)}")
+        logging.error(f"Error in generate_email: {str(e)}")
         raise e
-
-print("summarization_service.py loaded successfully")

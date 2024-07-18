@@ -35,16 +35,16 @@ def analyze_transcript(transcript: str) -> List[Dict[str, str]]:
         chain = prompt | chat_model
         result = chain.invoke({"TRANSCRIPT": transcript})
         
-        print(f"Debug: Raw analysis result: {result.content}")  # Add this line
+        st.write(f"Debug: Raw analysis result: {result.content}")  # Changed from print to st.write
         
         # Parse the result content into a list of dictionaries
         suggestions = parse_suggestions(result.content)
         
-        print(f"Debug: Parsed suggestions: {suggestions}")  # Add this line
+        st.write(f"Debug: Parsed suggestions: {suggestions}")  # Changed from print to st.write
         
         return suggestions
     except Exception as e:
-        print(f"Error in analyze_transcript: {str(e)}")
+        st.error(f"Error in analyze_transcript: {str(e)}")  # Changed from print to st.error
         raise e
 
 def parse_suggestions(content: str) -> List[Dict[str, str]]:

@@ -88,6 +88,7 @@ def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
     
+    st.write("Debug: Entering render_recommendations_step")
     st.write(f"Debug: Session state: {st.session_state.state}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
@@ -107,8 +108,7 @@ def render_recommendations_step():
             st.info("Please select at least one recommendation to generate a client report.")
     
     st.markdown("</div>", unsafe_allow_html=True)
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.write("Debug: Exiting render_recommendations_step")
 
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -183,6 +183,9 @@ def render_suggestions(suggestions):
 
     if not isinstance(suggestions, list):
         st.warning(f"Unexpected suggestions type: {type(suggestions)}")
+        if isinstance(suggestions, str):
+            st.write("Debug: Suggestions content (string):")
+            st.write(suggestions)
         return selected_suggestions
 
     for i, suggestion in enumerate(suggestions):

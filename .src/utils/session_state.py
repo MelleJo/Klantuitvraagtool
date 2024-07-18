@@ -48,4 +48,29 @@ def add_to_conversation_history(transcript: str, klantuitvraag: str) -> None:
         'klantuitvraag': klantuitvraag
     })
     
-    # Keep only the last 5
+    # Keep only the last 5 conversations
+    st.session_state.state['gesprekslog'] = st.session_state.state['gesprekslog'][-5:]
+
+def get_conversation_history() -> List[Dict[str, str]]:
+    """Get the current conversation history."""
+    return st.session_state.state.get('gesprekslog', [])
+
+def clear_step_data(step: int) -> None:
+    """Clear data related to a specific step."""
+    if step == 1:
+        st.session_state.state['transcript'] = ''
+        st.session_state.state['input_processed'] = False
+        st.session_state.state['transcription_complete'] = False
+    elif step == 2:
+        st.session_state.state['suggestions'] = []
+        st.session_state.state['analysis_complete'] = False
+    elif step == 3:
+        st.session_state.state['selected_suggestions'] = []
+    elif step == 4:
+        st.session_state.state['email_content'] = ''
+
+def move_to_step(step: int) -> None:
+    """Move to a specific step and clear subsequent steps' data."""
+    st.session_state.state['active_step'] = step
+    for i in range(step + 1, 5):
+        clear_step_data(i)

@@ -119,7 +119,7 @@ def render_client_report_step():
             try:
                 email_content = generate_email(
                     st.session_state.state['transcript'],
-                    st.session_state.state['selected_suggestions']
+                    st.session_state.state['suggestions']
                 )
                 update_session_state('email_content', email_content)
                 display_success("Client report generated successfully!")
@@ -136,6 +136,15 @@ def render_client_report_step():
             file_name="InsuranceReport_Client.txt",
             mime="text/plain"
         )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📅 Schedule Follow-up", key="schedule_followup"):
+            st.write("Follow-up scheduled!")
+    with col2:
+        if st.button("📤 Send to Client", key="send_to_client"):
+            st.write("Report sent to client!")
+    st.markdown("</div>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
     with col1:

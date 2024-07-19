@@ -97,9 +97,17 @@ def render_recommendations_step():
     
     st.markdown("</div>", unsafe_allow_html=True)
 
+
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []
+    if not isinstance(recommendations, list):
+        st.warning("No valid recommendations available.")
+        return selected_recommendations
+
     for i, rec in enumerate(recommendations):
+        if not isinstance(rec, dict):
+            continue  # Skip non-dictionary items
+
         title = rec.get('title', f'Recommendation {i+1}')
         with st.expander(title, expanded=False):
             description = rec.get('description', 'No description provided.')
@@ -107,7 +115,7 @@ def render_enhanced_suggestions(recommendations):
             
             st.write("**Specific Risks:**")
             risks = rec.get('specific_risks', [])
-            if risks:
+            if isinstance(risks, list) and risks:
                 for risk in risks:
                     st.write(f"• {risk}")
             else:
@@ -115,7 +123,7 @@ def render_enhanced_suggestions(recommendations):
             
             st.write("**Benefits:**")
             benefits = rec.get('benefits', [])
-            if benefits:
+            if isinstance(benefits, list) and benefits:
                 for benefit in benefits:
                     st.write(f"• {benefit}")
             else:
@@ -123,6 +131,7 @@ def render_enhanced_suggestions(recommendations):
             
             if st.checkbox("Select this recommendation", key=f"rec_{i}"):
                 selected_recommendations.append(rec)
+    
     return selected_recommendations
 
 def render_client_report_step():

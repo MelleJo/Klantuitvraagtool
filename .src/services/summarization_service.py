@@ -53,6 +53,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}")
         raise e
 
+
 def parse_analysis_result(content: str) -> Dict[str, Any]:
     result = {
         'current_coverage': [],
@@ -102,6 +103,13 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     
     if current_recommendation:
         result['recommendations'].append(current_recommendation)
+    
+    # Ensure all recommendations have the required fields
+    for rec in result['recommendations']:
+        rec.setdefault('title', 'Untitled Recommendation')
+        rec.setdefault('description', '')
+        rec.setdefault('specific_risks', [])
+        rec.setdefault('benefits', [])
     
     return result
 

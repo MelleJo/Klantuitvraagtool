@@ -106,12 +106,14 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         if current_recommendation:
             result['recommendations'].append(current_recommendation)
         
+        # Log the number of recommendations parsed
+        logger.info(f"Number of recommendations parsed: {len(result['recommendations'])}")
+        
     except Exception as e:
         logger.error(f"Error in parse_analysis_result: {str(e)}")
         logger.error(f"Content causing error: {content}")
         raise
     
-    logger.info(f"Parsed result: {result}")
     return result
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:

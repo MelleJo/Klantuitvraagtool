@@ -118,8 +118,10 @@ def render_recommendations_step():
         else:
             st.write("Please select the recommendations you'd like to include in the client report:")
             
+            # Create a list of all recommendation titles
             recommendation_options = [rec.get('title', f"Recommendation {i+1}") for i, rec in enumerate(recommendations)]
             
+            # Use multiselect to allow selection of multiple recommendations
             selected_recommendations = st.multiselect(
                 "Select recommendations to include:",
                 options=recommendation_options,
@@ -127,6 +129,7 @@ def render_recommendations_step():
                 key="recommendation_selector"
             )
             
+            # Display details for each recommendation
             for i, rec in enumerate(recommendations):
                 title = rec.get('title', f"Recommendation {i+1}")
                 with st.expander(title, expanded=False):
@@ -136,10 +139,7 @@ def render_recommendations_step():
                         st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
                         st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
                     
-                    if 'justification' in rec:
-                        st.markdown(f'<p class="recommendation-title">Justification:</p>', unsafe_allow_html=True)
-                        st.markdown(f'<p class="recommendation-content">{rec["justification"]}</p>', unsafe_allow_html=True)
-                    elif 'rechtvaardiging' in rec:  # Check for Dutch key as well
+                    if 'rechtvaardiging' in rec:
                         st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
                         st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
                     

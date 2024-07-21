@@ -130,10 +130,10 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     Gebruik de volgende informatie:
 
     Transcript:
-    {transcript}
+    {{transcript}}
 
     Analyse:
-    {json.dumps(analysis, ensure_ascii=False, indent=2)}
+    {{analysis}}
 
     Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
@@ -147,7 +147,7 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
         chain = prompt_template | chat_model
         result = chain.invoke({
             "transcript": transcript,
-            "analysis": json.dumps(analysis, ensure_ascii=False)
+            "analysis": json.dumps(analysis, ensure_ascii=False, indent=2)
         })
         return result.content
     except Exception as e:

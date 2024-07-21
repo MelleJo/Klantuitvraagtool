@@ -168,7 +168,9 @@ def render_client_report_step():
                 update_session_state('email_content', email_content)
                 display_success("Client report generated successfully!")
             except Exception as e:
+                logger.error(f"Error in render_client_report_step: {str(e)}")
                 display_error(f"An error occurred while generating the report: {str(e)}")
+                st.stop()
 
     if st.session_state.state.get('email_content'):
         st.markdown("### 📥 Report Content")

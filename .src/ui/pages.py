@@ -9,8 +9,7 @@ from ui.components import (
     display_success,
     display_error,
     display_warning,
-    display_metric
-    
+    display_metric   
 )
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file

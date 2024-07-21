@@ -48,11 +48,13 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         logger.info(f"Parsed analysis result: {parsed_result}")
         
+        if not isinstance(parsed_result, dict):
+            raise ValueError(f"Expected dictionary, got {type(parsed_result)}")
+        
         return parsed_result
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}")
-        raise e
-
+        return {"error": str(e)}
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:
     result = {
@@ -107,6 +109,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Error in parse_analysis_result: {str(e)}")
+        logger.error(f"Content causing error: {content}")
         raise
     
     logger.info(f"Parsed result: {result}")

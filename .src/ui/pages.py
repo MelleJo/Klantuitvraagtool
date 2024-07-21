@@ -56,26 +56,40 @@ def render_analysis_step():
         with st.spinner("Analyzing transcript..."):
             try:
                 analysis_result = analyze_transcript(st.session_state.state['transcript'])
+                if "error" in analysis_result:
+                    raise Exception(analysis_result["error"])
                 update_session_state('suggestions', analysis_result)
                 update_session_state('analysis_complete', True)
                 display_success("Analysis completed successfully!")
             except Exception as e:
                 display_error(f"An error occurred during analysis: {str(e)}")
+                st.stop()
 
     if st.session_state.state['analysis_complete']:
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### 📊 Current Coverage")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            for coverage in st.session_state.state['suggestions'].get('current_coverage', []):
-                display_metric(coverage['name'], coverage['value'])
+            current_coverage = st.session_state.state['suggestions'].get('current_coverage', [])
+            if isinstance(current_coverage, list):
+                for coverage in current_coverage:
+                    if isinstance(coverage, dict) and 'name' in coverage and 'value' in coverage:
+                        display_metric(coverage['name'], coverage['value'])
+                    else:
+                        st.write(coverage)
+            else:
+                st.write(current_coverage)
             st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
             st.markdown("### ⚠️ Identified Risks")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            for risk in st.session_state.state['suggestions'].get('identified_risks', []):
-                st.write(f"• {risk}")
+            identified_risks = st.session_state.state['suggestions'].get('identified_risks', [])
+            if isinstance(identified_risks, list):
+                for risk in identified_risks:
+                    st.write(f"• {risk}")
+            else:
+                st.write(identified_risks)
             st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -100,7 +114,6 @@ def render_recommendations_step():
             st.info("Please select at least one recommendation to generate a client report.")
     
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []

@@ -35,7 +35,7 @@ def run_klantuitvraag(text: str) -> Dict[str, Any]:
 
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
     prompt_template = load_prompt("insurance_advisor_prompt.txt")
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.4)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.2)
 
     try:
         prompt = ChatPromptTemplate.from_template(prompt_template)
@@ -55,6 +55,64 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}")
         return {"error": str(e)}
+
+def parse_analysis_result(content: str) -> Dict[str, Any]:
+    result = {
+        'current_coverage': [],
+        'coverage_gaps': [],
+        'recommendations': [],
+        'additional_comments': []
+    }
+    
+    try:
+        current_section = None
+        current_recommendation = None
+        
+        for line in content.split('\n'):
+            line = line.strip()
+            if line.startswith('<bestaande_dekking>'):
+                current_section = 'current_coverage'
+            elif line.startswith('<dekkingshiaten>'):
+                current_section = 'coverage_gaps'
+            elif line.startswith('<verzekeringsaanbevelingen>'):
+                current_section = 'recommendations'
+            elif line.startswith('<aanvullende_opmerkingen>'):
+                current_section = 'additional_comments'
+            elif line.startswith('</'):
+                if current_recommendation:
+                    result['recommendations'].append(current_recommendation)
+                    current_recommendation = None
+                current_section = None
+            elif current_section == 'recommendations':
+                if line.startswith('<aanbeveling>'):
+                    if current_recommendation:
+                        result['recommendations'].append(current_recommendation)
+                    current_recommendation = {'title': '', 'description': '', 'justification': '', 'specific_risks': []}
+                elif line.startswith('<rechtvaardiging>'):
+                    current_recommendation['justification'] = line[16:].strip()
+                elif line.startswith('<bedrijfsspecifieke_risicos>'):
+                    pass  # Just a marker, actual risks are on the next lines
+                elif current_recommendation:
+                    if not current_recommendation['description']:
+                        current_recommendation['title'] = line
+                        current_recommendation['description'] = line
+                    elif not current_recommendation['justification']:
+                        current_recommendation['description'] += ' ' + line
+                    else:
+                        current_recommendation['specific_risks'].append(line)
+            elif current_section and line:
+                result[current_section].append(line)
+        
+        if current_recommendation:
+            result['recommendations'].append(current_recommendation)
+        
+    except Exception as e:
+        logger.error(f"Error in parse_analysis_result: {str(e)}")
+        logger.error(f"Content causing error: {content}")
+        raise
+    
+    logger.info(f"Parsed result: {result}")
+    return result
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:
     result = {

@@ -1,4 +1,5 @@
 import streamlit as st
+from typing import List, Any
 
 def ImprovedUIStyled():
     st.markdown(
@@ -123,3 +124,48 @@ def ImprovedUIStyled():
         """,
         unsafe_allow_html=True
     )
+
+def display_input_method_selector(input_methods: List[str]) -> str:
+    """Display a selector for input methods."""
+    return st.selectbox("Selecteer invoermethode:", input_methods, key="input_method_selector")
+
+def display_text_input() -> str:
+    """Display a text input area."""
+    return st.text_area("Voer tekst in of plak tekst:", height=200, key="text_input")
+
+def display_file_uploader(allowed_types: List[str]) -> Any:
+    """Display a file uploader."""
+    return st.file_uploader("Upload een bestand:", type=allowed_types, key="file_uploader")
+
+def display_generate_button(label: str = "Genereer") -> bool:
+    """Display a generate button."""
+    return st.button(label, key=f"generate_button_{label}")
+
+def display_progress_bar(progress: float) -> None:
+    """Display a progress bar."""
+    st.progress(progress, key="progress_bar")
+
+def display_spinner(text: str) -> Any:
+    """Display a spinner with custom text."""
+    return st.spinner(text)
+
+def display_success(message: str) -> None:
+    """Display a success message."""
+    st.success(message)
+
+def display_error(message: str) -> None:
+    """Display an error message."""
+    st.error(message)
+
+def display_warning(message: str) -> None:
+    """Display a warning message."""
+    st.warning(message)
+
+def display_metric(label: str, value: Any) -> None:
+    """Display a metric with a label and value."""
+    st.markdown(f"""
+    <div class="metric-container">
+        <p style='font-size: 14px; color: #555; margin-bottom: 5px;'>{label}</p>
+        <p style='font-size: 20px; font-weight: bold; margin: 0;'>{value}</p>
+    </div>
+    """, unsafe_allow_html=True)

@@ -1,5 +1,16 @@
 import streamlit as st
-from ui.components import *
+from ui.components import (
+    display_input_method_selector,
+    display_text_input,
+    display_file_uploader,
+    display_generate_button,
+    display_progress_bar,
+    display_spinner,
+    display_success,
+    display_error,
+    display_warning,
+    display_metric
+)
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from services.summarization_service import analyze_transcript, generate_email

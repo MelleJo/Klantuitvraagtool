@@ -1,17 +1,9 @@
 import streamlit as st
-from streamlit.components.v1 import html
 
 def ImprovedUIStyled():
-    return html(
+    st.markdown(
         """
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/styled-components/5.3.3/styled-components.min.js"></script>
-        <div id="react-root"></div>
-        <script>
-        const {styled, createGlobalStyle} = styled;
-        
-        const GlobalStyle = createGlobalStyle`
+        <style>
           body {
             font-family: 'Roboto', sans-serif;
             background-color: #f0f4f8;
@@ -127,19 +119,7 @@ def ImprovedUIStyled():
           .stProgress > div > div > div > div {
             background-color: #3b82f6;
           }
-        `;
-
-        const App = () => {
-          return React.createElement(React.Fragment, null,
-            React.createElement(GlobalStyle, null),
-            React.createElement('div', null, 'Styled content goes here')
-          );
-        };
-
-        ReactDOM.render(
-          React.createElement(App, null),
-          document.getElementById('react-root')
-        );
-        </script>
-        """
+        </style>
+        """,
+        unsafe_allow_html=True
     )

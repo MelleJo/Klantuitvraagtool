@@ -9,7 +9,6 @@ from ui.pages import (
     render_conversation_history
 )
 from utils.session_state import initialize_session_state, update_session_state
-from utils.styles import apply_custom_css
 from ui.components import ImprovedUIStyled
 
 # Set page config at the very beginning
@@ -54,7 +53,7 @@ def main() -> None:
     """Main function to run the Streamlit app."""
     try:
         # Apply the improved UI styling
-        st.markdown(ImprovedUIStyled().render(), unsafe_allow_html=True)
+        ImprovedUIStyled()
         
         st.title("🔒 Klantuitvraagtool v0.0.5")
         

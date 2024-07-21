@@ -23,3 +23,5 @@ streamlit-lottie
 st-copy-to-clipboard
 bleach
 tiktoken
+python-dotenv
+requests

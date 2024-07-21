@@ -108,26 +108,9 @@ def render_enhanced_suggestions(recommendations):
         if not isinstance(rec, dict):
             continue  # Skip non-dictionary items
 
-        title = rec.get('title', '') or f'Recommendation {i+1}'
-        with st.expander(title, expanded=False):
-            description = rec.get('description', 'No description provided.')
-            st.write(f"**Description:** {description}")
-            
-            st.write("**Specific Risks:**")
-            risks = rec.get('specific_risks', [])
-            if isinstance(risks, list) and risks:
-                for risk in risks:
-                    st.write(f"• {risk}")
-            else:
-                st.write("No specific risks provided.")
-            
-            st.write("**Benefits:**")
-            benefits = rec.get('benefits', [])
-            if isinstance(benefits, list) and benefits:
-                for benefit in benefits:
-                    st.write(f"• {benefit}")
-            else:
-                st.write("No benefits provided.")
+        with st.expander(f"Recommendation {i+1}", expanded=False):
+            content = rec.get('content', 'No content provided.')
+            st.write(content)
             
             if st.checkbox("Select this recommendation", key=f"rec_{i}"):
                 selected_recommendations.append(rec)

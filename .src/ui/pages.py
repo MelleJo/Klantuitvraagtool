@@ -113,16 +113,50 @@ def render_recommendations_step():
         st.warning("No recommendations available. Please complete the analysis step first.")
     else:
         recommendations = st.session_state.state['suggestions'].get('recommendations', [])
-        selected_recommendations = render_enhanced_suggestions(recommendations)
-        update_session_state('selected_suggestions', selected_recommendations)
-
-        if selected_recommendations:
-            st.success(f"{len(selected_recommendations)} recommendations selected.")
-            if st.button("Generate Client Report", key="generate_client_report"):
-                st.session_state.state['active_step'] = 4
-                st.rerun()
+        if not recommendations:
+            st.warning("No recommendations were generated in the analysis step.")
         else:
-            st.info("Please select at least one recommendation to generate a client report.")
+            st.write("Please select the recommendations you'd like to include in the client report:")
+            
+            recommendation_options = []
+            for i, rec in enumerate(recommendations):
+                title = rec.get('title', f'Recommendation {i+1}')
+                recommendation_options.append(title)
+                
+                with st.expander(title, expanded=False):
+                    st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
+                    description = rec.get('description', 'No description provided.')
+                    st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="recommendation-content">{description}</p>', unsafe_allow_html=True)
+                    
+                    st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
+                    risks = rec.get('specific_risks', [])
+                    if isinstance(risks, list) and risks:
+                        st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
+                        for risk in risks:
+                            st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
+                        st.markdown('</ul>', unsafe_allow_html=True)
+                    else:
+                        st.markdown('<p class="recommendation-content">No specific risks provided.</p>', unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+            
+            selected_recommendations = st.multiselect(
+                "Select recommendations to include:",
+                options=recommendation_options,
+                default=recommendation_options,  # By default, all recommendations are selected
+                key="recommendation_selector"
+            )
+            
+            if selected_recommendations:
+                selected_rec_objects = [rec for rec in recommendations if rec.get('title', f'Recommendation {recommendations.index(rec)+1}') in selected_recommendations]
+                update_session_state('selected_suggestions', selected_rec_objects)
+                st.success(f"{len(selected_recommendations)} recommendations selected.")
+                
+                if st.button("Generate Client Report", key="generate_client_report"):
+                    st.session_state.state['active_step'] = 4
+                    st.rerun()
+            else:
+                st.info("Please select at least one recommendation to generate a client report.")
     
     st.markdown("</div>", unsafe_allow_html=True)
 

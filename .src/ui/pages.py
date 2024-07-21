@@ -131,19 +131,24 @@ def render_enhanced_suggestions(recommendations):
 
                 title = rec.get('title', f'Recommendation {i+1}')
                 with st.expander(title, expanded=False):
+                    st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
                     description = rec.get('description', 'No description provided.')
-                    st.write(f"**Description:** {description}")
+                    st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="recommendation-content">{description}</p>', unsafe_allow_html=True)
                     
-                    st.write("**Specific Risks:**")
+                    st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
                     risks = rec.get('specific_risks', [])
                     if isinstance(risks, list) and risks:
+                        st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
                         for risk in risks:
-                            st.write(f"• {risk}")
+                            st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
+                        st.markdown('</ul>', unsafe_allow_html=True)
                     else:
-                        st.write("No specific risks provided.")
+                        st.markdown('<p class="recommendation-content">No specific risks provided.</p>', unsafe_allow_html=True)
                     
                     if st.checkbox("Select this recommendation", key=f"rec_{i}"):
                         selected_recommendations.append(rec)
+                    st.markdown('</div>', unsafe_allow_html=True)
             except Exception as e:
                 logger.error(f"Error rendering recommendation {i}: {str(e)}")
                 st.error(f"Error displaying recommendation {i+1}")
@@ -222,4 +227,4 @@ def render_conversation_history():
             st.markdown("**Transcript:**")
             st.markdown(f'<div class="content">{html.escape(gesprek["transcript"])}</div>', unsafe_allow_html=True)
             st.markdown("**Gegenereerde E-mail:**")
-            st.markdown(gesprek["klantuitvraag"], unsafe_allow_html=True)
+            st.markdown(f'<div class="content">{gesprek["klantuitvraag"]}</div>', unsafe_allow_html=True)

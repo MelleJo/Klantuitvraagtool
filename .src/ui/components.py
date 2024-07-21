@@ -1,82 +1,145 @@
 import streamlit as st
-from typing import List, Any
+from streamlit.components.v1 import html
 
-def display_transcript(transcript: str) -> None:
-    """Display the generated transcript."""
-    st.subheader("Transcript")
-    st.text_area("Gegenereerd Transcript:", value=transcript, height=200, key="generated_transcript", disabled=True)
+def ImprovedUIStyled():
+    return html(
+        """
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/styled-components/5.3.3/styled-components.min.js"></script>
+        <div id="react-root"></div>
+        <script>
+        const {styled, createGlobalStyle} = styled;
+        
+        const GlobalStyle = createGlobalStyle`
+          body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+          }
 
-def display_klantuitvraag(klantuitvraag: str) -> None:
-    """Display the generated email content."""
-    st.subheader("Gegenereerde E-mail")
-    st.text_area("E-mail inhoud:", value=klantuitvraag, height=300, key="generated_email")
+          .stApp {
+            background-color: #ffffff;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
 
-def display_input_method_selector(input_methods: List[str]) -> str:
-    """Display a selector for input methods."""
-    return st.selectbox("Selecteer invoermethode:", input_methods, key="input_method_selector")
+          h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            color: #1e3a8a;
+          }
 
-def display_text_input() -> str:
-    """Display a text input area."""
-    return st.text_area("Voer tekst in of plak tekst:", height=200, key="text_input")
+          .stButton > button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+          }
 
-def display_file_uploader(allowed_types: List[str]) -> Any:
-    """Display a file uploader."""
-    return st.file_uploader("Upload een bestand:", type=allowed_types, key="file_uploader")
+          .stButton > button:hover {
+            background-color: #2563eb;
+          }
 
-def display_generate_button(label: str = "Genereer") -> bool:
-    """Display a generate button."""
-    return st.button(label, key=f"generate_button_{label}")
+          .stTextInput > div > div > input,
+          .stTextArea > div > div > textarea {
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            padding: 0.5rem;
+          }
 
-def display_progress_bar(progress: float) -> None:
-    """Display a progress bar."""
-    st.progress(progress, key="progress_bar")
+          .step-container {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+          }
 
-def display_spinner(text: str) -> Any:
-    """Display a spinner with custom text."""
-    return st.spinner(text)
+          .metric-container {
+            background-color: #dbeafe;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+          }
 
-def display_success(message: str) -> None:
-    """Display a success message."""
-    st.success(message)
+          .stExpander {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+          }
 
-def display_error(message: str) -> None:
-    """Display an error message."""
-    st.error(message)
+          .stExpander > div:first-child {
+            background-color: #f3f4f6;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+          }
 
-def display_warning(message: str) -> None:
-    """Display a warning message."""
-    st.warning(message)
+          .recommendation-card {
+            background-color: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: box-shadow 0.3s ease;
+          }
 
-def display_metric(label: str, value: Any) -> None:
-    """Display a metric with a label and value."""
-    st.markdown(f"""
-    <div class="metric-container">
-        <p style='font-size: 14px; color: #555; margin-bottom: 5px;'>{label}</p>
-        <p style='font-size: 20px; font-weight: bold; margin: 0;'>{value}</p>
-    </div>
-    """, unsafe_allow_html=True)
+          .recommendation-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
 
-def display_expandable_text(label: str, content: str) -> None:
-    """Display expandable text content."""
-    with st.expander(label):
-        st.markdown(content)
+          .recommendation-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+          }
 
-def display_checkbox(label: str, key: str) -> bool:
-    """Display a checkbox with a custom label and key."""
-    return st.checkbox(label, key=key)
+          .recommendation-content {
+            font-size: 0.9rem;
+            color: #4b5563;
+          }
 
-def display_radio_buttons(label: str, options: List[str], key: str) -> str:
-    """Display radio buttons with a custom label, options, and key."""
-    return st.radio(label, options, key=key)
+          .recommendation-list {
+            list-style-type: none;
+            padding-left: 0;
+          }
 
-def display_multiselect(label: str, options: List[str], key: str) -> List[str]:
-    """Display a multiselect widget with a custom label, options, and key."""
-    return st.multiselect(label, options, key=key)
+          .recommendation-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+          }
 
-def display_date_input(label: str, key: str) -> Any:
-    """Display a date input widget with a custom label and key."""
-    return st.date_input(label, key=key)
+          .recommendation-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+          }
 
-def display_time_input(label: str, key: str) -> Any:
-    """Display a time input widget with a custom label and key."""
-    return st.time_input(label, key=key)
+          .stProgress > div > div > div > div {
+            background-color: #3b82f6;
+          }
+        `;
+
+        const App = () => {
+          return React.createElement(React.Fragment, null,
+            React.createElement(GlobalStyle, null),
+            React.createElement('div', null, 'Styled content goes here')
+          );
+        };
+
+        ReactDOM.render(
+          React.createElement(App, null),
+          document.getElementById('react-root')
+        );
+        </script>
+        """
+    )

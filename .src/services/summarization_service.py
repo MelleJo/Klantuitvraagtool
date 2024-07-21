@@ -63,7 +63,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     }
     
     current_section = None
-    current_recommendation = {}
+    current_recommendation = None
     
     for line in content.split('\n'):
         line = line.strip()
@@ -78,15 +78,28 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         elif line.startswith('</'):
             if current_recommendation:
                 result['recommendations'].append(current_recommendation)
-                current_recommendation = {}
+                current_recommendation = None
             current_section = None
+        elif current_section == 'current_coverage' and line:
+            result['current_coverage'].append(line)
+        elif current_section == 'identified_risks' and line:
+            result['identified_risks'].append(line)
         elif current_section == 'recommendations':
             if line.startswith('<aanbeveling>'):
-                current_recommendation = {'content': line[12:]}
+                if current_recommendation:
+                    result['recommendations'].append(current_recommendation)
+                current_recommendation = {'title': '', 'description': '', 'specific_risks': []}
+            elif line.startswith('<rechtvaardiging>'):
+                current_recommendation['description'] = line[16:].strip()
+            elif line.startswith('<bedrijfsspecifieke_risicos>'):
+                current_recommendation['specific_risks'] = []
             elif current_recommendation:
-                current_recommendation['content'] += ' ' + line
-        elif current_section and line:
-            result[current_section].append(line)
+                if not current_recommendation['description']:
+                    current_recommendation['title'] += line
+                elif 'specific_risks' in current_recommendation:
+                    current_recommendation['specific_risks'].append(line)
+        elif current_section == 'additional_comments' and line:
+            result['additional_comments'].append(line)
     
     if current_recommendation:
         result['recommendations'].append(current_recommendation)

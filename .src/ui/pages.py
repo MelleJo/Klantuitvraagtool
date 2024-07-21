@@ -98,6 +98,8 @@ def render_recommendations_step():
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+import streamlit as st
+
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []
     if not isinstance(recommendations, list):
@@ -108,9 +110,18 @@ def render_enhanced_suggestions(recommendations):
         if not isinstance(rec, dict):
             continue  # Skip non-dictionary items
 
-        with st.expander(f"Recommendation {i+1}", expanded=False):
-            content = rec.get('content', 'No content provided.')
-            st.write(content)
+        title = rec.get('title', f'Recommendation {i+1}')
+        with st.expander(title, expanded=False):
+            description = rec.get('description', 'No description provided.')
+            st.write(f"**Description:** {description}")
+            
+            st.write("**Specific Risks:**")
+            risks = rec.get('specific_risks', [])
+            if isinstance(risks, list) and risks:
+                for risk in risks:
+                    st.write(f"• {risk}")
+            else:
+                st.write("No specific risks provided.")
             
             if st.checkbox("Select this recommendation", key=f"rec_{i}"):
                 selected_recommendations.append(rec)

@@ -107,6 +107,8 @@ def render_analysis_step():
 
 import logging
 
+import logging
+
 def render_recommendations_step():
     logging.info("Entering render_recommendations_step")
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)

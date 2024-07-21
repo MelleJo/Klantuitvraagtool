@@ -105,21 +105,30 @@ def render_analysis_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+import logging
+
 def render_recommendations_step():
+    logging.info("Entering render_recommendations_step")
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
+        logging.warning("No suggestions in session state")
         st.warning("No recommendations available. Please complete the analysis step first.")
     else:
         recommendations = st.session_state.state['suggestions'].get('recommendations', [])
+        logging.info(f"Number of recommendations: {len(recommendations)}")
+        logging.info(f"Recommendations: {recommendations}")
+        
         if not recommendations:
+            logging.warning("No recommendations were generated")
             st.warning("No recommendations were generated in the analysis step.")
         else:
             st.write("Please select the recommendations you'd like to include in the client report:")
             
             # Create a list of all recommendation titles
             recommendation_options = [rec.get('title', f"Recommendation {i+1}") for i, rec in enumerate(recommendations)]
+            logging.info(f"Recommendation options: {recommendation_options}")
             
             # Use multiselect to allow selection of multiple recommendations
             selected_recommendations = st.multiselect(
@@ -164,6 +173,7 @@ def render_recommendations_step():
                 st.info("Please select at least one recommendation to generate a client report.")
     
     st.markdown("</div>", unsafe_allow_html=True)
+    logging.info("Exiting render_recommendations_step")
 
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []

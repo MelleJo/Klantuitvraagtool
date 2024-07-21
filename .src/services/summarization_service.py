@@ -46,7 +46,10 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         parsed_result = parse_analysis_result(result.content)
         
-        logger.info(f"Parsed analysis result: {parsed_result}")
+        logger.info(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
+        logger.info(f"Number of recommendations: {len(parsed_result['recommendations'])}")
+        for i, rec in enumerate(parsed_result['recommendations']):
+            logger.info(f"Recommendation {i+1}: {rec['title']}")
         
         if not isinstance(parsed_result, dict):
             raise ValueError(f"Expected dictionary, got {type(parsed_result)}")
@@ -64,55 +67,50 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         'additional_comments': []
     }
     
-    try:
-        current_section = None
-        current_recommendation = None
-        
-        for line in content.split('\n'):
-            line = line.strip()
-            if line.startswith('<bestaande_dekking>'):
-                current_section = 'current_coverage'
-            elif line.startswith('<dekkingshiaten>'):
-                current_section = 'coverage_gaps'
-            elif line.startswith('<verzekeringsaanbevelingen>'):
-                current_section = 'recommendations'
-            elif line.startswith('<aanvullende_opmerkingen>'):
-                current_section = 'additional_comments'
-            elif line.startswith('</'):
+    current_section = None
+    current_recommendation = None
+    
+    for line in content.split('\n'):
+        line = line.strip()
+        if line.startswith('<bestaande_dekking>'):
+            current_section = 'current_coverage'
+        elif line.startswith('<dekkingshiaten>'):
+            current_section = 'coverage_gaps'
+        elif line.startswith('<verzekeringsaanbevelingen>'):
+            current_section = 'recommendations'
+        elif line.startswith('<aanvullende_opmerkingen>'):
+            current_section = 'additional_comments'
+        elif line.startswith('</'):
+            if current_recommendation:
+                result['recommendations'].append(current_recommendation)
+                current_recommendation = None
+            current_section = None
+        elif current_section == 'recommendations':
+            if line.startswith('<aanbeveling>'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)
-                    current_recommendation = None
-                current_section = None
-            elif current_section == 'recommendations':
-                if line.startswith('<aanbeveling>'):
-                    if current_recommendation:
-                        result['recommendations'].append(current_recommendation)
-                    current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-                elif line.startswith('<rechtvaardiging>'):
-                    current_recommendation['rechtvaardiging'] = line[16:].strip()
-                elif line.startswith('<bedrijfsspecifieke_risicos>'):
-                    pass  # Just a marker, actual risks are on the next lines
-                elif current_recommendation:
-                    if not current_recommendation['description']:
-                        current_recommendation['title'] = line
-                        current_recommendation['description'] = line
-                    elif not current_recommendation['rechtvaardiging']:
-                        current_recommendation['description'] += ' ' + line
-                    else:
-                        current_recommendation['specific_risks'].append(line)
-            elif current_section and line:
-                result[current_section].append(line)
-        
-        if current_recommendation:
-            result['recommendations'].append(current_recommendation)
-        
-        # Log the number of recommendations parsed
-        logger.info(f"Number of recommendations parsed: {len(result['recommendations'])}")
-        
-    except Exception as e:
-        logger.error(f"Error in parse_analysis_result: {str(e)}")
-        logger.error(f"Content causing error: {content}")
-        raise
+                current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
+            elif line.startswith('<rechtvaardiging>'):
+                current_recommendation['rechtvaardiging'] = ''
+            elif line.startswith('<bedrijfsspecifieke_risicos>'):
+                current_recommendation['specific_risks'] = []
+            elif line.startswith('</aanbeveling>'):
+                result['recommendations'].append(current_recommendation)
+                current_recommendation = None
+            elif current_recommendation:
+                if not current_recommendation['title']:
+                    current_recommendation['title'] = line
+                elif not current_recommendation['description']:
+                    current_recommendation['description'] = line
+                elif current_recommendation['rechtvaardiging'] == '':
+                    current_recommendation['rechtvaardiging'] = line
+                elif 'specific_risks' in current_recommendation:
+                    current_recommendation['specific_risks'].append(line)
+        elif current_section and line:
+            result[current_section].append(line)
+    
+    if current_recommendation:
+        result['recommendations'].append(current_recommendation)
     
     return result
 

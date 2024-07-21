@@ -7,6 +7,10 @@ from services.email_service import send_feedback_email
 import os
 import html
 from utils.session_state import update_session_state
+import logging
+
+logging.basicConfig(filename='app.log', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -100,29 +104,40 @@ def render_recommendations_step():
 
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []
-    if not isinstance(recommendations, list):
-        st.warning("No valid recommendations available.")
-        return selected_recommendations
+    try:
+        if not isinstance(recommendations, list):
+            logger.warning(f"Recommendations is not a list. Type: {type(recommendations)}")
+            st.warning("No valid recommendations available.")
+            return selected_recommendations
 
-    for i, rec in enumerate(recommendations):
-        if not isinstance(rec, dict):
-            continue  # Skip non-dictionary items
+        for i, rec in enumerate(recommendations):
+            try:
+                if not isinstance(rec, dict):
+                    logger.warning(f"Recommendation {i} is not a dictionary. Type: {type(rec)}")
+                    continue
 
-        title = rec.get('title', f'Recommendation {i+1}')
-        with st.expander(title, expanded=False):
-            description = rec.get('description', 'No description provided.')
-            st.write(f"**Description:** {description}")
-            
-            st.write("**Specific Risks:**")
-            risks = rec.get('specific_risks', [])
-            if isinstance(risks, list) and risks:
-                for risk in risks:
-                    st.write(f"• {risk}")
-            else:
-                st.write("No specific risks provided.")
-            
-            if st.checkbox("Select this recommendation", key=f"rec_{i}"):
-                selected_recommendations.append(rec)
+                title = rec.get('title', f'Recommendation {i+1}')
+                with st.expander(title, expanded=False):
+                    description = rec.get('description', 'No description provided.')
+                    st.write(f"**Description:** {description}")
+                    
+                    st.write("**Specific Risks:**")
+                    risks = rec.get('specific_risks', [])
+                    if isinstance(risks, list) and risks:
+                        for risk in risks:
+                            st.write(f"• {risk}")
+                    else:
+                        st.write("No specific risks provided.")
+                    
+                    if st.checkbox("Select this recommendation", key=f"rec_{i}"):
+                        selected_recommendations.append(rec)
+            except Exception as e:
+                logger.error(f"Error rendering recommendation {i}: {str(e)}")
+                st.error(f"Error displaying recommendation {i+1}")
+        
+    except Exception as e:
+        logger.error(f"Error in render_enhanced_suggestions: {str(e)}")
+        st.error("An error occurred while displaying recommendations.")
     
     return selected_recommendations
 

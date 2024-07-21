@@ -53,9 +53,13 @@ def transcribe_audio(file_path):
                         response_format="text"
                     )
                     logger.debug(f"Transcription response received for segment {i+1}")
-                    response_content = transcription_response.get('text', '') if isinstance(transcription_response, dict) else transcription_response
-                    logger.debug(f"Transcription response content: {response_content}")
                     
+                    if isinstance(transcription_response, dict):
+                        response_content = transcription_response.get('text', '')
+                    else:
+                        response_content = transcription_response
+                    
+                    logger.debug(f"Transcription response content: {response_content}")
                     transcript_text += response_content + " "
                 except json.decoder.JSONDecodeError as e:
                     logger.error(f"Failed to decode JSON response for segment {i+1}: {e}")
@@ -77,6 +81,7 @@ def transcribe_audio(file_path):
     st.text_area("Gegenereerd Transcript", value=transcript_text, height=300, key=unique_key)
     
     return transcript_text.strip()
+
 
 def process_audio_input(input_method):
     if input_method == "Upload audio":

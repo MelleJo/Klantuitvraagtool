@@ -98,8 +98,6 @@ def render_recommendations_step():
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-import streamlit as st
-
 def render_enhanced_suggestions(recommendations):
     selected_recommendations = []
     if not isinstance(recommendations, list):

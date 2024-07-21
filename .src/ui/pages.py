@@ -108,7 +108,7 @@ def render_enhanced_suggestions(recommendations):
         if not isinstance(rec, dict):
             continue  # Skip non-dictionary items
 
-        title = rec.get('title', f'Recommendation {i+1}')
+        title = rec.get('title', '') or f'Recommendation {i+1}'
         with st.expander(title, expanded=False):
             description = rec.get('description', 'No description provided.')
             st.write(f"**Description:** {description}")

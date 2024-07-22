@@ -111,49 +111,61 @@ def render_recommendations_step():
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("No suggestions in session state")
         st.warning("No recommendations available. Please complete the analysis step first.")
-    else:
-        recommendations = st.session_state.state['suggestions'].get('recommendations', [])
-        logging.info(f"Number of recommendations: {len(recommendations)}")
-        logging.info(f"Recommendations: {json.dumps(recommendations, indent=2)}")
-        
-        if not recommendations:
-            logging.warning("No recommendations were generated")
-            st.warning("No recommendations were generated in the analysis step.")
-        else:
-            st.write("Please select the recommendations you'd like to include in the client report:")
-            
-            selected_recommendations = []
-            for i, rec in enumerate(recommendations):
-                title = rec.get('title', f"Recommendation {i+1}")
-                if st.checkbox(title, key=f"rec_checkbox_{i}"):
-                    selected_recommendations.append(rec)
-                
-                with st.expander(f"Details for {title}", expanded=False):
-                    st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                    if 'description' in rec:
-                        st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
-                        st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
-                    if 'rechtvaardiging' in rec:
-                        st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
-                        st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
-                    if 'specific_risks' in rec and rec['specific_risks']:
-                        st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
-                        st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
-                        for risk in rec['specific_risks']:
-                            st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
-                        st.markdown('</ul>', unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-            
-            update_session_state('selected_suggestions', selected_recommendations)
-            st.success(f"{len(selected_recommendations)} recommendations selected.")
-            
-            if selected_recommendations:
-                if st.button("Generate Client Report", key="generate_client_report"):
-                    st.session_state.state['active_step'] = 4
-                    st.rerun()
-            else:
-                st.info("Please select at least one recommendation to generate a client report.")
+        return
     
+    suggestions = st.session_state.state['suggestions']
+    if not isinstance(suggestions, dict):
+        logging.error(f"Unexpected type for suggestions: {type(suggestions)}")
+        st.error("An error occurred while processing recommendations. Please try again.")
+        return
+    
+    recommendations = suggestions.get('recommendations', [])
+    if not isinstance(recommendations, list):
+        logging.error(f"Unexpected type for recommendations: {type(recommendations)}")
+        st.error("An error occurred while processing recommendations. Please try again.")
+        return
+    
+    logging.info(f"Number of recommendations: {len(recommendations)}")
+    logging.info(f"Recommendations: {json.dumps(recommendations, indent=2)}")
+    
+    if not recommendations:
+        logging.warning("No recommendations were generated")
+        st.warning("No recommendations were generated in the analysis step.")
+    else:
+        st.write("Please select the recommendations you'd like to include in the client report:")
+        
+        selected_recommendations = []
+        for i, rec in enumerate(recommendations):
+            title = rec.get('title', f"Recommendation {i+1}")
+            if st.checkbox(title, key=f"rec_checkbox_{i}"):
+                selected_recommendations.append(rec)
+            
+            with st.expander(f"Details for {title}", expanded=False):
+                st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
+                if 'description' in rec:
+                    st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
+                if 'rechtvaardiging' in rec:
+                    st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
+                if 'specific_risks' in rec and rec['specific_risks']:
+                    st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
+                    st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
+                    for risk in rec['specific_risks']:
+                        st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
+                    st.markdown('</ul>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+        
+        update_session_state('selected_suggestions', selected_recommendations)
+        st.success(f"{len(selected_recommendations)} recommendations selected.")
+        
+        if selected_recommendations:
+            if st.button("Generate Client Report", key="generate_client_report"):
+                st.session_state.state['active_step'] = 4
+                st.rerun()
+        else:
+            st.info("Please select at least one recommendation to generate a client report.")
+
     st.markdown("</div>", unsafe_allow_html=True)
     logging.info("Exiting render_recommendations_step")
 

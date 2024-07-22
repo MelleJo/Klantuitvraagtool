@@ -47,12 +47,17 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         parsed_result = parse_analysis_result(result.content)
         
         logger.info(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
-        logger.info(f"Number of recommendations: {len(parsed_result['recommendations'])}")
-        for i, rec in enumerate(parsed_result['recommendations']):
-            logger.info(f"Recommendation {i+1}: {rec['title']}")
         
         if not isinstance(parsed_result, dict):
             raise ValueError(f"Expected dictionary, got {type(parsed_result)}")
+        
+        if 'recommendations' not in parsed_result or parsed_result['recommendations'] is None:
+            logger.error("No recommendations found in parsed result")
+            parsed_result['recommendations'] = []
+        
+        logger.info(f"Number of recommendations: {len(parsed_result['recommendations'])}")
+        for i, rec in enumerate(parsed_result['recommendations']):
+            logger.info(f"Recommendation {i+1}: {rec.get('title', 'No title')}")
         
         # Store the parsed result in the session state
         st.session_state.state['suggestions'] = parsed_result
@@ -61,7 +66,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         return parsed_result
     except Exception as e:
-        logger.error(f"Error in analyze_transcript: {str(e)}")
+        logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:

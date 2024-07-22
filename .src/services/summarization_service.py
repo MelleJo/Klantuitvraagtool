@@ -1,17 +1,28 @@
-import json
-import logging
-from typing import List, Dict, Any
-import streamlit as st
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from utils.text_processing import load_prompt
-import traceback
+print("Starting summarization_service.py")
 
+try:
+    import json
+    print("Successfully imported json")
+except ImportError as e:
+    print(f"Failed to import json: {e}")
+
+try:
+    import logging
+    from typing import List, Dict, Any
+    import streamlit as st
+    from langchain_openai import ChatOpenAI
+    from langchain_core.prompts import ChatPromptTemplate
+    from utils.text_processing import load_prompt
+    import traceback
+    print("Successfully imported all other modules")
+except ImportError as e:
+    print(f"Failed to import a module: {e}")
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+print("Finished importing modules in summarization_service.py")
 print("summarization_service.py is being executed")
 
 def generate_klantuitvraag(text: str) -> str:

@@ -123,19 +123,13 @@ def render_recommendations_step():
         else:
             st.write("Please select the recommendations you'd like to include in the client report:")
             
-            recommendation_options = [rec.get('title', f"Recommendation {i+1}") for i, rec in enumerate(recommendations)]
-            logging.info(f"Recommendation options: {recommendation_options}")
-            
-            selected_recommendations = st.multiselect(
-                "Select recommendations to include:",
-                options=recommendation_options,
-                default=recommendation_options,
-                key="recommendation_selector"
-            )
-            
-            for rec in recommendations:
-                title = rec.get('title', "Untitled Recommendation")
-                with st.expander(title, expanded=False):
+            selected_recommendations = []
+            for i, rec in enumerate(recommendations):
+                title = rec.get('title', f"Recommendation {i+1}")
+                if st.checkbox(title, key=f"rec_checkbox_{i}"):
+                    selected_recommendations.append(rec)
+                
+                with st.expander(f"Details for {title}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
                     if 'description' in rec:
                         st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
@@ -151,11 +145,10 @@ def render_recommendations_step():
                         st.markdown('</ul>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
             
+            update_session_state('selected_suggestions', selected_recommendations)
+            st.success(f"{len(selected_recommendations)} recommendations selected.")
+            
             if selected_recommendations:
-                selected_rec_objects = [rec for rec in recommendations if rec.get('title', f"Recommendation {recommendations.index(rec)+1}") in selected_recommendations]
-                update_session_state('selected_suggestions', selected_rec_objects)
-                st.success(f"{len(selected_recommendations)} recommendations selected.")
-                
                 if st.button("Generate Client Report", key="generate_client_report"):
                     st.session_state.state['active_step'] = 4
                     st.rerun()

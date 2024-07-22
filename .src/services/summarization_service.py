@@ -141,69 +141,6 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     
     return result
 
-def parse_analysis_result(content: str) -> Dict[str, Any]:
-    result = {
-        'current_coverage': [],
-        'coverage_gaps': [],
-        'recommendations': [],
-        'additional_comments': []
-    }
-    
-    try:
-        current_section = None
-        current_recommendation = None
-        
-        for line in content.split('\n'):
-            line = line.strip()
-            if line.startswith('<bestaande_dekking>'):
-                current_section = 'current_coverage'
-            elif line.startswith('<dekkingshiaten>'):
-                current_section = 'coverage_gaps'
-            elif line.startswith('<verzekeringsaanbevelingen>'):
-                current_section = 'recommendations'
-            elif line.startswith('<aanvullende_opmerkingen>'):
-                current_section = 'additional_comments'
-            elif line.startswith('</'):
-                if current_recommendation:
-                    result['recommendations'].append(current_recommendation)
-                    current_recommendation = None
-                current_section = None
-            elif current_section == 'recommendations':
-                if line.startswith('<aanbeveling>'):
-                    if current_recommendation:
-                        result['recommendations'].append(current_recommendation)
-                    current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-                elif line.startswith('<rechtvaardiging>'):
-                    current_recommendation['rechtvaardiging'] = line[16:].strip()
-                elif line.startswith('<bedrijfsspecifieke_risicos>'):
-                    pass  # Just a marker, actual risks are on the next lines
-                elif current_recommendation:
-                    if not current_recommendation['title']:
-                        current_recommendation['title'] = line
-                    elif not current_recommendation['description']:
-                        current_recommendation['description'] = line
-                    elif not current_recommendation['rechtvaardiging']:
-                        current_recommendation['rechtvaardiging'] += ' ' + line
-                    else:
-                        current_recommendation['specific_risks'].append(line)
-            elif current_section and line:
-                result[current_section].append(line)
-        
-        if current_recommendation:
-            result['recommendations'].append(current_recommendation)
-        
-        # Log the number of recommendations parsed
-        logger.info(f"Number of recommendations parsed: {len(result['recommendations'])}")
-        for rec in result['recommendations']:
-            logger.info(f"Recommendation: {rec['title']}")
-        
-    except Exception as e:
-        logger.error(f"Error in parse_analysis_result: {str(e)}")
-        logger.error(f"Content causing error: {content}")
-        raise
-    
-    return result
-
 def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.

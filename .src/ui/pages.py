@@ -59,6 +59,9 @@ def render_input_step(config):
         st.text_area("", value=st.session_state.state['transcript'], height=200, key="transcript_display")
     st.markdown("</div>", unsafe_allow_html=True)
 
+import json
+import logging
+
 def render_analysis_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("🔍 Analysis Results")
@@ -104,7 +107,7 @@ def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
     
-    logging.info(f"Session state: {st.session_state.state}")
+    logging.info(f"Session state: {json.dumps(st.session_state.state, default=str)}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("No suggestions in session state")

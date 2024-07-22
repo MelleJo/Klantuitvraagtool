@@ -155,12 +155,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
 
     1. Een korte introductie waarin je uitlegt waarom je contact opneemt (zorgplicht, periodieke check).
     2. Een beknopte samenvatting van hun huidige dekking, gebaseerd op de analyse.
-    3. Een gedetailleerde uitleg van de geselecteerde aanbevelingen:
-       - Waarom deze verzekering cruciaal is voor het specifieke bedrijf van de klant.
-       - Minimaal twee specifieke risico's in de branche van de klant die deze verzekering dekt.
-       - Indien mogelijk, een recent voorbeeld of incident in de industrie dat de noodzaak aantoont.
+    3. Voor elke geselecteerde aanbeveling, schrijf een korte paragraaf (maximaal 3-4 zinnen) die:
+       - Begint met "Aangezien..." en verwijst naar een specifiek aspect van het bedrijf van de klant.
+       - Een concreet risico beschrijft dat relevant is voor hun situatie.
+       - Uitlegt hoe de aanbevolen verzekering kan helpen dit risico te mitigeren.
+       - Eindigt na het uitleggen van de dekking, zonder aanvullende suggesties.
     4. Een korte vermelding van andere geïdentificeerde dekkingshiaten, zonder in detail te treden.
-    5. Een sterke uitnodiging voor een vervolgafspraak, stel een specifiek tijdsbestek voor (bijvoorbeeld binnen twee weken).
+    5. Een uitnodiging voor een vervolgafspraak om de situatie en eventuele aanpassingen te bespreken.
 
     Gebruik de volgende informatie:
 
@@ -175,11 +176,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
 
     Richtlijnen:
     - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript.
+    - Gebruik 'u' en 'uw bedrijf' in plaats van de bedrijfsnaam te herhalen.
     - Leg de nadruk op de zorgplicht en het belang van up-to-date verzekeringsdekking.
     - Gebruik Nederlandse verzekeringstermen en -producten.
     - Vermijd het gebruik van placeholders; verwijs naar de klant en jezelf op een algemene maar persoonlijke manier.
     - Houd de toon professioneel maar toegankelijk.
-    - Benadruk de urgentie van de geselecteerde aanbevelingen zonder agressief over te komen.
+    - Presenteer de aanbevelingen als opties om risico's te mitigeren, niet als essentiële producten.
+    - Beperk elke aanbeveling tot maximaal 3-4 zinnen.
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)

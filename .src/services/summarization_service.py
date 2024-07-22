@@ -147,7 +147,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     
     return result
 
-def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[str]) -> str:
+def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
@@ -173,14 +173,15 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
     Gebruik geen placeholders zoals [Klantnaam] of [Uw Naam], maar verwijs naar de klant en jezelf op een algemene manier.
+    Bespreek ALLEEN de geselecteerde aanbevelingen in detail. Vermeld de andere hiaten kort, maar ga er niet diep op in.
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)
 
     try:
-        # Filter the recommendations to include only the selected ones
+        # Filter the analysis to include only the selected recommendations
         filtered_analysis = analysis.copy()
-        filtered_analysis['recommendations'] = [rec for rec in analysis['recommendations'] if rec['title'] in selected_recommendations]
+        filtered_analysis['recommendations'] = selected_recommendations
 
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model

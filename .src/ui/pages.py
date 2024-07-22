@@ -221,10 +221,13 @@ def render_client_report_step():
     if 'email_content' not in st.session_state.state or not st.session_state.state['email_content']:
         with st.spinner("Generating client report..."):
             try:
+                # Get the selected recommendations from the session state
+                selected_recommendations = st.session_state.state.get('selected_suggestions', [])
+                
                 email_content = generate_email(
                     st.session_state.state['transcript'],
                     st.session_state.state['suggestions'],
-                    st.session_state.state['selected_suggestions']  # Pass the selected recommendations
+                    selected_recommendations
                 )
                 update_session_state('email_content', email_content)
                 display_success("Client report generated successfully!")

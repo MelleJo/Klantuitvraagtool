@@ -147,7 +147,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     
     return result
 
-def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
+def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[str]) -> str:
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
@@ -156,7 +156,7 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     1. Een korte introductie waarin je uitlegt waarom je contact opneemt (zorgplicht, periodieke check).
     2. Een samenvatting van hun huidige dekking, gebaseerd op de analyse.
     3. Een overzicht van de geïdentificeerde dekkingshiaten en waarom deze belangrijk zijn voor de klant.
-    4. Je verzekeringsaanbevelingen, met uitleg waarom deze belangrijk zijn voor de specifieke bedrijfssituatie van de klant.
+    4. Je verzekeringsaanbevelingen, met uitleg waarom deze belangrijk zijn voor de specifieke bedrijfssituatie van de klant. Gebruik alleen de geselecteerde aanbevelingen.
     5. Een uitnodiging voor een vervolgafspraak om de situatie en eventuele aanpassingen te bespreken.
 
     Gebruik de volgende informatie:
@@ -167,6 +167,9 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     Analyse:
     {{analysis}}
 
+    Geselecteerde aanbevelingen:
+    {{selected_recommendations}}
+
     Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
     De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
     Gebruik geen placeholders zoals [Klantnaam] of [Uw Naam], maar verwijs naar de klant en jezelf op een algemene manier.
@@ -175,15 +178,18 @@ def generate_email(transcript: str, analysis: Dict[str, Any]) -> str:
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)
 
     try:
+        # Filter the recommendations to include only the selected ones
+        filtered_analysis = analysis.copy()
+        filtered_analysis['recommendations'] = [rec for rec in analysis['recommendations'] if rec['title'] in selected_recommendations]
+
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
         result = chain.invoke({
             "transcript": transcript,
-            "analysis": json.dumps(analysis, ensure_ascii=False, indent=2)
+            "analysis": json.dumps(filtered_analysis, ensure_ascii=False, indent=2),
+            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2)
         })
         return result.content
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}")
         raise e
-
-logger.info("summarization_service.py loaded successfully")

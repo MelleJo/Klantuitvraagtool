@@ -223,7 +223,8 @@ def render_client_report_step():
             try:
                 email_content = generate_email(
                     st.session_state.state['transcript'],
-                    st.session_state.state['suggestions']
+                    st.session_state.state['suggestions'],
+                    st.session_state.state['selected_suggestions']  # Pass the selected recommendations
                 )
                 update_session_state('email_content', email_content)
                 display_success("Client report generated successfully!")

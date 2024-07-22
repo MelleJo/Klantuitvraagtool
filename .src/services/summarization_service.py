@@ -91,7 +91,8 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
                 result['recommendations'].append(current_recommendation)
                 logger.debug(f"Appending recommendation: {current_recommendation}")
                 current_recommendation = None
-            current_section = None
+            if line.startswith('</verzekeringsaanbevelingen>'):
+                current_section = None
         elif current_section == 'recommendations':
             if line.startswith('<aanbeveling>'):
                 if current_recommendation:
@@ -116,7 +117,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
                     current_recommendation['rechtvaardiging'] = line
                 elif 'specific_risks' in current_recommendation:
                     current_recommendation['specific_risks'].append(line)
-        elif current_section and line:
+        elif current_section and line and not line.startswith('<') and not line.startswith('>'):
             result[current_section].append(line)
     
     if current_recommendation:

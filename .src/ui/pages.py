@@ -59,8 +59,7 @@ def render_input_step(config):
         st.text_area("", value=st.session_state.state['transcript'], height=200, key="transcript_display")
     st.markdown("</div>", unsafe_allow_html=True)
 
-import json
-import logging
+
 
 def render_analysis_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -104,18 +103,18 @@ def render_analysis_step():
 
 def render_recommendations_step():
     logging.info("Entering render_recommendations_step")
-    logging.info(f"Full session state at start of render_recommendations_step: {json.dumps(st.session_state.state, default=str)}")
-    
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
+    
+    logging.info(f"Session state: {json.dumps(st.session_state.state, default=str)}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("No suggestions in session state")
         st.warning("No recommendations available. Please complete the analysis step first.")
     else:
         recommendations = st.session_state.state['suggestions'].get('recommendations', [])
-        logging.info(f"Number of recommendations retrieved: {len(recommendations)}")
-        logging.info(f"Retrieved recommendations: {json.dumps(recommendations, indent=2)}")
+        logging.info(f"Number of recommendations: {len(recommendations)}")
+        logging.info(f"Recommendations: {json.dumps(recommendations, indent=2)}")
         
         if not recommendations:
             logging.warning("No recommendations were generated")

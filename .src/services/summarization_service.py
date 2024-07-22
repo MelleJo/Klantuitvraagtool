@@ -8,7 +8,7 @@ from utils.text_processing import load_prompt
 import traceback
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def generate_klantuitvraag(text: str) -> str:
@@ -43,17 +43,17 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         chain = prompt | chat_model
         result = chain.invoke({"TRANSCRIPT": transcript})
         
-        logger.info(f"Raw analysis result: {result.content}")
+        logger.debug(f"Raw analysis result: {result.content}")
         
         parsed_result = parse_analysis_result(result.content)
         
-        logger.info(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
+        logger.debug(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
         
         if not isinstance(parsed_result, dict):
             raise ValueError(f"Expected dictionary, got {type(parsed_result)}")
         
         if 'recommendations' not in parsed_result or parsed_result['recommendations'] is None:
-            logger.error("No recommendations found in parsed result")
+            logger.warning("No recommendations found in parsed result")
             parsed_result['recommendations'] = []
         
         logger.info(f"Number of recommendations: {len(parsed_result['recommendations'])}")
@@ -62,8 +62,8 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         # Store the parsed result in the session state
         st.session_state.state['suggestions'] = parsed_result
-        logger.info("Stored parsed result in session state")
-        logger.info(f"Session state after storing suggestions: {json.dumps(st.session_state.state, default=str)}")
+        logger.debug("Stored parsed result in session state")
+        logger.debug(f"Session state after storing suggestions: {json.dumps(st.session_state.state, default=str)}")
         
         return parsed_result
     except Exception as e:
@@ -102,16 +102,10 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
                 current_section = None
         elif current_section == 'recommendations':
             if line.startswith('<aanbeveling>'):
-                if current_recommendation:
-                    result['recommendations'].append(current_recommendation)
-                    logger.debug(f"Appending recommendation: {current_recommendation}")
                 current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-            elif line.startswith('<rechtvaardiging>'):
+            elif line.startswith('<rechtvaardiging>') or line.startswith('<bedrijfsspecifieke_risicos>'):
                 if current_recommendation is None:
-                    current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-                current_recommendation['rechtvaardiging'] = ''
-            elif line.startswith('<bedrijfsspecifieke_risicos>'):
-                if current_recommendation is None:
+                    logger.warning(f"Unexpected state: current_recommendation is None when processing {line}")
                     current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
             elif line.startswith('</aanbeveling>'):
                 if current_recommendation:
@@ -123,7 +117,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
                     current_recommendation['title'] = line
                 elif not current_recommendation['description']:
                     current_recommendation['description'] = line
-                elif current_recommendation['rechtvaardiging'] == '':
+                elif not current_recommendation['rechtvaardiging']:
                     current_recommendation['rechtvaardiging'] = line
                 else:
                     current_recommendation['specific_risks'].append(line)

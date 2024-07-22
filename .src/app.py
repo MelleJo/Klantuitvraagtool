@@ -10,6 +10,10 @@ from ui.pages import (
 )
 from utils.session_state import initialize_session_state, update_session_state
 from ui.components import ImprovedUIStyled
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.info("Starting app")
 
 # Set page config at the very beginning
 st.set_page_config(page_title="Klantuitvraagtool", page_icon="🔒", layout="wide")
@@ -83,6 +87,7 @@ def main() -> None:
 
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
+        logging.error(f"Unexpected error in main: {str(e)}", exc_info=True)
         st.error("Please refresh the page and try again. If the problem persists, contact support.")
 
 if __name__ == "__main__":

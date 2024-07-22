@@ -106,7 +106,7 @@ def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
     
-    logging.info(f"Session state: {json.dumps(st.session_state.state, default=str)}")
+    logging.debug(f"Session state: {json.dumps(st.session_state.state, default=str)}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("No suggestions in session state")
@@ -126,7 +126,7 @@ def render_recommendations_step():
         return
     
     logging.info(f"Number of recommendations: {len(recommendations)}")
-    logging.info(f"Recommendations: {json.dumps(recommendations, indent=2)}")
+    logging.debug(f"Recommendations: {json.dumps(recommendations, indent=2)}")
     
     if not recommendations:
         logging.warning("No recommendations were generated")

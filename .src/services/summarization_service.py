@@ -7,9 +7,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt
 import traceback
 
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+print("summarization_service.py is being executed")
 
 def generate_klantuitvraag(text: str) -> str:
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")

@@ -9,6 +9,7 @@ from ui.pages import (
     render_conversation_history
 )
 from utils.session_state import initialize_session_state, update_session_state
+from services import summarization_service
 from ui.components import ImprovedUIStyled
 import logging
 

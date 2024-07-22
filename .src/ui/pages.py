@@ -17,6 +17,7 @@ from services.summarization_service import analyze_transcript, generate_email
 from services.email_service import send_feedback_email
 import os
 import html
+import json
 from utils.session_state import update_session_state
 import logging
 

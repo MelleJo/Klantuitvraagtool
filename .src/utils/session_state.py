@@ -1,5 +1,6 @@
 import streamlit as st
 from typing import Dict, Any, List
+import json
 
 def initialize_session_state() -> None:
     """Initialize the session state with default values if not already set."""

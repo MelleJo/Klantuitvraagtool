@@ -20,3 +20,4 @@ bleach
 tiktoken
 python-dotenv
 requests
+simplejson

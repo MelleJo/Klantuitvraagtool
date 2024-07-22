@@ -150,14 +150,17 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
 def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
-    Het doel is om de huidige situatie van de klant te verifiëren en advies te geven over mogelijke verbeteringen in hun verzekeringsdekking.
+    Het doel is om de huidige situatie van de klant te verifiëren en gericht advies te geven over mogelijke verbeteringen in hun verzekeringsdekking, met focus op de geselecteerde aanbevelingen.
     Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
 
     1. Een korte introductie waarin je uitlegt waarom je contact opneemt (zorgplicht, periodieke check).
-    2. Een samenvatting van hun huidige dekking, gebaseerd op de analyse.
-    3. Een overzicht van de geïdentificeerde dekkingshiaten en waarom deze belangrijk zijn voor de klant.
-    4. Je verzekeringsaanbevelingen, met uitleg waarom deze belangrijk zijn voor de specifieke bedrijfssituatie van de klant. Gebruik alleen de geselecteerde aanbevelingen.
-    5. Een uitnodiging voor een vervolgafspraak om de situatie en eventuele aanpassingen te bespreken.
+    2. Een beknopte samenvatting van hun huidige dekking, gebaseerd op de analyse.
+    3. Een gedetailleerde uitleg van de geselecteerde aanbevelingen:
+       - Waarom deze verzekering cruciaal is voor het specifieke bedrijf van de klant.
+       - Minimaal twee specifieke risico's in de branche van de klant die deze verzekering dekt.
+       - Indien mogelijk, een recent voorbeeld of incident in de industrie dat de noodzaak aantoont.
+    4. Een korte vermelding van andere geïdentificeerde dekkingshiaten, zonder in detail te treden.
+    5. Een sterke uitnodiging voor een vervolgafspraak, stel een specifiek tijdsbestek voor (bijvoorbeeld binnen twee weken).
 
     Gebruik de volgende informatie:
 
@@ -170,10 +173,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     Geselecteerde aanbevelingen:
     {{selected_recommendations}}
 
-    Zorg ervoor dat de e-mail de nadruk legt op onze zorgplicht en het belang van het up-to-date houden van de verzekeringssituatie van de klant.
-    De e-mail moet in het Nederlands zijn en verwijzen naar Nederlandse verzekeringsproducten.
-    Gebruik geen placeholders zoals [Klantnaam] of [Uw Naam], maar verwijs naar de klant en jezelf op een algemene manier.
-    Bespreek ALLEEN de geselecteerde aanbevelingen in detail. Vermeld de andere hiaten kort, maar ga er niet diep op in.
+    Richtlijnen:
+    - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript.
+    - Leg de nadruk op de zorgplicht en het belang van up-to-date verzekeringsdekking.
+    - Gebruik Nederlandse verzekeringstermen en -producten.
+    - Vermijd het gebruik van placeholders; verwijs naar de klant en jezelf op een algemene maar persoonlijke manier.
+    - Houd de toon professioneel maar toegankelijk.
+    - Benadruk de urgentie van de geselecteerde aanbevelingen zonder agressief over te komen.
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)

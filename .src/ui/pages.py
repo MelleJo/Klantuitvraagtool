@@ -69,10 +69,12 @@ def render_analysis_step():
                 analysis_result = analyze_transcript(st.session_state.state['transcript'])
                 if "error" in analysis_result:
                     raise Exception(analysis_result["error"])
-                update_session_state('suggestions', analysis_result)
-                update_session_state('analysis_complete', True)
+                st.session_state.state['suggestions'] = analysis_result
+                st.session_state.state['analysis_complete'] = True
+                logging.info(f"Analysis complete. Suggestions: {json.dumps(st.session_state.state['suggestions'], indent=2)}")
                 display_success("Analysis completed successfully!")
             except Exception as e:
+                logging.error(f"An error occurred during analysis: {str(e)}")
                 display_error(f"An error occurred during analysis: {str(e)}")
                 st.stop()
 
@@ -82,39 +84,27 @@ def render_analysis_step():
             st.markdown("### 📊 Current Coverage")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
             current_coverage = st.session_state.state['suggestions'].get('current_coverage', [])
-            if isinstance(current_coverage, list):
-                for coverage in current_coverage:
-                    if isinstance(coverage, dict) and 'name' in coverage and 'value' in coverage:
-                        display_metric(coverage['name'], coverage['value'])
-                    else:
-                        st.write(coverage)
-            else:
-                st.write(current_coverage)
+            for coverage in current_coverage:
+                st.write(coverage)
             st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
             st.markdown("### ⚠️ Identified Risks")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            identified_risks = st.session_state.state['suggestions'].get('identified_risks', [])
-            if isinstance(identified_risks, list):
-                for risk in identified_risks:
-                    st.write(f"• {risk}")
-            else:
-                st.write(identified_risks)
+            identified_risks = st.session_state.state['suggestions'].get('coverage_gaps', [])
+            for risk in identified_risks:
+                st.write(f"• {risk}")
             st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-import logging
-
-import logging
-
-import logging
 
 def render_recommendations_step():
     logging.info("Entering render_recommendations_step")
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Recommendations")
+    
+    logging.info(f"Session state: {st.session_state.state}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("No suggestions in session state")
@@ -122,7 +112,7 @@ def render_recommendations_step():
     else:
         recommendations = st.session_state.state['suggestions'].get('recommendations', [])
         logging.info(f"Number of recommendations: {len(recommendations)}")
-        logging.info(f"Recommendations: {recommendations}")
+        logging.info(f"Recommendations: {json.dumps(recommendations, indent=2)}")
         
         if not recommendations:
             logging.warning("No recommendations were generated")
@@ -130,39 +120,32 @@ def render_recommendations_step():
         else:
             st.write("Please select the recommendations you'd like to include in the client report:")
             
-            # Create a list of all recommendation titles
             recommendation_options = [rec.get('title', f"Recommendation {i+1}") for i, rec in enumerate(recommendations)]
             logging.info(f"Recommendation options: {recommendation_options}")
             
-            # Use multiselect to allow selection of multiple recommendations
             selected_recommendations = st.multiselect(
                 "Select recommendations to include:",
                 options=recommendation_options,
-                default=recommendation_options,  # By default, all recommendations are selected
+                default=recommendation_options,
                 key="recommendation_selector"
             )
             
-            # Display details for each recommendation
-            for i, rec in enumerate(recommendations):
-                title = rec.get('title', f"Recommendation {i+1}")
+            for rec in recommendations:
+                title = rec.get('title', "Untitled Recommendation")
                 with st.expander(title, expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                    
                     if 'description' in rec:
                         st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
                         st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
-                    
                     if 'rechtvaardiging' in rec:
                         st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
                         st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
-                    
                     if 'specific_risks' in rec and rec['specific_risks']:
                         st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
                         st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
                         for risk in rec['specific_risks']:
                             st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
                         st.markdown('</ul>', unsafe_allow_html=True)
-                    
                     st.markdown('</div>', unsafe_allow_html=True)
             
             if selected_recommendations:

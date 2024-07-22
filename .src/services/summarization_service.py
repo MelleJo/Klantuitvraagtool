@@ -5,6 +5,7 @@ import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt
+import traceback
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -67,6 +68,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         return parsed_result
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return {"error": str(e)}
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:
@@ -95,7 +97,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
             if current_recommendation:
                 result['recommendations'].append(current_recommendation)
                 logger.debug(f"Appending recommendation: {current_recommendation}")
-                current_recommendation = None
+            current_recommendation = None
             if line.startswith('</verzekeringsaanbevelingen>'):
                 current_section = None
         elif current_section == 'recommendations':
@@ -105,14 +107,17 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
                     logger.debug(f"Appending recommendation: {current_recommendation}")
                 current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
             elif line.startswith('<rechtvaardiging>'):
+                if current_recommendation is None:
+                    current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
                 current_recommendation['rechtvaardiging'] = ''
             elif line.startswith('<bedrijfsspecifieke_risicos>'):
-                current_recommendation['specific_risks'] = []
+                if current_recommendation is None:
+                    current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
             elif line.startswith('</aanbeveling>'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)
                     logger.debug(f"Appending recommendation: {current_recommendation}")
-                    current_recommendation = None
+                current_recommendation = None
             elif current_recommendation:
                 if not current_recommendation['title']:
                     current_recommendation['title'] = line
@@ -120,7 +125,7 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
                     current_recommendation['description'] = line
                 elif current_recommendation['rechtvaardiging'] == '':
                     current_recommendation['rechtvaardiging'] = line
-                elif 'specific_risks' in current_recommendation:
+                else:
                     current_recommendation['specific_risks'].append(line)
         elif current_section and line and not line.startswith('<') and not line.startswith('>'):
             result[current_section].append(line)

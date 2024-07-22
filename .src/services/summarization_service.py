@@ -57,6 +57,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         # Store the parsed result in the session state
         st.session_state.state['suggestions'] = parsed_result
         logger.info("Stored parsed result in session state")
+        logger.info(f"Session state after storing suggestions: {json.dumps(st.session_state.state, default=str)}")
         
         return parsed_result
     except Exception as e:
@@ -79,36 +80,28 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         logger.debug(f"Processing line: {line}")
         if line.startswith('<bestaande_dekking>'):
             current_section = 'current_coverage'
-            logger.debug("Entering current_coverage section")
         elif line.startswith('<dekkingshiaten>'):
             current_section = 'coverage_gaps'
-            logger.debug("Entering coverage_gaps section")
         elif line.startswith('<verzekeringsaanbevelingen>'):
             current_section = 'recommendations'
-            logger.debug("Entering recommendations section")
         elif line.startswith('<aanvullende_opmerkingen>'):
             current_section = 'additional_comments'
-            logger.debug("Entering additional_comments section")
         elif line.startswith('</'):
             if current_recommendation:
                 result['recommendations'].append(current_recommendation)
                 logger.debug(f"Appending recommendation: {current_recommendation}")
                 current_recommendation = None
             current_section = None
-            logger.debug("Exiting current section")
         elif current_section == 'recommendations':
             if line.startswith('<aanbeveling>'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)
                     logger.debug(f"Appending recommendation: {current_recommendation}")
                 current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-                logger.debug("Starting new recommendation")
             elif line.startswith('<rechtvaardiging>'):
                 current_recommendation['rechtvaardiging'] = ''
-                logger.debug("Starting rechtvaardiging")
             elif line.startswith('<bedrijfsspecifieke_risicos>'):
                 current_recommendation['specific_risks'] = []
-                logger.debug("Starting specific_risks")
             elif line.startswith('</aanbeveling>'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)
@@ -117,23 +110,17 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
             elif current_recommendation:
                 if not current_recommendation['title']:
                     current_recommendation['title'] = line
-                    logger.debug(f"Setting recommendation title: {line}")
                 elif not current_recommendation['description']:
                     current_recommendation['description'] = line
-                    logger.debug(f"Setting recommendation description: {line}")
                 elif current_recommendation['rechtvaardiging'] == '':
                     current_recommendation['rechtvaardiging'] = line
-                    logger.debug(f"Setting recommendation rechtvaardiging: {line}")
                 elif 'specific_risks' in current_recommendation:
                     current_recommendation['specific_risks'].append(line)
-                    logger.debug(f"Adding specific risk: {line}")
         elif current_section and line:
             result[current_section].append(line)
-            logger.debug(f"Adding line to {current_section}: {line}")
     
     if current_recommendation:
         result['recommendations'].append(current_recommendation)
-        logger.debug(f"Appending final recommendation: {current_recommendation}")
     
     logger.info(f"Number of recommendations parsed: {len(result['recommendations'])}")
     for i, rec in enumerate(result['recommendations']):

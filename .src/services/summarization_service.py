@@ -61,7 +61,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         parsed_result = parse_analysis_result(result.content)
         
-        logger.debug(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
+        #logger.debug(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
         
         if not isinstance(parsed_result, dict):
             raise ValueError(f"Expected dictionary, got {type(parsed_result)}")
@@ -77,7 +77,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         # Store the parsed result in the session state
         st.session_state.state['suggestions'] = parsed_result
         logger.debug("Stored parsed result in session state")
-        logger.debug(f"Session state after storing suggestions: {json.dumps(st.session_state.state, default=str)}")
+        #logger.debug(f"Session state after storing suggestions: {json.dumps(st.session_state.state, default=str)}")
         
         return parsed_result
     except Exception as e:

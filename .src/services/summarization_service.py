@@ -103,10 +103,10 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         elif current_section == 'recommendations':
             if line.startswith('<aanbeveling>'):
                 current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-            elif line.startswith('<rechtvaardiging>') or line.startswith('<bedrijfsspecifieke_risicos>'):
-                if current_recommendation is None:
-                    logger.warning(f"Unexpected state: current_recommendation is None when processing {line}")
-                    current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
+            elif line.startswith('<rechtvaardiging>'):
+                current_recommendation['rechtvaardiging'] = ''
+            elif line.startswith('<bedrijfsspecifieke_risicos>'):
+                pass  # We'll handle specific risks in the else clause
             elif line.startswith('</aanbeveling>'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)

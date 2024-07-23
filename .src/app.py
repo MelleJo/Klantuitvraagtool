@@ -1,6 +1,4 @@
 import streamlit as st
-import json
-from typing import Dict, Any
 from ui.pages import (
     render_input_step,
     render_analysis_step,
@@ -10,24 +8,19 @@ from ui.pages import (
     render_conversation_history
 )
 from utils.session_state import initialize_session_state, update_session_state
-from services import summarization_service
 from ui.components import ImprovedUIStyled
-import logging
 
-logging.basicConfig(level=logging.INFO)
-logging.info("Starting app")
-
-# Set page config at the very beginning
+# Stel de pagina-configuratie in aan het begin
 st.set_page_config(page_title="Klantuitvraagtool", page_icon="🔒", layout="wide")
 
 def load_config() -> Dict[str, Any]:
-    """Load and return the application configuration."""
+    """Laad en retourneer de applicatieconfiguratie."""
     return {
-        "INPUT_METHODS": ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"],
+        "INPUT_METHODS": ["Voer tekst in of plak tekst", "Upload tekstbestand", "Upload audiobestand", "Neem audio op"],
     }
 
 def render_navigation():
-    """Render navigation buttons."""
+    """Toon navigatieknoppen."""
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -43,8 +36,8 @@ def render_navigation():
                 st.rerun()
 
 def render_progress_bar(active_step: int) -> None:
-    """Render the progress bar for the current step."""
-    steps = ["Input Data", "Analyze", "Recommendations", "Client Report"]
+    """Toon de voortgangsbalk voor de huidige stap."""
+    steps = ["Gegevens invoeren", "Analyseren", "Aanbevelingen", "Klantrapport"]
     cols = st.columns(4)
     for i, step in enumerate(steps, 1):
         with cols[i-1]:
@@ -56,9 +49,9 @@ def render_progress_bar(active_step: int) -> None:
                 st.markdown(f"<div class='step'>{i}. {step}</div>", unsafe_allow_html=True)
 
 def main() -> None:
-    """Main function to run the Streamlit app."""
+    """Hoofdfunctie om de Streamlit-app uit te voeren."""
     try:
-        # Apply the improved UI styling
+        # Pas de verbeterde UI-styling toe
         ImprovedUIStyled()
         
         st.title("🔒 Klantuitvraagtool v0.0.5")
@@ -88,9 +81,8 @@ def main() -> None:
             render_feedback_form()
 
     except Exception as e:
-        st.error(f"An unexpected error occurred: {str(e)}")
-        logging.error(f"Unexpected error in main: {str(e)}", exc_info=True)
-        st.error("Please refresh the page and try again. If the problem persists, contact support.")
+        st.error(f"Er is een onverwachte fout opgetreden: {str(e)}")
+        st.error("Vernieuw de pagina en probeer het opnieuw. Als het probleem aanhoudt, neem dan contact op met de ondersteuning.")
 
 if __name__ == "__main__":
     main()

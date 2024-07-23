@@ -1,9 +1,9 @@
 import os
 
-INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekst", "Upload audio", "Neem audio op"]
+INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekstbestand", "Upload audiobestand", "Neem audio op"]
 
 def load_config():
-    # Add any additional configuration loading logic here
+    # Voeg hier eventuele aanvullende configuratielogica toe
     return {
         "INPUT_METHODS": INPUT_METHODS,
     }

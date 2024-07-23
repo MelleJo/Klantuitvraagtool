@@ -169,12 +169,16 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     - Uitlegt hoe de aanbevolen verzekering kan helpen dit risico te mitigeren
 
     4. Aanvullende Aandachtspunten:
-    - Noem kort andere geïdentificeerde dekkingshiaten, zonder in detail te treden
+    - Geef 3-5 korte, adviserende punten over andere belangrijke zaken die aandacht verdienen
+    - Formuleer elk punt als een suggestie of aanbod om te helpen
+    - Houd de toon consistent met de rest van de e-mail
 
     5. Vervolgstappen:
     - Nodig de klant uit voor een vervolgafspraak
     - Geef een korte afsluiting die het belang van de check benadrukt
+    - Voeg een zin toe die de klant uitnodigt om op de e-mail te reageren voor het maken van een telefonische afspraak
 
+    
     Gebruik de volgende informatie:
 
     Transcript:

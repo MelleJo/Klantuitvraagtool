@@ -17,7 +17,6 @@ from services.summarization_service import analyze_transcript, generate_email
 from services.email_service import send_feedback_email
 import os
 import html
-import json
 from utils.session_state import update_session_state
 import logging
 
@@ -26,10 +25,10 @@ logger = logging.getLogger(__name__)
 
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
-    st.subheader("📝 Input Client Data")
+    st.subheader("📝 Gegevens invoeren")
     input_method = display_input_method_selector(config["INPUT_METHODS"])
 
-    if input_method == "Upload tekst":
+    if input_method == "Upload tekstbestand":
         uploaded_file = display_file_uploader(['txt', 'docx', 'pdf'])
         if uploaded_file:
             transcript = process_uploaded_file(uploaded_file)
@@ -39,12 +38,12 @@ def render_input_step(config):
 
     elif input_method == "Voer tekst in of plak tekst":
         input_text = display_text_input()
-        if display_generate_button("Process Text"):
+        if display_generate_button("Verwerk tekst"):
             update_session_state('transcript', input_text)
             update_session_state('input_processed', True)
             update_session_state('transcription_complete', True)
 
-    elif input_method in ["Upload audio", "Neem audio op"]:
+    elif input_method in ["Upload audiobestand", "Neem audio op"]:
         if not st.session_state.state['transcription_complete']:
             audio_file_path = process_audio_input(input_method)
             if audio_file_path:
@@ -56,35 +55,33 @@ def render_input_step(config):
                 os.unlink(audio_file_path)
 
     if st.session_state.state['input_processed']:
-        st.markdown("### 📄 Generated Transcript")
+        st.markdown("### 📄 Gegenereerd transcript")
         st.text_area("", value=st.session_state.state['transcript'], height=200, key="transcript_display")
     st.markdown("</div>", unsafe_allow_html=True)
 
-
-
 def render_analysis_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
-    st.subheader("🔍 Analysis Results")
+    st.subheader("🔍 Analyseresultaten")
     
     if not st.session_state.state['analysis_complete']:
-        with st.spinner("Analyzing transcript..."):
+        with st.spinner("Transcript wordt geanalyseerd..."):
             try:
                 analysis_result = analyze_transcript(st.session_state.state['transcript'])
                 if "error" in analysis_result:
                     raise Exception(analysis_result["error"])
                 st.session_state.state['suggestions'] = analysis_result
                 st.session_state.state['analysis_complete'] = True
-                logging.info(f"Analysis complete. Suggestions: {json.dumps(st.session_state.state['suggestions'], indent=2)}")
-                display_success("Analysis completed successfully!")
+                logging.info(f"Analyse voltooid. Suggesties: {json.dumps(st.session_state.state['suggestions'], indent=2)}")
+                display_success("Analyse succesvol afgerond!")
             except Exception as e:
-                logging.error(f"An error occurred during analysis: {str(e)}")
-                display_error(f"An error occurred during analysis: {str(e)}")
+                logging.error(f"Er is een fout opgetreden tijdens de analyse: {str(e)}")
+                display_error(f"Er is een fout opgetreden tijdens de analyse: {str(e)}")
                 st.stop()
 
     if st.session_state.state['analysis_complete']:
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("### 📊 Current Coverage")
+            st.markdown("### 📊 Huidige dekking")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
             current_coverage = st.session_state.state['suggestions'].get('current_coverage', [])
             for coverage in current_coverage:
@@ -92,7 +89,7 @@ def render_analysis_step():
             st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
-            st.markdown("### ⚠️ Identified Risks")
+            st.markdown("### ⚠️ Geïdentificeerde risico's")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
             identified_risks = st.session_state.state['suggestions'].get('coverage_gaps', [])
             for risk in identified_risks:
@@ -101,159 +98,99 @@ def render_analysis_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 def render_recommendations_step():
-    logging.info("Entering render_recommendations_step")
+    logging.info("Render_recommendations_step wordt gestart")
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
-    st.subheader("💡 Recommendations")
+    st.subheader("💡 Aanbevelingen")
     
-    logging.debug(f"Session state: {json.dumps(st.session_state.state, default=str)}")
+    logging.info(f"Sessietoestand: {json.dumps(st.session_state.state, default=str)}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
-        logging.warning("No suggestions in session state")
-        st.warning("No recommendations available. Please complete the analysis step first.")
-        return
-    
-    suggestions = st.session_state.state['suggestions']
-    if not isinstance(suggestions, dict):
-        logging.error(f"Unexpected type for suggestions: {type(suggestions)}")
-        st.error("An error occurred while processing recommendations. Please try again.")
-        return
-    
-    recommendations = suggestions.get('recommendations', [])
-    if not isinstance(recommendations, list):
-        logging.error(f"Unexpected type for recommendations: {type(recommendations)}")
-        st.error("An error occurred while processing recommendations. Please try again.")
-        return
-    
-    logging.info(f"Number of recommendations: {len(recommendations)}")
-    logging.debug(f"Recommendations: {json.dumps(recommendations, indent=2)}")
-    
-    if not recommendations:
-        logging.warning("No recommendations were generated")
-        st.warning("No recommendations were generated in the analysis step.")
+        logging.warning("Geen suggesties in sessietoestand")
+        st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
     else:
-        st.write("Please select the recommendations you'd like to include in the client report:")
+        recommendations = st.session_state.state['suggestions'].get('recommendations', [])
+        logging.info(f"Aantal aanbevelingen: {len(recommendations)}")
+        logging.info(f"Aanbevelingen: {json.dumps(recommendations, indent=2)}")
         
-        selected_recommendations = []
-        for i, rec in enumerate(recommendations):
-            title = rec.get('title', f"Recommendation {i+1}")
-            if st.checkbox(title, key=f"rec_checkbox_{i}"):
-                selected_recommendations.append(rec)
-            
-            with st.expander(f"Details for {title}", expanded=False):
-                st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                if 'description' in rec:
-                    st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
-                if 'rechtvaardiging' in rec:
-                    st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
-                if 'specific_risks' in rec and rec['specific_risks']:
-                    st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
-                    st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
-                    for risk in rec['specific_risks']:
-                        st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
-                    st.markdown('</ul>', unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        update_session_state('selected_suggestions', selected_recommendations)
-        st.success(f"{len(selected_recommendations)} recommendations selected.")
-        
-        if selected_recommendations:
-            if st.button("Generate Client Report", key="generate_client_report"):
-                st.session_state.state['active_step'] = 4
-                st.rerun()
+        if not recommendations:
+            logging.warning("Er zijn geen aanbevelingen gegenereerd")
+            st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
         else:
-            st.info("Please select at least one recommendation to generate a client report.")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-    logging.info("Exiting render_recommendations_step")
-
-def render_enhanced_suggestions(recommendations):
-    selected_recommendations = []
-    try:
-        if not isinstance(recommendations, list):
-            logger.warning(f"Recommendations is not a list. Type: {type(recommendations)}")
-            st.warning("No valid recommendations available.")
-            return selected_recommendations
-
-        for i, rec in enumerate(recommendations):
-            try:
-                if not isinstance(rec, dict):
-                    logger.warning(f"Recommendation {i} is not a dictionary. Type: {type(rec)}")
-                    continue
-
-                title = rec.get('title', f'Recommendation {i+1}')
-                with st.expander(title, expanded=False):
+            st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
+            
+            selected_recommendations = []
+            for i, rec in enumerate(recommendations):
+                title = rec.get('title', f"Aanbeveling {i+1}")
+                if st.checkbox(title, key=f"rec_checkbox_{i}"):
+                    selected_recommendations.append(rec)
+                
+                with st.expander(f"Details voor {title}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                    description = rec.get('description', 'No description provided.')
-                    st.markdown(f'<p class="recommendation-title">Description:</p>', unsafe_allow_html=True)
-                    st.markdown(f'<p class="recommendation-content">{description}</p>', unsafe_allow_html=True)
-                    
-                    st.markdown('<p class="recommendation-title">Specific Risks:</p>', unsafe_allow_html=True)
-                    risks = rec.get('specific_risks', [])
-                    if isinstance(risks, list) and risks:
+                    if 'description' in rec:
+                        st.markdown(f'<p class="recommendation-title">Beschrijving:</p>', unsafe_allow_html=True)
+                        st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
+                    if 'rechtvaardiging' in rec:
+                        st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
+                        st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
+                    if 'specific_risks' in rec and rec['specific_risks']:
+                        st.markdown('<p class="recommendation-title">Specifieke risico\'s:</p>', unsafe_allow_html=True)
                         st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
-                        for risk in risks:
+                        for risk in rec['specific_risks']:
                             st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
                         st.markdown('</ul>', unsafe_allow_html=True)
-                    else:
-                        st.markdown('<p class="recommendation-content">No specific risks provided.</p>', unsafe_allow_html=True)
-                    
-                    if st.checkbox("Select this recommendation", key=f"rec_{i}"):
-                        selected_recommendations.append(rec)
                     st.markdown('</div>', unsafe_allow_html=True)
-            except Exception as e:
-                logger.error(f"Error rendering recommendation {i}: {str(e)}")
-                st.error(f"Error displaying recommendation {i+1}")
-        
-    except Exception as e:
-        logger.error(f"Error in render_enhanced_suggestions: {str(e)}")
-        st.error("An error occurred while displaying recommendations.")
+            
+            update_session_state('selected_suggestions', selected_recommendations)
+            st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
+            
+            if selected_recommendations:
+                if st.button("Genereer klantrapport", key="generate_client_report"):
+                    st.session_state.state['active_step'] = 4
+                    st.rerun()
+            else:
+                st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
     
-    return selected_recommendations
+    st.markdown("</div>", unsafe_allow_html=True)
+    logging.info("Render_recommendations_step is voltooid")
 
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
-    st.subheader("📄 Client Report")
+    st.subheader("📄 Klantrapport")
     
     if 'email_content' not in st.session_state.state or not st.session_state.state['email_content']:
-        with st.spinner("Generating client report..."):
+        with st.spinner("Klantrapport wordt gegenereerd..."):
             try:
-                # Get the selected recommendations from the session state
-                selected_recommendations = st.session_state.state.get('selected_suggestions', [])
-                
                 email_content = generate_email(
                     st.session_state.state['transcript'],
                     st.session_state.state['suggestions'],
-                    selected_recommendations
+                    st.session_state.state['selected_suggestions']
                 )
                 update_session_state('email_content', email_content)
-                display_success("Client report generated successfully!")
+                display_success("Klantrapport succesvol gegenereerd!")
             except Exception as e:
-                logger.error(f"Error in render_client_report_step: {str(e)}")
-                display_error(f"An error occurred while generating the report: {str(e)}")
+                logger.error(f"Fout in render_client_report_step: {str(e)}")
+                display_error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
                 st.stop()
 
     if st.session_state.state.get('email_content'):
-        st.markdown("### 📥 Report Content")
-        st.text_area("Generated Report", value=st.session_state.state['email_content'], height=300, key="report_display")
+        st.markdown("### 📥 Rapportinhoud")
+        st.text_area("Gegenereerd rapport", value=st.session_state.state['email_content'], height=300, key="report_display")
         
         st.download_button(
-            label="Download Report",
+            label="Download rapport",
             data=st.session_state.state['email_content'],
-            file_name="InsuranceReport_Client.txt",
+            file_name="VerzekeringRapport_Klant.txt",
             mime="text/plain"
         )
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📅 Schedule Follow-up", key="schedule_followup"):
-            st.write("Follow-up scheduled!")
+        if st.button("📅 Plan vervolgafspraak", key="schedule_followup"):
+            st.write("Vervolgafspraak gepland!")
     with col2:
-        if st.button("📤 Send to Client", key="send_to_client"):
-            st.write("Report sent to client!")
+        if st.button("📤 Verstuur naar klant", key="send_to_client"):
+            st.write("Rapport verzonden naar klant!")
     st.markdown("</div>", unsafe_allow_html=True)
 
 def render_feedback_form():
@@ -285,5 +222,5 @@ def render_conversation_history():
         with st.expander(f"Gesprek {i+1} op {gesprek['time']}"):
             st.markdown("**Transcript:**")
             st.markdown(f'<div class="content">{html.escape(gesprek["transcript"])}</div>', unsafe_allow_html=True)
-            st.markdown("**Gegenereerde E-mail:**")
+            st.markdown("**Gegenereerde e-mail:**")
             st.markdown(f'<div class="content">{gesprek["klantuitvraag"]}</div>', unsafe_allow_html=True)

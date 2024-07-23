@@ -151,17 +151,29 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en gericht advies te geven over mogelijke verbeteringen in hun verzekeringsdekking, met focus op de geselecteerde aanbevelingen.
-    Schrijf een professionele en vriendelijke e-mail die het volgende bevat:
+    Schrijf een professionele en vriendelijke e-mail met de volgende structuur en inhoud:
 
-    1. Een korte introductie waarin je uitlegt waarom je contact opneemt (zorgplicht, periodieke check).
-    2. Een beknopte samenvatting van hun huidige dekking, gebaseerd op de analyse.
-    3. Voor elke geselecteerde aanbeveling, schrijf een korte paragraaf (maximaal 3-4 zinnen) die:
-       - Begint met "Aangezien..." en verwijst naar een specifiek aspect van het bedrijf van de klant.
-       - Een concreet risico beschrijft dat relevant is voor hun situatie.
-       - Uitlegt hoe de aanbevolen verzekering kan helpen dit risico te mitigeren.
-       - Eindigt na het uitleggen van de dekking, zonder aanvullende suggesties.
-    4. Een korte vermelding van andere geïdentificeerde dekkingshiaten, zonder in detail te treden.
-    5. Een uitnodiging voor een vervolgafspraak om de situatie en eventuele aanpassingen te bespreken.
+    Onderwerp: Periodieke verzekeringscheck en aanbevelingen voor [Bedrijfsnaam]
+
+    1. Korte introductie (2-3 zinnen):
+    - Verklaar de reden voor contact (zorgplicht, periodieke check)
+    - Noem het doel van de e-mail
+
+    2. Huidige Dekking:
+    - Geef een beknopte lijst van de huidige verzekeringen
+
+    3. Aanbevelingen:
+    Voor elke geselecteerde aanbeveling, schrijf een korte paragraaf (2-3 zinnen) die:
+    - Begint met "Aangezien..." en verwijst naar een specifiek aspect van het bedrijf van de klant
+    - Een concreet risico beschrijft dat relevant is voor hun situatie, specifiek voor hun branche
+    - Uitlegt hoe de aanbevolen verzekering kan helpen dit risico te mitigeren
+
+    4. Aanvullende Aandachtspunten:
+    - Noem kort andere geïdentificeerde dekkingshiaten, zonder in detail te treden
+
+    5. Vervolgstappen:
+    - Nodig de klant uit voor een vervolgafspraak
+    - Geef een korte afsluiting die het belang van de check benadrukt
 
     Gebruik de volgende informatie:
 
@@ -175,14 +187,14 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     {{selected_recommendations}}
 
     Richtlijnen:
-    - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript.
-    - Gebruik 'u' en 'uw bedrijf' in plaats van de bedrijfsnaam te herhalen.
-    - Leg de nadruk op de zorgplicht en het belang van up-to-date verzekeringsdekking.
-    - Gebruik Nederlandse verzekeringstermen en -producten.
-    - Vermijd het gebruik van placeholders; verwijs naar de klant en jezelf op een algemene maar persoonlijke manier.
-    - Houd de toon professioneel maar toegankelijk.
-    - Presenteer de aanbevelingen als opties om risico's te mitigeren, niet als essentiële producten.
-    - Beperk elke aanbeveling tot maximaal 3-4 zinnen.
+    - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript
+    - Gebruik 'u' en 'uw bedrijf' in plaats van de bedrijfsnaam te herhalen
+    - Leg de nadruk op de zorgplicht en het belang van up-to-date verzekeringsdekking
+    - Gebruik Nederlandse verzekeringstermen en -producten
+    - Vermijd het gebruik van placeholders; verwijs naar de klant en jezelf op een algemene maar persoonlijke manier
+    - Houd de toon professioneel maar toegankelijk
+    - Presenteer de aanbevelingen als opties om risico's te mitigeren, niet als essentiële producten
+    - Zorg dat elke sectie kort en bondig is
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)

@@ -1,22 +1,12 @@
-print("Starting summarization_service.py")
-
-try:
-    import json
-    print("Successfully imported json")
-except ImportError as e:
-    print(f"Failed to import json: {e}")
-
-try:
-    import logging
-    from typing import List, Dict, Any
-    import streamlit as st
-    from langchain_openai import ChatOpenAI
-    from langchain_core.prompts import ChatPromptTemplate
-    from utils.text_processing import load_prompt
-    import traceback
-    print("Successfully imported all other modules")
-except ImportError as e:
-    print(f"Failed to import a module: {e}")
+import logging
+from typing import List, Dict, Any
+import streamlit as st
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from utils.text_processing import load_prompt
+import traceback
+import os
+import simplejson as json
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)

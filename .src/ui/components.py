@@ -1,6 +1,6 @@
 import streamlit as st
 from typing import List, Any
-import json
+import simplejson as json
 
 def display_input_method_selector(input_methods: List[str]) -> str:
     return st.selectbox("Selecteer invoermethode:", input_methods, key="input_method_selector")

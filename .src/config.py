@@ -1,5 +1,5 @@
 import os
-import json
+import simplejson as json
 
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekstbestand", "Upload audiobestand", "Neem audio op"]
 

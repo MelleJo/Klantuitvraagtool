@@ -4,7 +4,7 @@ from pydub import AudioSegment
 from openai import OpenAI
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
-import json
+import simplejson as json
 import uuid
 
 logging.basicConfig(level=logging.DEBUG)

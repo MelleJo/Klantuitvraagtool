@@ -1,6 +1,6 @@
 import streamlit as st
 from typing import Dict, Any, List
-import json
+import simplejson as json
 
 def initialize_session_state() -> None:
     if 'state' not in st.session_state:

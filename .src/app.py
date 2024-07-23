@@ -1,5 +1,5 @@
 import streamlit as st
-import json
+import simplejson as json
 from typing import Dict, Any
 from ui.pages import (
     render_input_step,

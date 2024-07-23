@@ -104,7 +104,7 @@ def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Aanbevelingen")
     
-    logging.info(f"Sessietoestand: {json.dumps(st.session_state.state, default=str)}")
+    #logging.info(f"Sessietoestand: {json.dumps(st.session_state.state, default=str)}")
     
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("Geen suggesties in sessietoestand")
@@ -112,7 +112,7 @@ def render_recommendations_step():
     else:
         recommendations = st.session_state.state['suggestions'].get('recommendations', [])
         logging.info(f"Aantal aanbevelingen: {len(recommendations)}")
-        logging.info(f"Aanbevelingen: {json.dumps(recommendations, indent=2)}")
+        #logging.info(f"Aanbevelingen: {json.dumps(recommendations, indent=2)}")
         
         if not recommendations:
             logging.warning("Er zijn geen aanbevelingen gegenereerd")

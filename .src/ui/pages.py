@@ -72,7 +72,7 @@ def render_analysis_step():
                     raise Exception(analysis_result["error"])
                 st.session_state.state['suggestions'] = analysis_result
                 st.session_state.state['analysis_complete'] = True
-                logging.info(f"Analyse voltooid. Suggesties: {json.dumps(st.session_state.state['suggestions'], indent=2)}")
+                #logging.info(f"Analyse voltooid. Suggesties: {json.dumps(st.session_state.state['suggestions'], indent=2)}")
                 display_success("Analyse succesvol afgerond!")
             except Exception as e:
                 logging.error(f"Er is een fout opgetreden tijdens de analyse: {str(e)}")

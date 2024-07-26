@@ -1,17 +1,10 @@
 import streamlit as st
-from typing import Dict, Any, List
-import simplejson as json
+from typing import Dict, Any
 
-def initialize_session_state() -> None:
+def initialize_session_state():
     if 'state' not in st.session_state:
-        st.session_state.state: Dict[str, Any] = {
+        st.session_state.state = {
             'transcript': '',
-            'edited_transcript': '',
-            'klantuitvraag': '',
-            'klantuitvraag_versions': [],
-            'current_version_index': -1,
-            'input_text': '',
-            'gesprekslog': [],
             'product_info': '',
             'selected_products': [],
             'suggestions': [],

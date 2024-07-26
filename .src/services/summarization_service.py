@@ -136,19 +136,20 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
 
     company_name = "Uw bedrijf"  # You might want to extract this from the transcript if possible
 
-    prompt = """
+    prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en gericht advies te geven over mogelijke verbeteringen in hun verzekeringsdekking, met focus op de geselecteerde aanbevelingen.
     Schrijf een professionele en vriendelijke e-mail met de volgende structuur en inhoud:
 
-    Onderwerp: {title}
+    Onderwerp: Periodieke verzekeringscheck en aanbevelingen voor {company_name}
 
     1. Korte introductie (2-3 zinnen):
     - Verklaar de reden voor contact (zorgplicht, periodieke check)
     - Noem het doel van de e-mail
 
     2. Huidige Dekking:
-    {current_coverage}
+    Geef een overzicht van de huidige dekking, waarbij je voor elke verzekering een korte beschrijving geeft van wat deze dekt en het verzekerde bedrag vermeldt. Gebruik de volgende informatie, maar breid deze uit met relevante details:
+    {{current_coverage}}
 
     3. Aanbevelingen:
     Voor elke geselecteerde aanbeveling, schrijf een korte paragraaf (2-3 zinnen) die:
@@ -172,7 +173,7 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     {transcript}
 
     Geselecteerde aanbevelingen:
-    {selected_recommendations}
+    {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
 
     Richtlijnen:
     - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript
@@ -193,9 +194,7 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
         chain = prompt_template | chat_model
         result = chain.invoke({
             "title": f"Periodieke verzekeringscheck en aanbevelingen voor {company_name}",
-            "current_coverage": current_coverage_str,
-            "transcript": transcript,
-            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2)
+            "current_coverage": current_coverage_str
         })
         return result.content
     except Exception as e:

@@ -164,7 +164,7 @@ def render_client_report_step():
     st.subheader("📄 Klantrapport")
     
     if 'email_content' not in st.session_state.state or not st.session_state.state['email_content']:
-        if st.button("Genereer rapport", key="generate_report_button"):
+        if st.button("Genereer tekst", key="generate_report_button"):
             with st.spinner("Klantrapport wordt gegenereerd..."):
                 try:
                     email_content = generate_email(
@@ -192,13 +192,13 @@ def render_client_report_step():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📅 Plan vervolgafspraak", key="schedule_followup"):
-            st.write("Vervolgafspraak gepland!")
+        if st.button("Placeholder 1", key="placeholder_1"):
+            st.write("Functionaliteit nog niet geïmplementeerd.")
     with col2:
-        if st.button("📤 Verstuur naar klant", key="send_to_client"):
-            st.write("Rapport verzonden naar klant!")
+        if st.button("Placeholder 2", key="placeholder_2"):
+            st.write("Functionaliteit nog niet geïmplementeerd.")
     st.markdown("</div>", unsafe_allow_html=True)
-
+    
 def render_feedback_form():
     with st.form(key="feedback_form"):
         user_first_name = st.text_input("Uw voornaam (verplicht bij feedback):")

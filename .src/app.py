@@ -80,12 +80,12 @@ def main():
 
     # Render the main steps based on the current active step in session state
     step_functions = [
-        render_input_step,
-        render_analysis_step,
-        render_recommendations_step,
-        render_client_report_step,
-        render_feedback_form,
-        render_conversation_history
+        lambda: render_input_step(config),
+        lambda: render_analysis_step(config),
+        lambda: render_recommendations_step(config),
+        lambda: render_client_report_step(config),
+        lambda: render_feedback_form(config),
+        lambda: render_conversation_history(config)
     ]
 
     if 'active_step' not in st.session_state:

@@ -46,9 +46,6 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         logger.debug(f"Raw analysis result: {result.content}")
         
-        # Log the full content
-        logger.info(f"Full AI response:\n{result.content}")
-        
         parsed_result = parse_analysis_result(result.content)
         
         if not isinstance(parsed_result, dict):
@@ -86,46 +83,40 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         line = line.strip()
         logger.debug(f"Processing line: {line}")
         
-        # Check for section starts
-        if '<bestaande_dekking>' in line:
+        if line.startswith('<bestaande_dekking>'):
             current_section = 'current_coverage'
-            continue
-        elif '<dekkingshiaten>' in line:
+        elif line.startswith('<dekkingshiaten>'):
             current_section = 'coverage_gaps'
-            continue
-        elif '<verzekeringsaanbevelingen>' in line:
+        elif line.startswith('<verzekeringsaanbevelingen>'):
             current_section = 'recommendations'
-            continue
-        elif '<aanvullende_opmerkingen>' in line:
+        elif line.startswith('<aanvullende_opmerkingen>'):
             current_section = 'additional_comments'
-            continue
-        
-        # Check for section ends
-        if line.startswith('</'):
+        elif line.startswith('</'):
             if current_recommendation:
                 result['recommendations'].append(current_recommendation)
                 logger.debug(f"Appending recommendation: {current_recommendation}")
             current_recommendation = None
             current_section = None
-            continue
-        
-        # Process content based on current section
-        if current_section and line and not line.startswith('<'):
-            if current_section == 'recommendations':
-                if line.startswith('Aanbeveling:'):
-                    if current_recommendation:
-                        result['recommendations'].append(current_recommendation)
-                    current_recommendation = {'title': line[12:].strip(), 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-                elif line.startswith('Beschrijving:'):
-                    current_recommendation['description'] = line[12:].strip()
-                elif line.startswith('Rechtvaardiging:'):
-                    current_recommendation['rechtvaardiging'] = line[16:].strip()
-                elif line.startswith('Specifieke risico\'s:'):
-                    current_recommendation['specific_risks'].append(line[19:].strip())
-                elif current_recommendation:
+        elif current_section == 'recommendations':
+            if line.startswith('<aanbeveling>'):
+                if current_recommendation:
+                    result['recommendations'].append(current_recommendation)
+                current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
+            elif line.startswith('Aanbeveling:'):
+                current_recommendation['title'] = line[12:].strip()
+            elif line.startswith('Beschrijving:'):
+                current_recommendation['description'] = line[12:].strip()
+            elif line.startswith('Rechtvaardiging:'):
+                current_recommendation['rechtvaardiging'] = line[16:].strip()
+            elif line.startswith('Specifieke risico\'s:'):
+                continue  # Skip this line, we'll collect risks in the else clause
+            elif current_recommendation:
+                if not current_recommendation['specific_risks'] or current_recommendation['specific_risks'][-1].startswith('-'):
                     current_recommendation['specific_risks'].append(line)
-            else:
-                result[current_section].append(line)
+                else:
+                    current_recommendation['specific_risks'][-1] += ' ' + line
+        elif current_section and line and not line.startswith('<'):
+            result[current_section].append(line)
     
     # Add any remaining recommendation
     if current_recommendation:

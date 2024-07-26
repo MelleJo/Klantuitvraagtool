@@ -134,19 +134,24 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     return result
 
 def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:
+    current_coverage = analysis.get('current_coverage', [])
+    current_coverage_str = "\n".join([f"- {item}" for item in current_coverage]) if current_coverage else "Geen huidige dekking geïdentificeerd."
+
+    company_name = "Uw bedrijf"  # You might want to extract this from the transcript if possible
+
     prompt = f"""
     Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
     Het doel is om de huidige situatie van de klant te verifiëren en gericht advies te geven over mogelijke verbeteringen in hun verzekeringsdekking, met focus op de geselecteerde aanbevelingen.
     Schrijf een professionele en vriendelijke e-mail met de volgende structuur en inhoud:
 
-    Onderwerp: Periodieke verzekeringscheck en aanbevelingen voor [Bedrijfsnaam]
+    Onderwerp: Periodieke verzekeringscheck en aanbevelingen voor {company_name}
 
     1. Korte introductie (2-3 zinnen):
     - Verklaar de reden voor contact (zorgplicht, periodieke check)
     - Noem het doel van de e-mail
 
     2. Huidige Dekking:
-    - Geef een beknopte lijst van de huidige verzekeringen
+    {{current_coverage}}
 
     3. Aanbevelingen:
     Voor elke geselecteerde aanbeveling, schrijf een korte paragraaf (2-3 zinnen) die:
@@ -164,14 +169,10 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     - Geef een korte afsluiting die het belang van de check benadrukt
     - Voeg een zin toe die de klant uitnodigt om op de e-mail te reageren voor het maken van een telefonische afspraak
 
-    
     Gebruik de volgende informatie:
 
     Transcript:
     {transcript}
-
-    Analyse:
-    {json.dumps(analysis, ensure_ascii=False, indent=2)}
 
     Geselecteerde aanbevelingen:
     {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
@@ -193,7 +194,10 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({})
+        result = chain.invoke({
+            "title": f"Periodieke verzekeringscheck en aanbevelingen voor {company_name}",
+            "current_coverage": current_coverage_str
+        })
         return result.content
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}")

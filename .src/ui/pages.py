@@ -84,16 +84,22 @@ def render_analysis_step():
             st.markdown("### 📊 Huidige dekking")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
             current_coverage = st.session_state.state['suggestions'].get('current_coverage', [])
-            for coverage in current_coverage:
-                st.write(coverage)
+            if current_coverage:
+                for coverage in current_coverage:
+                    st.write(f"• {coverage}")
+            else:
+                st.write("Geen huidige dekking geïdentificeerd.")
             st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
             st.markdown("### ⚠️ Geïdentificeerde risico's")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
             identified_risks = st.session_state.state['suggestions'].get('coverage_gaps', [])
-            for risk in identified_risks:
-                st.write(f"• {risk}")
+            if identified_risks:
+                for risk in identified_risks:
+                    st.write(f"• {risk}")
+            else:
+                st.write("Geen specifieke risico's geïdentificeerd.")
             st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)

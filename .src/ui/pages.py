@@ -18,7 +18,7 @@ from services.summarization_service import analyze_transcript, generate_email
 from services.email_service import send_feedback_email
 import os
 import html
-from utils.session_state import update_session_state
+from utils.session_state import update_session_state, move_to_step
 import logging
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
@@ -106,7 +106,7 @@ def render_analysis_step():
     st.markdown("</div>", unsafe_allow_html=True)
 
 def on_generate_client_report():
-    st.session_state.state['active_step'] = 4
+    move_to_step(4)
 
 def render_recommendations_step():
     logging.info("Render_recommendations_step wordt gestart")

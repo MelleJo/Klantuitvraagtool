@@ -39,7 +39,7 @@ def render_navigation():
     """Toon navigatieknoppen."""
     col1, col2, col3 = st.columns([1, 3, 1])
     
-   with col1:
+    with col1:
     if st.session_state.state['active_step'] > 1:
         if st.button("⬅️ Vorige", key="previous_button", use_container_width=True):
             st.session_state.state['active_step'] -= 1

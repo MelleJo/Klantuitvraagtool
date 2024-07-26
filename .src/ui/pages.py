@@ -151,7 +151,7 @@ def render_recommendations_step():
             if selected_recommendations:
                 if st.button("Genereer klantrapport", key="generate_client_report"):
                     st.session_state.state['active_step'] = 4
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
     

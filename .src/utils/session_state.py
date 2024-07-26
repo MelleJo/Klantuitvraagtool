@@ -72,7 +72,7 @@ def move_to_step(step: int) -> None:
         st.session_state.state['active_step'] = step
         for i in range(step + 1, 5):
             clear_step_data(i)
-        st.experimental_rerun()
+        st.rerun()
 
 def execute_step_transition() -> None:
     if st.session_state.state['next_step'] is not None:

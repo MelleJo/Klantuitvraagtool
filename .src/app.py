@@ -80,19 +80,19 @@ def main():
 
     # Render the main steps based on the current active step in session state
     step_functions = [
-        lambda: render_input_step(config),
-        lambda: render_analysis_step(config),
-        lambda: render_recommendations_step(config),
-        lambda: render_client_report_step(config),
-        lambda: render_feedback_form(config),
-        lambda: render_conversation_history(config)
+        render_input_step,
+        render_analysis_step,
+        render_recommendations_step,
+        render_client_report_step,
+        render_feedback_form,
+        render_conversation_history
     ]
 
     if 'active_step' not in st.session_state:
         st.session_state.active_step = 0
 
     active_step = st.session_state.active_step
-    step_functions[active_step]()
+    step_functions[active_step](config)
 
     # Render navigation and progress bar
     render_navigation()

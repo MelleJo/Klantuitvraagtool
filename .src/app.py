@@ -76,7 +76,7 @@ def main():
     st.sidebar.title("Klantuitvraagtool")
     
     # UI component for improved styling
-    ImprovedUIStyled(config=config, theme=COLOR_THEME)
+    ImprovedUIStyled()
 
     # Render the main steps based on the current active step in session state
     step_functions = [

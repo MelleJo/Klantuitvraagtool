@@ -9,7 +9,7 @@ from ui.pages import (
     render_feedback_form,
     render_conversation_history
 )
-from utils.session_state import initialize_session_state, update_session_state, move_to_step
+from utils.session_state import initialize_session_state, update_session_state, move_to_step, execute_step_transition
 from ui.components import ImprovedUIStyled
 
 # Stel de pagina-configuratie in aan het begin
@@ -91,6 +91,7 @@ def main() -> None:
         
         config = load_config()
         initialize_session_state()
+        execute_step_transition()
 
         render_progress_bar(st.session_state.state['active_step'])
 

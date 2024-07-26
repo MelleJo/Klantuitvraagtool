@@ -8,12 +8,8 @@ import traceback
 import os
 import simplejson as json
 
-# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-print("Finished importing modules in summarization_service.py")
-print("summarization_service.py is being executed")
 
 def generate_klantuitvraag(text: str) -> str:
     custom_prompt = load_prompt("klantuitvraag_prompt.txt")
@@ -49,9 +45,10 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         logger.debug(f"Raw analysis result: {result.content}")
         
-        parsed_result = parse_analysis_result(result.content)
+        # Log the full content
+        logger.info(f"Full AI response:\n{result.content}")
         
-        #logger.debug(f"Parsed analysis result: {json.dumps(parsed_result, indent=2)}")
+        parsed_result = parse_analysis_result(result.content)
         
         if not isinstance(parsed_result, dict):
             raise ValueError(f"Expected dictionary, got {type(parsed_result)}")
@@ -64,10 +61,8 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         for i, rec in enumerate(parsed_result['recommendations']):
             logger.info(f"Recommendation {i+1}: {rec.get('title', 'No title')}")
         
-        # Store the parsed result in the session state
         st.session_state.state['suggestions'] = parsed_result
         logger.debug("Stored parsed result in session state")
-        #logger.debug(f"Session state after storing suggestions: {json.dumps(st.session_state.state, default=str)}")
         
         return parsed_result
     except Exception as e:
@@ -89,52 +84,53 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     for line in content.split('\n'):
         line = line.strip()
         logger.debug(f"Processing line: {line}")
-        if line.startswith('<bestaande_dekking>'):
+        
+        # Check for section starts
+        if '<bestaande_dekking>' in line:
             current_section = 'current_coverage'
-        elif line.startswith('<dekkingshiaten>'):
+            continue
+        elif '<dekkingshiaten>' in line:
             current_section = 'coverage_gaps'
-        elif line.startswith('<verzekeringsaanbevelingen>'):
+            continue
+        elif '<verzekeringsaanbevelingen>' in line:
             current_section = 'recommendations'
-        elif line.startswith('<aanvullende_opmerkingen>'):
+            continue
+        elif '<aanvullende_opmerkingen>' in line:
             current_section = 'additional_comments'
-        elif line.startswith('</'):
+            continue
+        
+        # Check for section ends
+        if line.startswith('</'):
             if current_recommendation:
                 result['recommendations'].append(current_recommendation)
                 logger.debug(f"Appending recommendation: {current_recommendation}")
             current_recommendation = None
-            if line.startswith('</verzekeringsaanbevelingen>'):
-                current_section = None
-        elif current_section == 'recommendations':
-            if line.startswith('<aanbeveling>'):
-                current_recommendation = {'title': '', 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-            elif line.startswith('<rechtvaardiging>'):
-                current_recommendation['rechtvaardiging'] = ''
-            elif line.startswith('<bedrijfsspecifieke_risicos>'):
-                pass  # We'll handle specific risks in the else clause
-            elif line.startswith('</aanbeveling>'):
-                if current_recommendation:
-                    result['recommendations'].append(current_recommendation)
-                    logger.debug(f"Appending recommendation: {current_recommendation}")
-                current_recommendation = None
-            elif current_recommendation:
-                if not current_recommendation['title']:
-                    current_recommendation['title'] = line
-                elif not current_recommendation['description']:
-                    current_recommendation['description'] = line
-                elif not current_recommendation['rechtvaardiging']:
-                    current_recommendation['rechtvaardiging'] = line
-                else:
+            current_section = None
+            continue
+        
+        # Process content based on current section
+        if current_section and line and not line.startswith('<'):
+            if current_section == 'recommendations':
+                if line.startswith('Aanbeveling:'):
+                    if current_recommendation:
+                        result['recommendations'].append(current_recommendation)
+                    current_recommendation = {'title': line[12:].strip(), 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
+                elif line.startswith('Beschrijving:'):
+                    current_recommendation['description'] = line[12:].strip()
+                elif line.startswith('Rechtvaardiging:'):
+                    current_recommendation['rechtvaardiging'] = line[16:].strip()
+                elif line.startswith('Specifieke risico\'s:'):
+                    current_recommendation['specific_risks'].append(line[19:].strip())
+                elif current_recommendation:
                     current_recommendation['specific_risks'].append(line)
-        elif current_section and line and not line.startswith('<') and not line.startswith('>'):
-            result[current_section].append(line)
+            else:
+                result[current_section].append(line)
     
+    # Add any remaining recommendation
     if current_recommendation:
         result['recommendations'].append(current_recommendation)
     
-    logger.info(f"Number of recommendations parsed: {len(result['recommendations'])}")
-    for i, rec in enumerate(result['recommendations']):
-        logger.info(f"Recommendation {i+1}: {rec['title']}")
-    
+    logger.info(f"Parsed result: {json.dumps(result, indent=2, ensure_ascii=False)}")
     return result
 
 def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:
@@ -172,13 +168,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     Gebruik de volgende informatie:
 
     Transcript:
-    {{transcript}}
+    {transcript}
 
     Analyse:
-    {{analysis}}
+    {json.dumps(analysis, ensure_ascii=False, indent=2)}
 
     Geselecteerde aanbevelingen:
-    {{selected_recommendations}}
+    {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
 
     Richtlijnen:
     - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript
@@ -194,17 +190,9 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)
 
     try:
-        # Filter the analysis to include only the selected recommendations
-        filtered_analysis = analysis.copy()
-        filtered_analysis['recommendations'] = selected_recommendations
-
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
-        result = chain.invoke({
-            "transcript": transcript,
-            "analysis": json.dumps(filtered_analysis, ensure_ascii=False, indent=2),
-            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2)
-        })
+        result = chain.invoke({})
         return result.content
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}")

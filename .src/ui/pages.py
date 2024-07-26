@@ -79,6 +79,7 @@ def render_analysis_step():
                 st.stop()
 
     if st.session_state.state['analysis_complete']:
+        logger.info(f"Analysis results in session state: {json.dumps(st.session_state.state['suggestions'], indent=2, ensure_ascii=False)}")
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### 📊 Huidige dekking")

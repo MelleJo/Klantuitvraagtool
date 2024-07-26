@@ -22,29 +22,29 @@ Presenteer je analyse en aanbevelingen in het volgende formaat:
 
 <analyse>
 <bestaande_dekking>
-[Maak hier een lijst van de huidige verzekeringspolissen van de klant]
+[Maak hier een lijst van de huidige verzekeringspolissen van de klant, één per regel]
 </bestaande_dekking>
 
 <dekkingshiaten>
-[Maak hier een lijst van de geïdentificeerde hiaten in de dekking]
+[Maak hier een lijst van de geïdentificeerde hiaten in de dekking, één per regel]
 </dekkingshiaten>
 
 <verzekeringsaanbevelingen>
 [Voor elke aanbeveling, neem op:]
 <aanbeveling>
-[Beschrijf de aanbevolen verzekering]
-<rechtvaardiging>
-[Leg uit waarom deze verzekering belangrijk is voor de klant]
-</rechtvaardiging>
-<bedrijfsspecifieke_risicos>
-[Beschrijf de specifieke risico's die deze verzekering dekt voor het bedrijf van de klant]
-</bedrijfsspecifieke_risicos>
+Aanbeveling: [Titel van de aanbeveling]
+Beschrijving: [Beschrijf de aanbevolen verzekering]
+Rechtvaardiging: [Leg uit waarom deze verzekering belangrijk is voor de klant]
+Specifieke risico's:
+- [Beschrijf specifiek risico 1]
+- [Beschrijf specifiek risico 2]
+- [Voeg meer risico's toe indien nodig]
 </aanbeveling>
 [Herhaal voor elke aanbeveling]
 </verzekeringsaanbevelingen>
 
 <aanvullende_opmerkingen>
-[Neem hier eventuele aannames of onduidelijke punten op]
+[Neem hier eventuele aannames of onduidelijke punten op, één per regel]
 </aanvullende_opmerkingen>
 </analyse>
 

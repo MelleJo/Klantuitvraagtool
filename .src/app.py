@@ -43,13 +43,13 @@ def render_navigation():
         if st.session_state.state['active_step'] > 1:
             if st.button("⬅️ Vorige", key="previous_button", use_container_width=True):
                 st.session_state.state['active_step'] -= 1
-                st.rerun()  # Use st.rerun() for rerunning
+                st.rerun()
 
     with col3:
         if st.session_state.state['active_step'] < 4:
             if st.button("Volgende ➡️", key="next_button", use_container_width=True):
                 st.session_state.state['active_step'] += 1
-                st.rerun()  # Use st.rerun() for rerunning
+                st.rerun()
 
 def render_progress_bar(active_step: int) -> None:
     """Toon de voortgangsbalk voor de huidige stap."""

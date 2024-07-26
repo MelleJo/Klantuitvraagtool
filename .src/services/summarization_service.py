@@ -185,6 +185,7 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     - Houd de toon professioneel maar toegankelijk
     - Presenteer de aanbevelingen als opties om risico's te mitigeren, niet als essentiële producten
     - Zorg dat elke sectie kort en bondig is
+    - Bespreek alleen de geselecteerde aanbevelingen in detail
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)

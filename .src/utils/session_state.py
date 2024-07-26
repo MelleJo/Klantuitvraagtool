@@ -69,9 +69,10 @@ def clear_step_data(step: int) -> None:
 def move_to_step(step: int) -> None:
     current_step = st.session_state.state['active_step']
     if step != current_step:
-        st.session_state.state['next_step'] = step
+        st.session_state.state['active_step'] = step
         for i in range(step + 1, 5):
             clear_step_data(i)
+        st.experimental_rerun()
 
 def execute_step_transition() -> None:
     if st.session_state.state['next_step'] is not None:

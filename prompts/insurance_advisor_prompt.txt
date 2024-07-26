@@ -39,7 +39,7 @@ Specifieke risico's:
 - [Beschrijf specifiek risico 1]
 - [Beschrijf specifiek risico 2]
 - [Voeg meer risico's toe indien nodig]
-</aanbeveling>
+</aanbevelingen>
 [Herhaal voor elke aanbeveling]
 </verzekeringsaanbevelingen>
 

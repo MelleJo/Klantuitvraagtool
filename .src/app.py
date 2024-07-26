@@ -29,10 +29,6 @@ COLOR_THEME = {
     "accent": "#10B981"
 }
 
-# Initialize session state if not already done
-if 'state' not in st.session_state:
-    initialize_session_state()
-
 def load_config() -> Dict[str, Any]:
     """Laad en retourneer de applicatieconfiguratie."""
     return {
@@ -69,34 +65,61 @@ def render_progress_bar(active_step: int) -> None:
         """,
         unsafe_allow_html=True
     )
-    st.progress(active_step / len(steps))
-
-def main():
-    config = load_config()
-    st.sidebar.title("Klantuitvraagtool")
     
-    # UI component for improved styling
-    ImprovedUIStyled()
+    progress = (active_step - 1) / (len(steps) - 1)
+    st.progress(progress)
+    
+    cols = st.columns(len(steps))
+    for i, step in enumerate(steps, 1):
+        with cols[i-1]:
+            if i < active_step:
+                st.markdown(f"<p style='color:{COLOR_THEME['accent']};text-align:center;'>{i}. {step}</p>", unsafe_allow_html=True)
+            elif i == active_step:
+                st.markdown(f"<p style='color:{COLOR_THEME['primary']};font-weight:bold;text-align:center;'>{i}. {step}</p>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<p style='color:{COLOR_THEME['text']};text-align:center;'>{i}. {step}</p>", unsafe_allow_html=True)
 
-    # Render the main steps based on the current active step in session state
-    step_functions = [
-        render_input_step,
-        render_analysis_step,
-        render_recommendations_step,
-        render_client_report_step,
-        render_feedback_form,
-        render_conversation_history
-    ]
+def main() -> None:
+    """Hoofdfunctie om de Streamlit-app uit te voeren."""
+    try:
+        # Pas de verbeterde UI-styling toe
+        ImprovedUIStyled()
+        
+        st.markdown(f"""
+        <h1 style='text-align: center; color: {COLOR_THEME['primary']}; margin-bottom: 2rem;'>
+            🔐 Klantuitvraagtool
+        </h1>
+        """, unsafe_allow_html=True)
+        
+        config = load_config()
+        initialize_session_state()
 
-    if 'active_step' not in st.session_state:
-        st.session_state.active_step = 0
+        render_progress_bar(st.session_state.state['active_step'])
 
-    active_step = st.session_state.active_step
-    step_functions[active_step](config)
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    # Render navigation and progress bar
-    render_navigation()
-    render_progress_bar(active_step)
+        if st.session_state.state['active_step'] == 1:
+            render_input_step(config)
+        elif st.session_state.state['active_step'] == 2:
+            render_analysis_step()
+        elif st.session_state.state['active_step'] == 3:
+            render_recommendations_step()
+        elif st.session_state.state['active_step'] == 4:
+            render_client_report_step()
+
+        render_navigation()
+
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        
+        with st.expander("Gespreksgeschiedenis", expanded=False):
+            render_conversation_history()
+        
+        with st.expander("Feedback", expanded=False):
+            render_feedback_form()
+
+    except Exception as e:
+        st.error(f"Er is een onverwachte fout opgetreden: {str(e)}")
+        st.error("Vernieuw de pagina en probeer het opnieuw. Als het probleem aanhoudt, neem dan contact op met de ondersteuning.")
 
 if __name__ == "__main__":
     main()

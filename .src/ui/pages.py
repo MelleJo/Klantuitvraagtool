@@ -105,6 +105,9 @@ def render_analysis_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+def on_generate_client_report():
+    st.session_state.state['active_step'] = 4
+
 def render_recommendations_step():
     logging.info("Render_recommendations_step wordt gestart")
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -149,9 +152,7 @@ def render_recommendations_step():
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
             
             if selected_recommendations:
-                if st.button("Genereer klantrapport", key="generate_client_report"):
-                    st.session_state.state['active_step'] = 4
-                    st.rerun()
+                st.button("Genereer klantrapport", key="generate_client_report", on_click=on_generate_client_report)
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
     

@@ -9,7 +9,7 @@ from ui.pages import (
     render_feedback_form,
     render_conversation_history
 )
-from utils.session_state import initialize_session_state, update_session_state, move_to_step, execute_step_transition
+from utils.session_state import initialize_session_state, update_session_state, move_to_step
 from ui.components import ImprovedUIStyled
 
 # Stel de pagina-configuratie in aan het begin
@@ -35,19 +35,23 @@ def load_config() -> Dict[str, Any]:
         "INPUT_METHODS": ["Voer tekst in of plak tekst", "Upload tekstbestand", "Upload audiobestand", "Neem audio op"],
     }
 
+def on_previous_click():
+    move_to_step(st.session_state.state['active_step'] - 1)
+
+def on_next_click():
+    move_to_step(st.session_state.state['active_step'] + 1)
+
 def render_navigation():
     """Toon navigatieknoppen."""
     col1, col2, col3 = st.columns([1, 3, 1])
     
     with col1:
         if st.session_state.state['active_step'] > 1:
-            if st.button("⬅️ Vorige", key="previous_button", use_container_width=True):
-                move_to_step(st.session_state.state['active_step'] - 1)
+            st.button("⬅️ Vorige", key="previous_button", on_click=on_previous_click, use_container_width=True)
 
     with col3:
         if st.session_state.state['active_step'] < 4:
-            if st.button("Volgende ➡️", key="next_button", use_container_width=True):
-                move_to_step(st.session_state.state['active_step'] + 1)
+            st.button("Volgende ➡️", key="next_button", on_click=on_next_click, use_container_width=True)
 
 def render_progress_bar(active_step: int) -> None:
     """Toon de voortgangsbalk voor de huidige stap."""
@@ -91,7 +95,6 @@ def main() -> None:
         
         config = load_config()
         initialize_session_state()
-        execute_step_transition()
 
         render_progress_bar(st.session_state.state['active_step'])
 

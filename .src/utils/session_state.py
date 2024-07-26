@@ -1,6 +1,5 @@
 import streamlit as st
 from typing import Dict, Any, List
-import simplejson as json
 
 def initialize_session_state() -> None:
     if 'state' not in st.session_state:
@@ -21,13 +20,7 @@ def initialize_session_state() -> None:
             'analysis_complete': False,
             'transcription_complete': False,
             'active_step': 1,
-            'next_step': None,  # New field to handle step transitions
         }
-    elif 'active_step' not in st.session_state.state:
-        st.session_state.state['active_step'] = 1
-    
-    if 'next_step' not in st.session_state.state:
-        st.session_state.state['next_step'] = None
 
 def get_session_state() -> Dict[str, Any]:
     return st.session_state.state
@@ -64,7 +57,8 @@ def clear_step_data(step: int) -> None:
         st.session_state.state['analysis_complete'] = False
     elif step == 3:
         st.session_state.state['selected_suggestions'] = []
-    # Email content is not cleared when moving to step 4
+    elif step == 4:
+        st.session_state.state['email_content'] = ''
 
 def move_to_step(step: int) -> None:
     current_step = st.session_state.state['active_step']
@@ -72,9 +66,3 @@ def move_to_step(step: int) -> None:
         st.session_state.state['active_step'] = step
         for i in range(step + 1, 5):
             clear_step_data(i)
-        st.rerun()
-
-def execute_step_transition() -> None:
-    if st.session_state.state['next_step'] is not None:
-        st.session_state.state['active_step'] = st.session_state.state['next_step']
-        st.session_state.state['next_step'] = None

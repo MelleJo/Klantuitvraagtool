@@ -72,7 +72,6 @@ def render_analysis_step():
                     raise Exception(analysis_result["error"])
                 st.session_state.state['suggestions'] = analysis_result
                 st.session_state.state['analysis_complete'] = True
-                #logging.info(f"Analyse voltooid. Suggesties: {json.dumps(st.session_state.state['suggestions'], indent=2)}")
                 display_success("Analyse succesvol afgerond!")
             except Exception as e:
                 logging.error(f"Er is een fout opgetreden tijdens de analyse: {str(e)}")
@@ -104,15 +103,12 @@ def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Aanbevelingen")
     
-    #logging.info(f"Sessietoestand: {json.dumps(st.session_state.state, default=str)}")
-    
     if 'suggestions' not in st.session_state.state or not st.session_state.state['suggestions']:
         logging.warning("Geen suggesties in sessietoestand")
         st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
     else:
         recommendations = st.session_state.state['suggestions'].get('recommendations', [])
         logging.info(f"Aantal aanbevelingen: {len(recommendations)}")
-        #logging.info(f"Aanbevelingen: {json.dumps(recommendations, indent=2)}")
         
         if not recommendations:
             logging.warning("Er zijn geen aanbevelingen gegenereerd")
@@ -148,7 +144,7 @@ def render_recommendations_step():
             if selected_recommendations:
                 if st.button("Genereer klantrapport", key="generate_client_report"):
                     st.session_state.state['active_step'] = 4
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
     
@@ -160,19 +156,20 @@ def render_client_report_step():
     st.subheader("📄 Klantrapport")
     
     if 'email_content' not in st.session_state.state or not st.session_state.state['email_content']:
-        with st.spinner("Klantrapport wordt gegenereerd..."):
-            try:
-                email_content = generate_email(
-                    st.session_state.state['transcript'],
-                    st.session_state.state['suggestions'],
-                    st.session_state.state['selected_suggestions']
-                )
-                update_session_state('email_content', email_content)
-                display_success("Klantrapport succesvol gegenereerd!")
-            except Exception as e:
-                logger.error(f"Fout in render_client_report_step: {str(e)}")
-                display_error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
-                st.stop()
+        if st.button("Genereer rapport", key="generate_report_button"):
+            with st.spinner("Klantrapport wordt gegenereerd..."):
+                try:
+                    email_content = generate_email(
+                        st.session_state.state['transcript'],
+                        st.session_state.state['suggestions'],
+                        st.session_state.state['selected_suggestions']
+                    )
+                    update_session_state('email_content', email_content)
+                    display_success("Klantrapport succesvol gegenereerd!")
+                except Exception as e:
+                    logger.error(f"Fout in render_client_report_step: {str(e)}")
+                    display_error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
+                    st.stop()
 
     if st.session_state.state.get('email_content'):
         st.markdown("### 📥 Rapportinhoud")

@@ -9,7 +9,7 @@ from ui.pages import (
     render_feedback_form,
     render_conversation_history
 )
-from utils.session_state import initialize_session_state, update_session_state
+from utils.session_state import initialize_session_state, update_session_state, move_to_step
 from ui.components import ImprovedUIStyled
 
 # Stel de pagina-configuratie in aan het begin
@@ -42,14 +42,12 @@ def render_navigation():
     with col1:
         if st.session_state.state['active_step'] > 1:
             if st.button("⬅️ Vorige", key="previous_button", use_container_width=True):
-                st.session_state.state['active_step'] -= 1
-                st.rerun()
+                move_to_step(st.session_state.state['active_step'] - 1)
 
     with col3:
         if st.session_state.state['active_step'] < 4:
             if st.button("Volgende ➡️", key="next_button", use_container_width=True):
-                st.session_state.state['active_step'] += 1
-                st.rerun()
+                move_to_step(st.session_state.state['active_step'] + 1)
 
 def render_progress_bar(active_step: int) -> None:
     """Toon de voortgangsbalk voor de huidige stap."""

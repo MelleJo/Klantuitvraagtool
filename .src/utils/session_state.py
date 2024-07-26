@@ -1,10 +1,16 @@
 import streamlit as st
-from typing import Dict, Any
+from typing import Dict, Any, List
 
-def initialize_session_state():
+def initialize_session_state() -> None:
     if 'state' not in st.session_state:
-        st.session_state.state = {
+        st.session_state.state: Dict[str, Any] = {
             'transcript': '',
+            'edited_transcript': '',
+            'klantuitvraag': '',
+            'klantuitvraag_versions': [],
+            'current_version_index': -1,
+            'input_text': '',
+            'gesprekslog': [],
             'product_info': '',
             'selected_products': [],
             'suggestions': [],
@@ -57,6 +63,9 @@ def clear_step_data(step: int) -> None:
         st.session_state.state['email_content'] = ''
 
 def move_to_step(step: int) -> None:
-    st.session_state.state['active_step'] = step
-    for i in range(step + 1, 5):
-        clear_step_data(i)
+    current_step = st.session_state.state['active_step']
+    if step != current_step:
+        st.session_state.state['active_step'] = step
+        for i in range(step + 1, 5):
+            clear_step_data(i)
+        st.experimental_rerun()

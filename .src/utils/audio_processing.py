@@ -86,28 +86,26 @@ def transcribe_audio(file_path):
 
 
 
-def process_audio_input(input_method):
-    if input_method == "Upload audio":
-        uploaded_file = st.file_uploader("Upload een audiobestand", type=["wav", "mp3", "m4a", "ogg", "weba", "mp4"])
+def process_audio_input(input_method, uploaded_file=None):
+    if input_method == "Upload audiobestand":
         if uploaded_file:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
                 tmp_audio.write(uploaded_file.getvalue())
                 tmp_audio.flush()
                 tmp_audio_path = tmp_audio.name
-            st.session_state['audio_file_path'] = tmp_audio_path  # Save the file path in the session state
+            st.session_state['audio_file_path'] = tmp_audio_path
             st.session_state['input_processed'] = True
-            return tmp_audio_path  # Return the file path instead of the transcript
+            return tmp_audio_path
     elif input_method == "Neem audio op":
         audio_data = mic_recorder(key="recorder", start_prompt="Start opname", stop_prompt="Stop opname", use_container_width=True)
         if audio_data and 'bytes' in audio_data:
-            with st.spinner("Transcriberen van audio..."):
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
-                    tmp_audio.write(audio_data['bytes'])
-                    tmp_audio.flush()
-                    tmp_audio_path = tmp_audio.name
-            st.session_state['audio_file_path'] = tmp_audio_path  # Save the file path in the session state
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                tmp_audio.write(audio_data['bytes'])
+                tmp_audio.flush()
+                tmp_audio_path = tmp_audio.name
+            st.session_state['audio_file_path'] = tmp_audio_path
             st.session_state['input_processed'] = True
-            return tmp_audio_path  # Return the file path instead of the transcript
+            return tmp_audio_path
     return None
 
 print("audio_processing.py loaded successfully")

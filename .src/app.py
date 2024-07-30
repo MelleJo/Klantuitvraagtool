@@ -15,7 +15,7 @@ from ui.components import ImprovedUIStyled
 # Stel de pagina-configuratie in aan het begin
 st.set_page_config(
     page_title="Klantuitvraagtool",
-    page_icon="🔐",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="collapsed"
 )

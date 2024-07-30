@@ -44,9 +44,10 @@ def render_input_step(config):
             update_session_state('input_processed', True)
             update_session_state('transcription_complete', True)
 
-    elif input_method in ["Upload audiobestand", "Neem audio op"]:
-        if not st.session_state.state['transcription_complete']:
-            audio_file_path = process_audio_input(input_method)
+    elif input_method == "Upload audiobestand":
+        uploaded_file = st.file_uploader("Upload een audiobestand", type=["wav", "mp3", "m4a", "ogg", "weba", "mp4"])
+        if uploaded_file:
+            audio_file_path = process_audio_input(input_method, uploaded_file)
             if audio_file_path:
                 with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
                     transcript = transcribe_audio(audio_file_path)
@@ -55,10 +56,21 @@ def render_input_step(config):
                     update_session_state('transcription_complete', True)
                 os.unlink(audio_file_path)
 
+    elif input_method == "Neem audio op":
+        audio_file_path = process_audio_input(input_method)
+        if audio_file_path:
+            with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                transcript = transcribe_audio(audio_file_path)
+                update_session_state('transcript', transcript)
+                update_session_state('input_processed', True)
+                update_session_state('transcription_complete', True)
+            os.unlink(audio_file_path)
+
     if st.session_state.state['input_processed']:
         st.markdown("### 📄 Gegenereerd transcript")
         st.text_area("", value=st.session_state.state['transcript'], height=200, key="transcript_display")
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 def render_analysis_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)

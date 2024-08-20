@@ -21,8 +21,8 @@ def split_audio(file_path, max_duration_ms=30000):
 
 def transcribe_audio(file_path):
     # If transcription is complete, return the existing transcript
-    if st.session_state.state['transcription_complete']:
-        return st.session_state.state['transcript']
+    if st.session_state.get('transcription_complete', False):
+        return st.session_state.get('transcript', '')
 
     logger.debug(f"Starting transcribe_audio for file: {file_path}")
     transcript_text = ""
@@ -76,15 +76,13 @@ def transcribe_audio(file_path):
     logger.debug(f"Transcription completed. Total length: {len(transcript_text)}")
     st.info(f"Transcript gegenereerd. Lengte: {len(transcript_text)}")
     
-    st.session_state.state['transcription_complete'] = True
-    st.session_state.state['transcript'] = transcript_text.strip()
+    st.session_state['transcription_complete'] = True
+    st.session_state['transcript'] = transcript_text.strip()
 
     unique_key = f"generated_transcript_{uuid.uuid4()}"
     st.text_area("Gegenereerd Transcript", value=transcript_text, height=300, key=unique_key)
     
     return transcript_text.strip()
-
-
 
 def process_audio_input(input_method, uploaded_file=None):
     if input_method == "Upload audiobestand":

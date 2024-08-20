@@ -20,7 +20,20 @@ def initialize_session_state() -> None:
             'analysis_complete': False,
             'transcription_complete': False,
             'active_step': 1,
+            'last_input_hash': None,  # Add this line
         }
+
+def update_session_state(key: str, value: Any) -> None:
+    st.session_state.state[key] = value
+    if key == 'transcript':
+        # Update the last input hash when transcript is updated
+        st.session_state.state['last_input_hash'] = hash(value)
+
+def clear_analysis_results():
+    st.session_state.state['suggestions'] = []
+    st.session_state.state['selected_suggestions'] = []
+    st.session_state.state['email_content'] = ''
+    st.session_state.state['analysis_complete'] = False
 
 def get_session_state() -> Dict[str, Any]:
     return st.session_state.state

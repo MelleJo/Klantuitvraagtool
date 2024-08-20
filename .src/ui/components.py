@@ -40,129 +40,238 @@ def ImprovedUIStyled():
     st.markdown(
         """
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-          
-          body {
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #3B82F6;
+            --secondary-color: #1E40AF;
+            --background-color: #F3F4F6;
+            --text-color: #1F2937;
+            --accent-color: #10B981;
+            --error-color: #EF4444;
+            --warning-color: #F59E0B;
+            --success-color: #10B981;
+        }
+        
+        body {
             font-family: 'Roboto', sans-serif;
-            background-color: #F3F4F6;
-            color: #1F2937;
-          }
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
 
-          .stApp {
-            background-color: #FFFFFF;
+        .stApp {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-          }
+        }
 
-          h1, h2, h3, h4, h5, h6 {
-            font-family: 'Roboto', sans-serif;
-            color: #1E40AF;
-          }
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--secondary-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
 
-          .stButton > button {
-            background-color: #3B82F6;
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .stButton > button {
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 5px;
             padding: 0.5rem 1rem;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-          }
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
 
-          .stButton > button:hover {
-            background-color: #2563EB;
-          }
+        .stButton > button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
 
-          .stTextInput > div > div > input,
-          .stTextArea > div > div > textarea,
-          .stSelectbox > div > div > select {
+        .stButton > button:active {
+            transform: translateY(1px);
+        }
+
+        .stTextInput > div > div > input,
+        .stTextArea > div > div > textarea,
+        .stSelectbox > div > div > select {
             border: 1px solid #D1D5DB;
             border-radius: 5px;
             padding: 0.5rem;
             background-color: #F9FAFB;
-          }
+            transition: border-color 0.3s ease;
+        }
 
-          .step-container {
-            background-color: #FFFFFF;
-            border: 1px solid #E5E7EB;
+        .stTextInput > div > div > input:focus,
+        .stTextArea > div > div > textarea:focus,
+        .stSelectbox > div > div > select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .step-container {
+            background-color: white;
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-          }
+            transition: box-shadow 0.3s ease;
+        }
 
-          .metric-container {
-            background-color: #EFF6FF;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid #BFDBFE;
-          }
+        .step-container:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-          .stExpander {
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-          }
-
-          .stExpander > div:first-child {
-            background-color: #F3F4F6;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            border-bottom: 1px solid #E5E7EB;
-          }
-
-          .recommendation-card {
+        .recommendation-card {
             background-color: #FFFFFF;
             border: 1px solid #E5E7EB;
             border-radius: 8px;
             padding: 1rem;
             margin-bottom: 1rem;
-            transition: box-shadow 0.3s ease;
-          }
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
 
-          .recommendation-card:hover {
+        .recommendation-card:hover {
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          }
+            transform: translateY(-2px);
+        }
 
-          .recommendation-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+        .stProgress > div > div > div > div {
+            background-color: var(--primary-color);
+        }
+
+        .stAlert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .stAlert.success {
+            background-color: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #34D399;
+        }
+
+        .stAlert.error {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #F87171;
+        }
+
+        .stAlert.warning {
+            background-color: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FBBF24;
+        }
+
+        .stAlert.info {
+            background-color: #DBEAFE;
             color: #1E40AF;
+            border: 1px solid #60A5FA;
+        }
+
+        .stExpander {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .stExpander > div:first-child {
+            background-color: #F3F4F6;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .stExpander > div:first-child:hover {
+            background-color: #E5E7EB;
+        }
+
+        .stExpander > div:last-child {
+            padding: 1rem;
+        }
+
+        .metric-container {
+            background-color: #F3F4F6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #E5E7EB;
+        }
+
+        .metric-container h4 {
             margin-bottom: 0.5rem;
-          }
+            color: var(--secondary-color);
+        }
 
-          .recommendation-content {
-            font-size: 0.9rem;
-            color: #4B5563;
-          }
+        .metric-container p {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
 
-          .recommendation-list {
-            list-style-type: none;
-            padding-left: 0;
-          }
+        /* Custom styling for file uploader */
+        .stFileUploader > div > button {
+            background-color: var(--primary-color);
+            color: white;
+        }
 
-          .recommendation-list li {
-            margin-bottom: 0.5rem;
-            padding-left: 1.5rem;
-            position: relative;
-          }
+        .stFileUploader > div > button:hover {
+            background-color: var(--secondary-color);
+        }
 
-          .recommendation-list li:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #3B82F6;
-            font-weight: bold;
-          }
+        /* Custom styling for checkbox */
+        .stCheckbox > label > div[role="checkbox"] {
+            border-color: var(--primary-color);
+        }
 
-          .stProgress > div > div > div > div {
-            background-color: #3B82F6;
-          }
+        .stCheckbox > label > div[role="checkbox"]::before {
+            background-color: var(--primary-color);
+        }
+
+        /* Custom styling for radio buttons */
+        .stRadio > label > div[role="radio"] {
+            border-color: var(--primary-color);
+        }
+
+        .stRadio > label > div[role="radio"]::before {
+            background-color: var(--primary-color);
+        }
+
+        /* Responsive design adjustments */
+        @media (max-width: 768px) {
+            .stApp {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            h3 {
+                font-size: 1.5rem;
+            }
+        }
         </style>
         """,
         unsafe_allow_html=True

@@ -2,40 +2,25 @@ import streamlit as st
 from typing import Dict, Any, List
 
 def initialize_session_state() -> None:
-    if 'transcript' not in st.session_state:
+    if 'initialized' not in st.session_state:
         st.session_state.transcript = ''
-    if 'edited_transcript' not in st.session_state:
         st.session_state.edited_transcript = ''
-    if 'klantuitvraag' not in st.session_state:
         st.session_state.klantuitvraag = ''
-    if 'klantuitvraag_versions' not in st.session_state:
         st.session_state.klantuitvraag_versions = []
-    if 'current_version_index' not in st.session_state:
         st.session_state.current_version_index = -1
-    if 'input_text' not in st.session_state:
         st.session_state.input_text = ''
-    if 'gesprekslog' not in st.session_state:
         st.session_state.gesprekslog = []
-    if 'product_info' not in st.session_state:
         st.session_state.product_info = ''
-    if 'selected_products' not in st.session_state:
         st.session_state.selected_products = []
-    if 'suggestions' not in st.session_state:
         st.session_state.suggestions = []
-    if 'selected_suggestions' not in st.session_state:
         st.session_state.selected_suggestions = []
-    if 'email_content' not in st.session_state:
         st.session_state.email_content = ''
-    if 'input_processed' not in st.session_state:
         st.session_state.input_processed = False
-    if 'analysis_complete' not in st.session_state:
         st.session_state.analysis_complete = False
-    if 'transcription_complete' not in st.session_state:
         st.session_state.transcription_complete = False
-    if 'active_step' not in st.session_state:
         st.session_state.active_step = 1
-    if 'last_input_hash' not in st.session_state:
         st.session_state.last_input_hash = None
+        st.session_state.initialized = True
 
 def get_session_state() -> Dict[str, Any]:
     return st.session_state
@@ -44,6 +29,8 @@ def update_session_state(key: str, value: Any) -> None:
     setattr(st.session_state, key, value)
 
 def reset_session_state() -> None:
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
     initialize_session_state()
 
 def add_to_conversation_history(transcript: str, klantuitvraag: str) -> None:

@@ -2,8 +2,6 @@ import streamlit as st
 import simplejson as json
 from typing import Dict, Any
 import traceback
-import base64
-import time
 from ui.pages import (
     render_input_step,
     render_analysis_step,
@@ -39,21 +37,21 @@ def load_config() -> Dict[str, Any]:
     }
 
 def on_previous_click():
-    move_to_step(st.session_state.state['active_step'] - 1)
+    move_to_step(st.session_state.active_step - 1)
 
 def on_next_click():
-    move_to_step(st.session_state.state['active_step'] + 1)
+    move_to_step(st.session_state.active_step + 1)
 
 def render_navigation():
     """Display navigation buttons."""
     col1, col2, col3 = st.columns([1, 3, 1])
     
     with col1:
-        if st.session_state.state['active_step'] > 1:
+        if st.session_state.active_step > 1:
             st.button("⬅️ Vorige", key="previous_button", on_click=on_previous_click, use_container_width=True)
 
     with col3:
-        if st.session_state.state['active_step'] < 4:
+        if st.session_state.active_step < 4:
             st.button("Volgende ➡️", key="next_button", on_click=on_next_click, use_container_width=True)
 
 def render_progress_bar(active_step: int) -> None:
@@ -73,23 +71,12 @@ def render_progress_bar(active_step: int) -> None:
             else:
                 st.markdown(f"<p style='color:var(--text-color);text-align:center;'>{i}. {step}</p>", unsafe_allow_html=True)
 
-def encode_state(state):
-    return base64.b64encode(json.dumps(state).encode()).decode()
-
-def decode_state(encoded_state):
-    return json.loads(base64.b64decode(encoded_state).decode())
-
 def main() -> None:
     """Main function to run the Streamlit app."""
     try:
-        # Check if there's a state in the URL
-        query_params = st.query_params
-        if 'state' in query_params:
-            encoded_state = query_params['state']
-            st.session_state.state = decode_state(encoded_state)
-        else:
-            initialize_session_state()
-
+        # Initialize session state
+        initialize_session_state()
+        
         # Apply the improved UI styling
         ImprovedUIStyled()
         
@@ -101,21 +88,21 @@ def main() -> None:
         
         config = load_config()
 
-        render_progress_bar(st.session_state.state['active_step'])
+        render_progress_bar(st.session_state.active_step)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        if st.session_state.state['active_step'] == 1:
+        if st.session_state.active_step == 1:
             render_input_step(config)
-        elif st.session_state.state['active_step'] == 2:
-            current_input_hash = hash(st.session_state.state['transcript'])
-            if current_input_hash != st.session_state.state.get('last_input_hash'):
+        elif st.session_state.active_step == 2:
+            current_input_hash = hash(st.session_state.transcript)
+            if current_input_hash != st.session_state.last_input_hash:
                 clear_analysis_results()
-                st.session_state.state['last_input_hash'] = current_input_hash
+                st.session_state.last_input_hash = current_input_hash
             render_analysis_step()
-        elif st.session_state.state['active_step'] == 3:
+        elif st.session_state.active_step == 3:
             render_recommendations_step()
-        elif st.session_state.state['active_step'] == 4:
+        elif st.session_state.active_step == 4:
             render_client_report_step()
 
         render_navigation()
@@ -127,10 +114,6 @@ def main() -> None:
         
         with st.expander("Feedback", expanded=False):
             render_feedback_form()
-
-        # Update the URL with the new state
-        encoded_state = encode_state(st.session_state.state)
-        st.query_params['state'] = encoded_state
 
     except Exception as e:
         st.error("Er is een onverwachte fout opgetreden.")

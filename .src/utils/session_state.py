@@ -37,15 +37,6 @@ def initialize_session_state() -> None:
     if 'last_input_hash' not in st.session_state:
         st.session_state.last_input_hash = None
 
-    # Clear transcript on reload
-    if 'is_reloaded' not in st.session_state:
-        st.session_state.is_reloaded = True
-        st.session_state.transcript = ''
-        st.session_state.input_processed = False
-        st.session_state.transcription_complete = False
-    else:
-        st.session_state.is_reloaded = False
-
 def get_session_state() -> Dict[str, Any]:
     return st.session_state
 

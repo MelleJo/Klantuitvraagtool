@@ -66,9 +66,9 @@ def render_input_step(config):
                 update_session_state('transcription_complete', True)
             os.unlink(audio_file_path)
 
-    if st.session_state.state['input_processed']:
+    if st.session_state.input_processed:
         st.markdown("### 📄 Gegenereerd transcript")
-        st.text_area("", value=st.session_state.state['transcript'], height=200, key="transcript_display")
+        st.text_area("", value=st.session_state.transcript, height=200, key="transcript_display")
     st.markdown("</div>", unsafe_allow_html=True)
 
 

@@ -74,7 +74,7 @@ def render_progress_bar(active_step: int) -> None:
 def main() -> None:
     """Main function to run the Streamlit app."""
     try:
-        # Initialize session state
+        # Initialize session state at the very beginning
         initialize_session_state()
         
         # Apply the improved UI styling

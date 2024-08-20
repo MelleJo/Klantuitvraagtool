@@ -2,31 +2,35 @@ import streamlit as st
 from typing import Dict, Any, List
 
 def initialize_session_state() -> None:
-    if 'initialized' not in st.session_state:
-        st.session_state.transcript = ''
-        st.session_state.edited_transcript = ''
-        st.session_state.klantuitvraag = ''
-        st.session_state.klantuitvraag_versions = []
-        st.session_state.current_version_index = -1
-        st.session_state.input_text = ''
-        st.session_state.gesprekslog = []
-        st.session_state.product_info = ''
-        st.session_state.selected_products = []
-        st.session_state.suggestions = []
-        st.session_state.selected_suggestions = []
-        st.session_state.email_content = ''
-        st.session_state.input_processed = False
-        st.session_state.analysis_complete = False
-        st.session_state.transcription_complete = False
-        st.session_state.active_step = 1
-        st.session_state.last_input_hash = None
-        st.session_state.initialized = True
+    default_values = {
+        'transcript': '',
+        'edited_transcript': '',
+        'klantuitvraag': '',
+        'klantuitvraag_versions': [],
+        'current_version_index': -1,
+        'input_text': '',
+        'gesprekslog': [],
+        'product_info': '',
+        'selected_products': [],
+        'suggestions': [],
+        'selected_suggestions': [],
+        'email_content': '',
+        'input_processed': False,
+        'analysis_complete': False,
+        'transcription_complete': False,
+        'active_step': 1,
+        'last_input_hash': None,
+    }
+    
+    for key, default_value in default_values.items():
+        if key not in st.session_state:
+            st.session_state[key] = default_value
 
 def get_session_state() -> Dict[str, Any]:
-    return st.session_state
+    return dict(st.session_state)
 
 def update_session_state(key: str, value: Any) -> None:
-    setattr(st.session_state, key, value)
+    st.session_state[key] = value
 
 def reset_session_state() -> None:
     for key in list(st.session_state.keys()):

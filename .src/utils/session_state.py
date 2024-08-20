@@ -9,7 +9,7 @@ def initialize_session_state() -> None:
         'klantuitvraag_versions': [],
         'current_version_index': -1,
         'input_text': '',
-        'gesprekslog': [],
+        'gesprekslog': [],  # Make sure this line is present
         'product_info': '',
         'selected_products': [],
         'suggestions': [],

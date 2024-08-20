@@ -243,7 +243,7 @@ def render_feedback_form():
 
 def render_conversation_history():
     st.subheader("Laatste vijf gesprekken")
-    for i, gesprek in enumerate(st.session_state.state.get('gesprekslog', [])):
+    for i, gesprek in enumerate(st.session_state.get('gesprekslog', [])):
         with st.expander(f"Gesprek {i+1} op {gesprek['time']}"):
             st.markdown("**Transcript:**")
             st.markdown(f'<div class="content">{html.escape(gesprek["transcript"])}</div>', unsafe_allow_html=True)

@@ -95,8 +95,8 @@ def main() -> None:
         if st.session_state.active_step == 1:
             render_input_step(config)
         elif st.session_state.active_step == 2:
-            current_input_hash = hash(st.session_state.transcript)
-            if current_input_hash != st.session_state.last_input_hash:
+            current_input_hash = hash(st.session_state.get('transcript', ''))
+            if current_input_hash != st.session_state.get('last_input_hash'):
                 clear_analysis_results()
                 st.session_state.last_input_hash = current_input_hash
             render_analysis_step()
@@ -125,3 +125,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+                 

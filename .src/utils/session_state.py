@@ -9,10 +9,10 @@ def initialize_session_state() -> None:
         'klantuitvraag_versions': [],
         'current_version_index': -1,
         'input_text': '',
-        'gesprekslog': [],  # Make sure this line is present
+        'gesprekslog': [],
         'product_info': '',
         'selected_products': [],
-        'suggestions': [],
+        'suggestions': {},
         'selected_suggestions': [],
         'email_content': '',
         'input_processed': False,
@@ -59,7 +59,7 @@ def clear_step_data(step: int) -> None:
         st.session_state.input_processed = False
         st.session_state.transcription_complete = False
     elif step == 2:
-        st.session_state.suggestions = []
+        st.session_state.suggestions = {}
         st.session_state.analysis_complete = False
     elif step == 3:
         st.session_state.selected_suggestions = []
@@ -74,7 +74,7 @@ def move_to_step(step: int) -> None:
             clear_step_data(i)
 
 def clear_analysis_results():
-    st.session_state.suggestions = []
+    st.session_state.suggestions = {}
     st.session_state.selected_suggestions = []
     st.session_state.email_content = ''
     st.session_state.analysis_complete = False

@@ -5,9 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from utils.text_processing import load_prompt
 import traceback
-import os
 import simplejson as json
-import logging
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -59,19 +57,11 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         for i, rec in enumerate(parsed_result['recommendations']):
             logger.info(f"Recommendation {i+1}: {rec.get('title', 'No title')}")
         
-        st.session_state.state['suggestions'] = parsed_result
-        logger.debug("Stored parsed result in session state")
-        
         return parsed_result
-    except ValueError as ve:
-        logger.error(f"ValueError in analyze_transcript: {str(ve)}", exc_info=True)
-        return {"error": f"Analyse mislukt: ongeldige gegevensstructuur. Details: {str(ve)}"}
-    except KeyError as ke:
-        logger.error(f"KeyError in analyze_transcript: {str(ke)}", exc_info=True)
-        return {"error": f"Analyse mislukt: ontbrekende sleutelgegevens. Details: {str(ke)}"}
     except Exception as e:
-        logger.error(f"Unexpected error in analyze_transcript: {str(e)}", exc_info=True)
-        return {"error": f"Onverwachte fout tijdens analyse. Details: {str(e)}"}
+        logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        return {"error": str(e)}
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:
     result = {
@@ -129,11 +119,6 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     
     logger.info(f"Parsed result: {json.dumps(result, indent=2, ensure_ascii=False)}")
     return result
-
-
-
-
-logger = logging.getLogger(__name__)
 
 def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:
     current_coverage = analysis.get('current_coverage', [])

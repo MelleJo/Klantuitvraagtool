@@ -61,7 +61,7 @@ def render_progress_bar(active_step: int) -> None:
     steps = ["Gegevens invoeren", "Analyseren", "Aanbevelingen", "Klantrapport"]
     
     progress = (active_step - 1) / (len(steps) - 1)
-    st.progress(progress)
+    st.progress(progress, "Progress")
     
     cols = st.columns(len(steps))
     for i, step in enumerate(steps, 1):
@@ -83,9 +83,9 @@ def main() -> None:
     """Main function to run the Streamlit app."""
     try:
         # Check if there's a state in the URL
-        query_params = st.experimental_get_query_params()
+        query_params = st.query_params
         if 'state' in query_params:
-            encoded_state = query_params['state'][0]
+            encoded_state = query_params['state']
             st.session_state.state = decode_state(encoded_state)
         else:
             initialize_session_state()
@@ -130,7 +130,7 @@ def main() -> None:
 
         # Update the URL with the new state
         encoded_state = encode_state(st.session_state.state)
-        st.experimental_set_query_params(state=encoded_state)
+        st.query_params['state'] = encoded_state
 
     except Exception as e:
         st.error("Er is een onverwachte fout opgetreden.")

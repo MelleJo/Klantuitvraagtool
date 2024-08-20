@@ -9,7 +9,7 @@ def send_feedback_email(transcript, klantuitvraag, feedback, additional_feedback
         user_email = email_secrets.get("receiving_email")
         if not user_email:
             st.error("Email receiving address is not configured properly.")
-            return
+            return False
         
         msg = MIMEMultipart()
         msg['From'] = email_secrets["username"]

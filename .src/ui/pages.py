@@ -221,8 +221,8 @@ def render_feedback_form():
                 st.warning("Voornaam is verplicht bij het geven van feedback.", icon="⚠️")
             else:
                 success = send_feedback_email(
-                    transcript=st.session_state.state.get('transcript', ''),
-                    klantuitvraag=st.session_state.state.get('klantuitvraag', ''),
+                    transcript=st.session_state.get('transcript', ''),
+                    klantuitvraag=st.session_state.get('klantuitvraag', ''),
                     feedback=feedback,
                     additional_feedback=additional_feedback,
                     user_first_name=user_first_name

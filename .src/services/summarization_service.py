@@ -177,7 +177,7 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     - Wijs op mogelijke aanvullende risico's bij personeel in dienst
 
     #### Goederen en inventaris
-    - Leg het onderscheid uit tussen goederen/voorraad en inventaris
+    - Leg het onderscheid uit tussen goederen/voorraad en inventaris wanneer benoemd
 
     ### 5. Afsluiting
     - Benadruk het belang van reageren op de e-mail of het maken van een belafspraak

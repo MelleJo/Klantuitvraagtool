@@ -9,6 +9,9 @@ from langchain.callbacks import StreamlitCallbackHandler
 from utils.text_processing import load_prompt
 import traceback
 import simplejson as json
+import os
+
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -17,20 +20,6 @@ def load_product_descriptions():
     with open('product_descriptions.json', 'r') as file:
         return json.load(file)
 
-def generate_klantuitvraag(text: str) -> str:
-    custom_prompt = load_prompt("klantuitvraag_prompt.txt")
-    full_prompt = f"{custom_prompt}\n\nInput tekst: \"{text}\"\n\nGenereer nu een klantuitvraag op basis van deze input:"
-
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0)
-
-    try:
-        prompt_template = ChatPromptTemplate.from_template(full_prompt)
-        chain = prompt_template | chat_model
-        result = chain.invoke({}).content
-        return result
-    except Exception as e:
-        logger.error(f"Error in generate_klantuitvraag: {str(e)}")
-        raise e
 
 def run_klantuitvraag(text: str) -> Dict[str, Any]:
     try:
@@ -129,30 +118,18 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
 
 
 def load_product_descriptions():
-    with open('product_descriptions.json', 'r') as file:
-        return json.load(file)
-
-import json
-import os
-from typing import Dict, Any, List
-import logging
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains import LLMChain
-from langchain_core.output_parsers import StrOutputParser
-import streamlit as st
-
-logger = logging.getLogger(__name__)
-
-def load_product_descriptions():
     try:
-        with open('product_descriptions.json', 'r') as file:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        file_path = os.path.join(project_root, 'product_descriptions.json')
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
-        logger.warning("product_descriptions.json not found. Using empty dict.")
+        logger.warning(f"product_descriptions.json not found at {file_path}. Using empty dict.")
         return {}
     except json.JSONDecodeError:
-        logger.warning("Error decoding product_descriptions.json. Using empty dict.")
+        logger.warning(f"Error decoding product_descriptions.json at {file_path}. Using empty dict.")
         return {}
 
 def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:

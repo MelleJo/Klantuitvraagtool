@@ -169,19 +169,22 @@ def render_client_report_step():
     st.subheader("📄 Klantrapport")
     
     if 'email_content' not in st.session_state or not st.session_state.get('email_content'):
-        if st.button("Genereer tekst"):
-            with st.spinner("Klantrapport wordt gegenereerd..."):
-                try:
+        if st.button("Genereer klantrapport"):
+            progress_placeholder = st.empty()
+            email_placeholder = st.empty()
+            
+            try:
+                with st.spinner():
                     email_content = generate_email(
                         st.session_state.get('transcript', ''),
                         st.session_state.get('suggestions', {}),
                         st.session_state.get('selected_suggestions', [])
                     )
-                    update_session_state('email_content', email_content)
-                    st.success("Klantrapport succesvol gegenereerd!")
-                except Exception as e:
-                    st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
-                    st.stop()
+                update_session_state('email_content', email_content)
+                progress_placeholder.success("Klantrapport succesvol gegenereerd!")
+            except Exception as e:
+                progress_placeholder.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
+                st.stop()
 
     if st.session_state.get('email_content'):
         st.markdown("### 📥 Rapportinhoud")

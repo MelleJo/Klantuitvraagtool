@@ -127,65 +127,91 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     company_name = "Uw bedrijf"  # You might want to extract this from the transcript if possible
 
     prompt = """
-    Je bent een verzekeringsadviseur die een e-mail schrijft aan een klant als onderdeel van je zorgplicht.
-    Het doel is om de huidige situatie van de klant te verifiëren en gericht advies te geven over mogelijke verbeteringen in hun verzekeringsdekking, met focus op de geselecteerde aanbevelingen.
-    Schrijf een professionele en vriendelijke e-mail met de volgende structuur en inhoud:
+    # Verzekeringsadvies E-mail Prompt
 
-    Onderwerp: {title}
+    Je bent een expert e-mailschrijver en verzekeringsadviseur. Je taak is het schrijven van een e-mail aan een klant met twee hoofddoelen:
+    1. Voldoen aan de zorgplicht
+    2. De klant aanzetten tot het bespreken van risico's en het overwegen van aanvullende verzekeringen
 
-    1. Korte introductie (2-3 zinnen):
-    - Verklaar de reden voor contact (zorgplicht, periodieke check)
-    - Noem het doel van de e-mail
+    ## Algemene richtlijnen
+    - Leg de nadruk op de zorgplicht, zonder deze expliciet te benoemen
+    - Vermijd een overduidelijk commerciële toon
+    - Bepaal het gebruik van 'u' of 'je' op basis van de branche van de klant:
+      - 'Je' voor aannemers, hoveniers, detailhandel, etc.
+      - 'U' voor notarissen, advocaten, etc.
+    - Gebruik rijke tekstopmaak (bold, italics) waar gepast
 
-    2. Huidige Dekking:
-    Geef een overzicht van de huidige dekking, waarbij je voor elke verzekering een korte beschrijving geeft van wat deze dekt en het verzekerde bedrag vermeldt. Gebruik de volgende informatie, maar breid deze uit met relevante details:
-    {current_coverage}
+    ## E-mailstructuur
 
-    3. Aanbevelingen:
-    Voor elke geselecteerde aanbeveling, schrijf een korte paragraaf (2-3 zinnen) die:
-    - Begint met "Aangezien..." en verwijst naar een specifiek aspect van het bedrijf van de klant
-    - Een concreet risico beschrijft dat relevant is voor hun situatie, specifiek voor hun branche
-    - Uitlegt hoe de aanbevolen verzekering kan helpen dit risico te mitigeren
+    ### 1. Introductie
+    - Stel jezelf voor als [relatiebeheerder]
+    - Verwijs naar de bestaande verzekeringen van de klant
+    - Geef aan dat je je hebt verdiept in het bedrijf en de lopende verzekeringen
+    - Noem dat je enkele opvallende zaken hebt geconstateerd die je graag wilt bespreken
 
-    4. Aanvullende Aandachtspunten:
-    - Geef 3-5 korte, adviserende punten over andere belangrijke zaken die aandacht verdienen
-    - Formuleer elk punt als een suggestie of aanbod om te helpen
-    - Houd de toon consistent met de rest van de e-mail
+    ### 2. Per verzekeringsonderwerp
+    Maak voor elk relevant verzekeringsonderwerp een sectie met de volgende structuur:
 
-    5. Vervolgstappen:
-    - Nodig de klant uit voor een vervolgafspraak
-    - Geef een korte afsluiting die het belang van de check benadrukt
-    - Voeg een zin toe die de klant uitnodigt om op de e-mail te reageren voor het maken van een telefonische afspraak
+    #### [Naam verzekeringsonderwerp]
+    - **Huidige situatie:** Beschrijf de huidige dekking
+    - **Aandachtspunt/advies/opmerking:** Geef een relevant advies of opmerking
+    - **Vraag:** Stel een vraag om de klant te betrekken, bijvoorbeeld of je iets moet uitzoeken of berekenen
+
+    ### 3. Actualisatie van verzekerde sommen of termijnen
+    Bij actualisaties, gebruik de volgende structuur:
+    - Geef een kort overzicht van de huidige situatie
+    - Vraag of dit nog actueel is
+    - Geef een toelichting op het advies, indien van toepassing
+
+    ### 4. Standaard aandachtspunten
+    Neem de volgende punten op, indien relevant:
+
+    #### Bedrijfsschade
+    - Wijs op langere herstelperiodes vanwege:
+      - Vergunningsprocedures
+      - Schaarste van aannemers
+      - Langere bouwtijden
+
+    #### Personeel
+    - Vraag of er personeel in dienst is
+    - Wijs op mogelijke aanvullende risico's bij personeel in dienst
+
+    #### Goederen en inventaris
+    - Leg het onderscheid uit tussen goederen/voorraad en inventaris
+
+    ### 5. Afsluiting
+    - Benadruk het belang van reageren op de e-mail of het maken van een belafspraak
+    - Nodig de klant uit om vragen te stellen
+    - Benadruk dat het doel is om de verzekeringen up-to-date te houden
+
+    ## Belangrijke regels
+    - Vermijd het benoemen van eigen risico's, tenzij expliciet gevraagd
+    - Ga er niet vanuit dat de klant ergens niet voor verzekerd is; ze kunnen elders verzekerd zijn
+    - Noem specifieke risico's en geef concrete voorbeelden, vermijd algemene beschrijvingen
 
     Gebruik de volgende informatie:
 
     Transcript:
     {transcript}
 
+    Huidige dekking:
+    {current_coverage}
+
     Geselecteerde aanbevelingen:
     {selected_recommendations}
 
-    Richtlijnen:
-    - Personaliseer de e-mail voor de klant en hun bedrijf, gebruik informatie uit het transcript
-    - Gebruik 'u' en 'uw bedrijf' in plaats van de bedrijfsnaam te herhalen
-    - Leg de nadruk op de zorgplicht en het belang van up-to-date verzekeringsdekking
-    - Gebruik Nederlandse verzekeringstermen en -producten
-    - Vermijd het gebruik van placeholders; verwijs naar de klant en jezelf op een algemene maar persoonlijke manier
-    - Houd de toon professioneel maar toegankelijk
-    - Presenteer de aanbevelingen als opties om risico's te mitigeren, niet als essentiële producten
-    - Zorg dat elke sectie kort en bondig is
-    - Bespreek alleen de geselecteerde aanbevelingen in detail
+    Genereer nu een e-mail volgens bovenstaande richtlijnen.
     """
 
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.3)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o-2024-08-06	", temperature=0.5)
 
     try:
         prompt_template = ChatPromptTemplate.from_template(prompt)
         chain = prompt_template | chat_model
         result = chain.invoke({
-            "title": f"Periodieke verzekeringscheck en aanbevelingen voor {company_name}",
-            "current_coverage": current_coverage_str,
+            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
             "transcript": transcript,
+            "current_coverage": current_coverage_str,
             "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2)
         })
         return result.content

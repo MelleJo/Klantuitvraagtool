@@ -185,13 +185,13 @@ def render_client_report_step():
 
     if st.session_state.get('email_content'):
         st.markdown("### 📥 Rapportinhoud")
-        st.text_area("Gegenereerd rapport", value=st.session_state.get('email_content', ''), height=300, key="report_display")
+        st.markdown(st.session_state.get('email_content', ''), unsafe_allow_html=True)
         
         st.download_button(
             label="Download rapport",
             data=st.session_state.get('email_content', ''),
-            file_name="VerzekeringRapport_Klant.txt",
-            mime="text/plain"
+            file_name="VerzekeringRapport_Klant.md",
+            mime="text/markdown"
         )
 
     st.markdown("</div>", unsafe_allow_html=True)

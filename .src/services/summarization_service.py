@@ -196,19 +196,19 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     Gebruik de volgende informatie:
 
     Transcript:
-    {transcript}
+    {{transcript}}
 
     Huidige dekking:
-    {current_coverage}
+    {{current_coverage}}
 
     Geselecteerde aanbevelingen:
-    {selected_recommendations}
+    {{selected_recommendations}}
 
     Productbeschrijvingen:
-    {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+    {{product_descriptions}}
 
     Beschikbare verzekeringen bij Veldhuis Advies:
-    {", ".join(st.secrets.get("VERZEKERINGEN", []))}
+    {{verzekeringen}}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
@@ -222,7 +222,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
         
         st.markdown("**Schrijven...**")
         chain = prompt_template | chat_model | StrOutputParser()
-        result = chain.invoke({})
+        result = chain.invoke({
+            "transcript": transcript,
+            "current_coverage": current_coverage_str,
+            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
+            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2),
+            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", []))
+        })
 
         st.markdown("**Feedback loop...**")
         feedback_prompt = f"""

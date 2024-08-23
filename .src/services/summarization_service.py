@@ -138,46 +138,48 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
 
     product_descriptions = load_product_descriptions()
 
-    prompt = """
-    # Verzekeringsadvies E-mail Prompt
+    guidelines = """
+    # Verzekeringsadvies E-mail Richtlijnen
 
-    Je bent een expert e-mailschrijver en verzekeringsadviseur. Je taak is het schrijven van een e-mail aan een klant met twee hoofddoelen:
-    1. Voldoen aan de zorgplicht
-    2. De klant aanzetten tot het bespreken van risico's en het overwegen van aanvullende verzekeringen
+    1. Stel jezelf voor als "[Relatiebeheerder] van Veldhuis Advies"
+    2. Verwijs naar de bestaande verzekeringen van de klant
+    3. Geef aan dat je je hebt verdiept in het bedrijf en de lopende verzekeringen
+    4. Noem dat je enkele opvallende zaken hebt geconstateerd die je graag wilt bespreken
+    5. Gebruik het vaste telefoonnummer 0578-699760
+    6. Vermijd aannames of het verzinnen van informatie die niet in de transcript staat
+    7. Gebruik 'u' of 'je' op basis van de branche van de klant ('je' voor aannemers, hoveniers, detailhandel, etc.; 'u' voor notarissen, advocaten, etc.)
+    8. Gebruik rijke tekstopmaak (bold, italics) waar gepast
+    9. Vermijd het benoemen van eigen risico's
+    10. Ga er niet vanuit dat de klant ergens niet voor verzekerd is; ze kunnen elders verzekerd zijn
+    11. Noem specifieke risico's en geef concrete voorbeelden, vermijd algemene beschrijvingen
+    12. Vermijd een samenvatting van de belangrijkste punten aan het begin van de e-mail
+    13. Sluit af met een uitnodiging om te reageren of contact op te nemen, zonder dwingend over te komen
+    14. Vermijd clichés zoals "Ik kijk uit naar je reactie"
+    15. Gebruik de productbeschrijvingen bij het bespreken van de huidige verzekeringen in de "huidige situatie" secties
+    """
 
-    ## Algemene richtlijnen
-    - Leg de nadruk op de zorgplicht, zonder deze expliciet te benoemen
-    - Vermijd een overduidelijk commerciële toon
-    - Bepaal het gebruik van 'u' of 'je' op basis van de branche van de klant:
-      - 'Je' voor aannemers, hoveniers, detailhandel, etc.
-      - 'U' voor notarissen, advocaten, etc.
-    - Gebruik rijke tekstopmaak (bold, italics) waar gepast
+    prompt = f"""
+    {guidelines}
 
     ## E-mailstructuur
 
     ### 1. Introductie
-    - Stel jezelf voor als [relatiebeheerder]
-    - Verwijs naar de bestaande verzekeringen van de klant
-    - Geef aan dat je je hebt verdiept in het bedrijf en de lopende verzekeringen
-    - Noem dat je enkele opvallende zaken hebt geconstateerd die je graag wilt bespreken
+    Volg richtlijnen 1-5
 
     ### 2. Per verzekeringsonderwerp
     Maak voor elk relevant verzekeringsonderwerp een sectie met de volgende structuur:
 
     #### [Naam verzekeringsonderwerp]
-    - **Huidige situatie:** Beschrijf de huidige dekking
+    - **Huidige situatie:** Beschrijf de huidige dekking zonder eigen risico te noemen. Gebruik hierbij de relevante productbeschrijving.
     - **Aandachtspunt/advies/opmerking:** Geef een relevant advies of opmerking
     - **Vraag:** Stel een vraag om de klant te betrekken, bijvoorbeeld of je iets moet uitzoeken of berekenen
 
-    ### 3. Actualisatie van verzekerde sommen of termijnen
-    Bij actualisaties, gebruik de volgende structuur:
+    ### 3. Actualisatie van verzekerde sommen of termijnen (indien van toepassing)
     - Geef een kort overzicht van de huidige situatie
     - Vraag of dit nog actueel is
     - Geef een toelichting op het advies, indien van toepassing
 
-    ### 4. Standaard aandachtspunten
-    Neem de volgende punten op, indien relevant:
-
+    ### 4. Standaard aandachtspunten (indien relevant)
     #### Bedrijfsschade
     - Wijs op langere herstelperiodes vanwege:
       - Vergunningsprocedures
@@ -188,24 +190,8 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     - Vraag of er personeel in dienst is
     - Wijs op mogelijke aanvullende risico's bij personeel in dienst
 
-    #### Goederen en inventaris
-    - Leg het onderscheid uit tussen goederen/voorraad en inventaris
-
     ### 5. Afsluiting
-    - Benadruk het belang van reageren op de e-mail of het maken van een belafspraak
-    - Nodig de klant uit om vragen te stellen
-    - Benadruk dat het doel is om de verzekeringen up-to-date te houden
-
-    ## Belangrijke regels
-    - Vermijd het benoemen van eigen risico's, tenzij expliciet gevraagd
-    - Ga er niet vanuit dat de klant ergens niet voor verzekerd is; ze kunnen elders verzekerd zijn
-    - Noem specifieke risico's en geef concrete voorbeelden, vermijd algemene beschrijvingen
-    - Gebruik de lijst van beschikbare verzekeringen bij Veldhuis Advies: {verzekeringen}
-
-    ## Productbeschrijvingen
-    Gebruik de volgende productbeschrijvingen bij het bespreken van de huidige verzekeringen en aanbevelingen:
-
-    {product_descriptions}
+    Volg richtlijnen 13-14
 
     Gebruik de volgende informatie:
 
@@ -218,7 +204,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
     Geselecteerde aanbevelingen:
     {selected_recommendations}
 
-    Genereer nu een e-mail volgens bovenstaande richtlijnen.
+    Productbeschrijvingen:
+    {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+
+    Beschikbare verzekeringen bij Veldhuis Advies:
+    {", ".join(st.secrets.get("VERZEKERINGEN", []))}
+
+    Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o-2024-08-06", temperature=0.5)
@@ -230,24 +222,22 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
         
         st.markdown("**Schrijven...**")
         chain = prompt_template | chat_model | StrOutputParser()
-        result = chain.invoke({
-            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2),
-            "transcript": transcript,
-            "current_coverage": current_coverage_str,
-            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
-            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", []))
-        })
+        result = chain.invoke({})
 
         st.markdown("**Feedback loop...**")
-        feedback_prompt = """
-        Beoordeel de volgende e-mail op basis van de gegeven richtlijnen. Controleer of:
-        1. Alle instructies zijn gevolgd
-        2. Alle informatie feitelijk correct is
-        3. De toon passend is voor een verzekeringsadvies
-        4. De productbeschrijvingen correct zijn gebruikt
+        feedback_prompt = f"""
+        {guidelines}
+
+        Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Controleer specifiek of:
+
+        1. Alle richtlijnen zijn gevolgd
+        2. De productbeschrijvingen correct zijn gebruikt in de "huidige situatie" secties
+        3. Er geen aannames of verzonnen informatie in staat
+        4. De toon passend is voor een verzekeringsadvies
+        5. De e-mailstructuur correct is gevolgd
 
         E-mail:
-        {email}
+        {{email}}
 
         Geef puntsgewijs feedback en suggesties voor verbetering.
         """
@@ -255,14 +245,24 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
         feedback = feedback_chain.run(email=result)
 
         st.markdown("**Verbeterde versie schrijven...**")
-        improvement_prompt = """
-        Verbeter de volgende e-mail op basis van de gegeven feedback:
+        improvement_prompt = f"""
+        {guidelines}
+
+        Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen. Zorg ervoor dat:
+
+        1. Alle aanpassingen in lijn zijn met de richtlijnen
+        2. De productbeschrijvingen correct worden gebruikt in de "huidige situatie" secties
+        3. De e-mail bondig blijft en geen onnodige informatie bevat
+        4. De toon professioneel en uitnodigend blijft, zonder dwingend over te komen
+        5. Alle feitelijke informatie correct is en gebaseerd op de gegeven transcript
+        6. Het telefoonnummer 0578-699760 correct is vermeld
+        7. De afsluiting kort en to-the-point is
 
         Originele e-mail:
-        {original_email}
+        {{original_email}}
 
         Feedback:
-        {feedback}
+        {{feedback}}
 
         Schrijf een verbeterde versie van de e-mail.
         """

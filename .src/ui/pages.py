@@ -18,6 +18,7 @@ from services.summarization_service import analyze_transcript, generate_email
 from services.email_service import send_feedback_email
 import os
 import html
+import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 import logging
 
@@ -174,16 +175,30 @@ def render_client_report_step():
             email_placeholder = st.empty()
             
             try:
-                with st.spinner():
-                    email_content = generate_email(
-                        st.session_state.get('transcript', ''),
-                        st.session_state.get('suggestions', {}),
-                        st.session_state.get('selected_suggestions', [])
-                    )
-                update_session_state('email_content', email_content)
-                progress_placeholder.success("Klantrapport succesvol gegenereerd!")
+                with st.spinner("Rapport wordt gegenereerd..."):
+                    stages = ["Denken...", "Schrijven...", "Feedback verwerken...", "Verbeterde versie schrijven..."]
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+
+                    for i, stage in enumerate(stages):
+                        status_text.text(stage)
+                        progress_bar.progress((i + 1) / len(stages))
+                        
+                        if i == 0:  # This is where we actually generate the email
+                            email_content = generate_email(
+                                st.session_state.get('transcript', ''),
+                                st.session_state.get('suggestions', {}),
+                                st.session_state.get('selected_suggestions', [])
+                            )
+                        
+                        time.sleep(1)  # Simulate processing time for demonstration
+                    
+                    update_session_state('email_content', email_content)
+                    progress_bar.empty()
+                    status_text.empty()
+                    st.success("Klantrapport succesvol gegenereerd!")
             except Exception as e:
-                progress_placeholder.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
+                st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
                 st.stop()
 
     if st.session_state.get('email_content'):

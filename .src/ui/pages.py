@@ -1,6 +1,6 @@
 import streamlit as st
 import simplejson as json
-from ui.components import (
+from .components import (
     display_input_method_selector,
     display_text_input,
     display_file_uploader,
@@ -12,14 +12,14 @@ from ui.components import (
     display_warning,
     display_metric   
 )
-from utils.audio_processing import transcribe_audio, process_audio_input
-from utils.file_processing import process_uploaded_file
-from services.summarization_service import analyze_transcript, generate_email
-from services.email_service import send_feedback_email
+from ..utils.audio_processing import transcribe_audio, process_audio_input
+from ..utils.file_processing import process_uploaded_file
+from ..services.summarization_service import analyze_transcript, generate_email
+from ..services.email_service import send_feedback_email
 import os
 import html
 import time
-from utils.session_state import update_session_state, move_to_step, clear_analysis_results
+from ..utils.session_state import update_session_state, move_to_step, clear_analysis_results
 import logging
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG)

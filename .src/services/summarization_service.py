@@ -24,16 +24,23 @@ def load_product_descriptions() -> Dict[str, Any]:
     
     try:
         with open(json_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
+            data = json.load(file)
+        logger.info(f"Successfully loaded product descriptions from {json_path}")
+        return data
     except FileNotFoundError:
+        logger.error(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' was not found at {json_path}.")
         raise FileNotFoundError(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' was not found at {json_path}.")
-    except json.JSONDecodeError:
-        raise ValueError(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' contains invalid JSON.")
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding JSON in '{PRODUCT_DESCRIPTIONS_FILE}': {str(e)}")
+        raise ValueError(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' contains invalid JSON: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error while loading '{PRODUCT_DESCRIPTIONS_FILE}': {str(e)}")
+        raise
 
 def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
     for category, products in product_descriptions.items():
-        if product_name.lower() in products:
-            return products[product_name.lower()]['description']
+        if isinstance(products, dict) and product_name.lower() in products:
+            return products[product_name.lower()].get('description', "Geen beschrijving beschikbaar.")
     return "Geen specifieke productbeschrijving beschikbaar."
 
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
@@ -128,17 +135,18 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
     enhanced_coverage = []
     for item in current_coverage:
         for category, products in product_descriptions.items():
-            for product, details in products.items():
-                if product.lower() in item.lower():
-                    enhanced_coverage.append({
-                        "coverage": item,
-                        "description": details.get("description", ""),
-                        "title": details.get("title", product)
-                    })
-                    break
-            else:
-                continue
-            break
+            if isinstance(products, dict):
+                for product, details in products.items():
+                    if product.lower() in item.lower():
+                        enhanced_coverage.append({
+                            "coverage": item,
+                            "description": details.get("description", ""),
+                            "title": details.get("title", product)
+                        })
+                        break
+                else:
+                    continue
+                break
         else:
             enhanced_coverage.append({
                 "coverage": item,
@@ -148,7 +156,11 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
     return enhanced_coverage
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
-    product_descriptions = load_product_descriptions()
+    try:
+        product_descriptions = load_product_descriptions()
+    except Exception as e:
+        logger.error(f"Error loading product descriptions: {str(e)}")
+        return f"Er is een fout opgetreden bij het laden van de productbeschrijvingen: {str(e)}"
 
     current_coverage = [item['coverage'] for item in enhanced_coverage]
     title = "Verzekeringsadvies"

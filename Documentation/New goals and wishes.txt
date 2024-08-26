@@ -1,0 +1,13 @@
+# Klantuitvraagtool: Development and Collaboration Guidelines
+
+## New goals and wishes
+
+1. **Improvement of the output**
+   - The output is continously adjusted according to the feedback
+   - this is the nr. 1 priority
+
+2. **More fancy UI**
+   - More smooth, professional UI that is appealing and intuitive
+
+3. **"Spiekbriefje"**
+   - While recording a screen with questions and suggestions about what to include while recording audio. 

@@ -16,9 +16,15 @@ import os
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def load_product_descriptions():
+def load_product_descriptions() -> Dict[str, Any]:
     with open('product_descriptions.json', 'r') as file:
         return json.load(file)
+
+def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
+    for category, products in product_descriptions.items():
+        if product_name.lower() in products:
+            return products[product_name.lower()]['description']
+    return "Geen specifieke productbeschrijving beschikbaar."
 
 
 def run_klantuitvraag(text: str) -> Dict[str, Any]:
@@ -117,95 +123,78 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     return result
 
 
-def load_product_descriptions():
-    try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(current_dir)
-        file_path = os.path.join(project_root, 'product_descriptions.json')
-        
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        logger.warning(f"product_descriptions.json not found at {file_path}. Using empty dict.")
-        return {}
-    except json.JSONDecodeError:
-        logger.warning(f"Error decoding product_descriptions.json at {file_path}. Using empty dict.")
-        return {}
+def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
+    enhanced_coverage = []
+    for item in current_coverage:
+        for category, products in product_descriptions.items():
+            for product, details in products.items():
+                if product.lower() in item.lower():
+                    enhanced_coverage.append({
+                        "coverage": item,
+                        "description": details.get("description", ""),
+                        "title": details.get("title", product)
+                    })
+                    break
+            else:
+                continue
+            break
+        else:
+            enhanced_coverage.append({
+                "coverage": item,
+                "description": "Geen specifieke productbeschrijving beschikbaar.",
+                "title": "Onbekende verzekering"
+            })
+    return enhanced_coverage
 
-def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommendations: List[Dict[str, Any]]) -> str:
-    current_coverage = analysis.get('current_coverage', [])
-    current_coverage_str = "\n".join([f"- {item}" for item in current_coverage]) if current_coverage else "Geen huidige dekking geïdentificeerd."
-
+def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()
+    enhanced_coverage_str = json.dumps(enhanced_coverage, ensure_ascii=False, indent=2)
 
     guidelines = """
     # Verzekeringsadvies E-mail Richtlijnen
 
-    1. Stel jezelf voor als "[Relatiebeheerder] van Veldhuis Advies"
-    2. Verwijs naar de bestaande verzekeringen van de klant
-    3. Geef aan dat je je hebt verdiept in het bedrijf en de lopende verzekeringen
-    4. Noem dat je enkele opvallende zaken hebt geconstateerd die je graag wilt bespreken
-    5. Gebruik het vaste telefoonnummer 0578-699760
-    6. Vermijd aannames of het verzinnen van informatie die niet in de transcript staat
-    7. Gebruik 'u' of 'je' op basis van de branche van de klant ('je' voor aannemers, hoveniers, detailhandel, etc.; 'u' voor notarissen, advocaten, etc.)
-    8. Gebruik rijke tekstopmaak (bold, italics) waar gepast
-    9. Vermijd het benoemen van eigen risico's
-    10. Ga er niet vanuit dat de klant ergens niet voor verzekerd is; ze kunnen elders verzekerd zijn
-    11. Noem specifieke risico's en geef concrete voorbeelden, vermijd algemene beschrijvingen
-    12. Vermijd een samenvatting van de belangrijkste punten aan het begin van de e-mail
-    13. Sluit af met een uitnodiging om te reageren of contact op te nemen, zonder dwingend over te komen
-    14. Vermijd clichés zoals "Ik kijk uit naar je reactie"
-    15. Gebruik de productbeschrijvingen bij het bespreken van de huidige verzekeringen in de "huidige situatie" secties
+    1. Begin direct met je naam en functie bij Veldhuis Advies
+    2. Gebruik een informele, persoonlijke toon (je/jij), tenzij het transcript aangeeft dat formeel taalgebruik (u) nodig is
+    3. Vermijd een uitgebreide introductie of samenvatting aan het begin
+    4. Gebruik de gegeven productbeschrijvingen bij het uitleggen van de huidige situatie
+    5. Geef concrete, specifieke adviezen gebaseerd op de situatie van de klant
+    6. Stel bij elk onderwerp een relevante vraag om de klant te betrekken
+    7. Vermijd het noemen van eigen risico's of veronderstellen dat de klant ergens niet voor verzekerd is
+    8. Gebruik korte, krachtige zinnen en paragrafen
+    9. Sluit af met een beknopte, vriendelijke uitnodiging om te reageren
+    10. Vermeld altijd het telefoonnummer 0578-699760
+    11. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd
+    12. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties
     """
 
     prompt = f"""
     {guidelines}
 
-    ## E-mailstructuur
+    Schrijf een e-mail met de volgende structuur:
 
-    ### 1. Introductie
-    Volg richtlijnen 1-5
+    1. Openingszin met naam en functie
+    2. Korte verklaring van reden voor contact
 
-    ### 2. Per verzekeringsonderwerp
-    Maak voor elk relevant verzekeringsonderwerp een sectie met de volgende structuur:
+    3. Voor elke relevante verzekering in de huidige dekking:
+       - Naam verzekering (in bold)
+       - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
+       - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's
+       - Vraag: Stel een relevante vraag om de klant te betrekken
 
-    #### [Naam verzekeringsonderwerp]
-    - **Huidige situatie:** Beschrijf de huidige dekking zonder eigen risico te noemen. Gebruik hierbij de relevante productbeschrijving.
-    - **Aandachtspunt/advies/opmerking:** Geef een relevant advies of opmerking
-    - **Vraag:** Stel een vraag om de klant te betrekken, bijvoorbeeld of je iets moet uitzoeken of berekenen
+    4. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
 
-    ### 3. Actualisatie van verzekerde sommen of termijnen (indien van toepassing)
-    - Geef een kort overzicht van de huidige situatie
-    - Vraag of dit nog actueel is
-    - Geef een toelichting op het advies, indien van toepassing
-
-    ### 4. Standaard aandachtspunten (indien relevant)
-    #### Bedrijfsschade
-    - Wijs op langere herstelperiodes vanwege:
-      - Vergunningsprocedures
-      - Schaarste van aannemers
-      - Langere bouwtijden
-
-    #### Personeel
-    - Vraag of er personeel in dienst is
-    - Wijs op mogelijke aanvullende risico's bij personeel in dienst
-
-    ### 5. Afsluiting
-    Volg richtlijnen 13-14
+    5. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
 
     Gebruik de volgende informatie:
 
     Transcript:
     {{transcript}}
 
-    Huidige dekking:
-    {{current_coverage}}
+    Huidige dekking (met productbeschrijvingen):
+    {{enhanced_coverage}}
 
     Geselecteerde aanbevelingen:
     {{selected_recommendations}}
-
-    Productbeschrijvingen:
-    {{product_descriptions}}
 
     Beschikbare verzekeringen bij Veldhuis Advies:
     {{verzekeringen}}
@@ -224,9 +213,8 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
         chain = prompt_template | chat_model | StrOutputParser()
         result = chain.invoke({
             "transcript": transcript,
-            "current_coverage": current_coverage_str,
+            "enhanced_coverage": enhanced_coverage_str,
             "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
-            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2),
             "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", []))
         })
 
@@ -236,11 +224,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
 
         Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Controleer specifiek of:
 
-        1. Alle richtlijnen zijn gevolgd
-        2. De productbeschrijvingen correct zijn gebruikt in de "huidige situatie" secties
-        3. Er geen aannames of verzonnen informatie in staat
-        4. De toon passend is voor een verzekeringsadvies
-        5. De e-mailstructuur correct is gevolgd
+        1. De e-mail direct begint met naam en functie, zonder uitgebreide introductie
+        2. De toon persoonlijk en informeel is (tenzij anders aangegeven in het transcript)
+        3. Productbeschrijvingen goed zijn geïntegreerd in de uitleg van de huidige situatie
+        4. Adviezen concreet en specifiek zijn voor de situatie van de klant
+        5. Er bij elk onderwerp een relevante vraag wordt gesteld
+        6. De afsluiting kort en vriendelijk is, met een duidelijke uitnodiging om te reageren
+        7. Het telefoonnummer 0578-699760 is vermeld
 
         E-mail:
         {{email}}
@@ -256,13 +246,13 @@ def generate_email(transcript: str, analysis: Dict[str, Any], selected_recommend
 
         Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen. Zorg ervoor dat:
 
-        1. Alle aanpassingen in lijn zijn met de richtlijnen
-        2. De productbeschrijvingen correct worden gebruikt in de "huidige situatie" secties
-        3. De e-mail bondig blijft en geen onnodige informatie bevat
-        4. De toon professioneel en uitnodigend blijft, zonder dwingend over te komen
-        5. Alle feitelijke informatie correct is en gebaseerd op de gegeven transcript
-        6. Het telefoonnummer 0578-699760 correct is vermeld
-        7. De afsluiting kort en to-the-point is
+        1. De e-mail voldoet aan alle genoemde richtlijnen
+        2. De toon consistent persoonlijk en informeel blijft (tenzij anders aangegeven)
+        3. Productbeschrijvingen naadloos zijn geïntegreerd
+        4. Adviezen concreet en relevant zijn
+        5. Elke sectie een duidelijke vraag bevat
+        6. De e-mail bondig en to-the-point blijft
+        7. De afsluiting kort en uitnodigend is
 
         Originele e-mail:
         {{original_email}}

@@ -1,0 +1,73 @@
+# Klantuitvraagtool: Development and Collaboration Guidelines
+
+## Code and Implementation Guidelines
+
+1. **Complete Functionality**
+   - Provide full, functional code implementations rather than placeholders or partial solutions.
+   - Ensure all functions are complete and ready for integration into the project.
+
+2. **No Placeholders**
+   - Avoid using placeholder comments or TODO statements in code submissions.
+   - If a feature cannot be fully implemented, provide a detailed explanation and potential approaches.
+
+3. **Full File Submissions**
+   - When updating or creating files, submit the entire file content rather than snippets.
+   - Include all necessary imports, function definitions, and supporting code.
+
+4. **Detailed Documentation**
+   - Provide comprehensive docstrings for all functions and classes.
+   - Include explanatory comments for complex logic or non-obvious implementations.
+
+5. **Error Handling**
+   - Implement robust error handling in all functions.
+   - Use try-except blocks to catch and handle potential exceptions gracefully.
+
+6. **Consistent Styling**
+   - Adhere to PEP 8 guidelines for Python code styling.
+   - Maintain consistent naming conventions throughout the project.
+
+## Project Management Guidelines
+
+1. **Clear Communication**
+   - Provide detailed explanations of implemented features or changes.
+   - Clearly state any assumptions made during development.
+
+2. **Proactive Problem Solving**
+   - Anticipate potential issues and provide solutions or workarounds.
+   - Suggest improvements or optimizations where applicable.
+
+3. **Comprehensive Testing**
+   - Include unit tests for new functions or features.
+   - Describe manual testing procedures for UI components.
+
+4. **Version Control Practices**
+   - Make atomic commits with clear, descriptive commit messages.
+   - Create feature branches for significant changes or new features.
+
+5. **Documentation Updates**
+   - Update relevant documentation when implementing new features or making significant changes.
+   - Ensure README and other project documents remain current.
+
+## Collaboration Guidelines
+
+1. **Respect Project Structure**
+   - Adhere to the established project structure and architecture.
+   - Discuss any structural changes before implementation.
+
+2. **Code Review Readiness**
+   - Submit code that is ready for review and potential immediate integration.
+   - Address all linter warnings and ensure code meets project quality standards.
+
+3. **Incremental Development**
+   - Break down large features into smaller, manageable increments.
+   - Provide functional increments that can be reviewed and tested independently.
+
+4. **Feedback Integration**
+   - Promptly address and incorporate feedback from code reviews.
+   - Seek clarification on feedback if necessary.
+
+5. **Knowledge Sharing**
+   - Document any new techniques, libraries, or approaches used in the project.
+   - Share insights or learnings that could benefit the entire development team.
+
+By adhering to these guidelines, we ensure a high-quality, consistent, and efficient development process for the Klantuitvraagtool project. These practices facilitate easier collaboration, maintenance, and future expansion of the tool.

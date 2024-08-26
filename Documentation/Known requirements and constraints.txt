@@ -1,0 +1,45 @@
+# Klantuitvraagtool: Known Requirements or Constraints
+
+## Functional Requirements
+1. Must support multiple input methods (text entry, file upload, audio recording)
+2. Must accurately transcribe audio inputs to text
+3. Must analyze client conversations to identify insurance needs and risks
+4. Must generate personalized insurance recommendations
+5. Must create editable, downloadable client reports
+6. Must maintain a conversation history for reference
+7. Must provide a feedback mechanism for users
+
+## Non-Functional Requirements
+1. Performance: Must process inputs and generate recommendations within a reasonable timeframe (target: under 2 minutes for full process)
+2. Usability: Interface must be intuitive for insurance professionals with minimal training
+3. Reliability: System should be available during standard business hours with minimal downtime
+4. Scalability: Should handle multiple concurrent users (initial target: 50 simultaneous users)
+5. Security: Must ensure the privacy and security of client data
+6. Compliance: Must adhere to relevant data protection regulations (e.g., GDPR)
+
+## Constraints
+1. Language: Initially limited to Dutch language inputs and outputs
+2. Data Storage: No persistent storage of client data beyond the session
+3. API Dependency: Reliance on OpenAI's API for core NLP functionality
+4. Browser Compatibility: Must work on modern web browsers (Chrome, Firefox, Safari, Edge)
+5. Budget: Development and operational costs must stay within allocated budget
+
+## Technical Constraints
+1. Streamlit Limitations: Must work within the constraints of Streamlit's framework
+2. API Rate Limits: Must manage and stay within OpenAI's API rate limits
+3. File Size Limits: Audio and text file uploads limited to 25MB
+4. Session Duration: Limited by Streamlit Cloud's session timeout policies
+
+## User Constraints
+1. User Expertise: Designed for use by insurance professionals, not end clients
+2. Training Requirements: Users should be able to operate the tool with minimal training (target: 1-hour training session)
+
+## Legal and Ethical Constraints
+1. Must not store or process personal data beyond the absolute minimum necessary
+2. AI recommendations must be clearly labeled as suggestions, not definitive advice
+3. Must include disclaimers about the limitations of AI-generated advice
+
+## Future Expansion Considerations
+1. System should be designed with potential multi-language support in mind
+2. Architecture should allow for potential integration with CRM systems in the future
+3. Should consider potential for mobile app development in later phases

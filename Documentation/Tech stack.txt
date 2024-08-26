@@ -1,0 +1,52 @@
+# Klantuitvraagtool: Intended Tech Stack
+
+## Frontend
+- **Framework**: Streamlit
+  - Chosen for its rapid development capabilities and Python integration
+- **UI Components**: Custom Streamlit components
+- **Styling**: CSS for custom styling within Streamlit
+
+## Backend
+- **Language**: Python 3.11+
+- **Web Framework**: Streamlit (serving as both frontend and backend)
+
+## AI and Machine Learning
+- **NLP Model**: OpenAI GPT-4o (specific version:gpt-4o-2024-08-06, details: context window: 128k tokens, max output tokens: 16,384, training data: up to Oct. 2023) 
+  - Used for text analysis, recommendation generation, and report creation
+- **Speech-to-Text**: OpenAI Whisper
+  - For transcribing audio inputs
+
+## Data Processing
+- **Audio Processing**: PyDub, FFmpeg
+- **Text Processing**: Custom Python scripts
+
+## Data Storage
+- **Session Storage**: Streamlit session state
+  - For temporary data storage during user sessions
+- **No Persistent Database**: To ensure privacy and data protection
+
+## API Integrations
+- OpenAI API for GPT-4o and Whisper models
+- Potentially other APIs for specific insurance product information
+
+## Development Tools
+- **Version Control**: Git
+- **IDE**: VS Code
+- **Package Management**: using the st. cloud, so no local installs
+
+## Deployment
+- **Hosting**: Streamlit Cloud
+
+## Testing
+- **Unit Testing**: not yet defined
+- **Integration Testing**: To be determined based on specific needs
+
+## Monitoring and Logging
+- **Logging**: Python's built-in logging module
+- **Monitoring**: Streamlit Cloud's built-in monitoring tools
+
+## Security
+- **Secret Management**: Streamlit secrets management
+- **API Security**: Proper API key management and request signing
+
+This tech stack is designed to leverage the strengths of Python and Streamlit for rapid development and deployment, while utilizing powerful AI models for the core functionality of the tool.

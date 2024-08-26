@@ -1,0 +1,32 @@
+# Klantuitvraagtool: Project Overview and Goals
+
+## Project Overview
+The Klantuitvraagtool is an AI-powered web application designed to streamline the process of insurance consultation and recommendation. It automates the analysis of client conversations and generates personalized insurance advice.
+
+## Primary Goals
+1. Automate the initial assessment of client insurance needs
+2. Provide consistent, AI-driven insurance recommendations
+3. Reduce time spent on routine insurance consultations
+4. Improve the accuracy and comprehensiveness of insurance advice
+
+## Secondary Goals
+1. Create a user-friendly interface for insurance professionals
+2. Ensure data privacy and security in handling client information
+3. Facilitate easy integration with existing insurance workflows
+4. Provide a platform for continuous improvement through user feedback
+
+## Key Features
+- Multi-modal input processing (text, audio, file uploads)
+- AI-powered transcription of audio inputs
+- Intelligent analysis of client needs and risks
+- Automated generation of tailored insurance recommendations
+- Customizable client reports
+- Conversation history logging
+- User feedback system for ongoing improvement
+
+## Expected Outcomes
+1. Significant reduction in time spent on initial client consultations
+2. Improved consistency in insurance needs assessment across different clients
+3. Enhanced ability to identify complex or overlooked insurance needs
+4. Increased client satisfaction through comprehensive and personalized advice
+5. Valuable data insights for insurance companies to refine their product offerings

@@ -1,6 +1,7 @@
 import os
 import simplejson as json
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INPUT_METHODS = ["Voer tekst in of plak tekst", "Upload tekstbestand", "Upload audiobestand", "Neem audio op"]
 
 def load_config():
@@ -22,8 +23,8 @@ LOG_FILE = 'email_generation.log'
 LOG_LEVEL = 'DEBUG'
 
 # File paths
-PRODUCT_DESCRIPTIONS_FILE = '../product_descriptions.json'
-INSURANCE_ADVISOR_PROMPT_FILE = 'prompts/insurance_advisor_prompt.txt'
+PRODUCT_DESCRIPTIONS_FILE = os.path.join(PROJECT_ROOT, 'product_descriptions.json')
+INSURANCE_ADVISOR_PROMPT_FILE = os.path.join(PROJECT_ROOT, 'prompts', 'insurance_advisor_prompt.txt')
 
 # Other configurations
 MAX_TOKENS = 10000

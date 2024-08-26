@@ -149,11 +149,10 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()
-    enhanced_coverage_str = json.dumps(enhanced_coverage, ensure_ascii=False, indent=2)
 
     current_coverage = [item['coverage'] for item in enhanced_coverage]
     title = "Verzekeringsadvies"
-    eigendommen = product_descriptions.get('eigendommen', {})
+    eigendommen = json.dumps(product_descriptions.get('eigendommen', {}), ensure_ascii=False)
 
     guidelines = """
     # Verzekeringsadvies E-mail Richtlijnen
@@ -196,10 +195,6 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     Titel: {{title}}
     Huidige dekking: {{current_coverage}}
     Eigendommen: {{eigendommen}}
-    Transcript: {{transcript}}
-    Geselecteerde aanbevelingen: {{selected_recommendations}}
-    Beschikbare verzekeringen bij Veldhuis Advies: {{verzekeringen}}
-    Productbeschrijvingen: {{product_descriptions}}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
@@ -215,11 +210,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         result = chain.invoke({
             "title": title,
             "current_coverage": current_coverage,
-            "eigendommen": eigendommen,
-            "transcript": transcript,
-            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
-            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
-            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)
+            "eigendommen": eigendommen
         })
         logging.info("Initial email generated")
         logging.debug(f"Initial email content: {result}")

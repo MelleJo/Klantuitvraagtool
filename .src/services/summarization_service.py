@@ -1,38 +1,33 @@
+import json
 import logging
+import os
+import traceback
 from typing import List, Dict, Any
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
-from langchain.callbacks import StreamlitCallbackHandler
-from utils.text_processing import load_prompt
-import traceback
-import simplejson as json
-import os
+from config import (
+    OPENAI_MODEL, OPENAI_TEMPERATURE, FEEDBACK_MODEL, FEEDBACK_TEMPERATURE,
+    LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE, INSURANCE_ADVISOR_PROMPT_FILE
+)
 
-
-
-logging.basicConfig(level=logging.DEBUG)
+# Setup logging
+logging.basicConfig(filename=LOG_FILE, level=getattr(logging, LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 def load_product_descriptions() -> Dict[str, Any]:
-    # Get the directory of the current script
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Go up one level to the project root
-    project_root = os.path.dirname(current_dir)
-    
-    # Construct the full path to the JSON file
-    json_path = os.path.join(project_root, 'product_descriptions.json')
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    json_path = os.path.join(project_root, PRODUCT_DESCRIPTIONS_FILE)
     
     try:
         with open(json_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError:
-        raise FileNotFoundError(f"The file 'product_descriptions.json' was not found at {json_path}. Please ensure the file exists at this location.")
+        raise FileNotFoundError(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' was not found at {json_path}.")
     except json.JSONDecodeError:
-        raise ValueError("The file 'product_descriptions.json' contains invalid JSON. Please check the file contents.")
+        raise ValueError(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' contains invalid JSON.")
 
 def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
     for category, products in product_descriptions.items():
@@ -40,18 +35,11 @@ def get_product_description(product_name: str, product_descriptions: Dict[str, A
             return products[product_name.lower()]['description']
     return "Geen specifieke productbeschrijving beschikbaar."
 
-
-def run_klantuitvraag(text: str) -> Dict[str, Any]:
-    try:
-        klantuitvraag = generate_klantuitvraag(text)
-        return {"klantuitvraag": klantuitvraag, "error": None}
-    except Exception as e:
-        logger.error(f"Error in run_klantuitvraag: {str(e)}")
-        return {"klantuitvraag": None, "error": str(e)}
-
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
-    prompt_template = load_prompt("insurance_advisor_prompt.txt")
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o", temperature=0.2)
+    with open(INSURANCE_ADVISOR_PROMPT_FILE, 'r', encoding='utf-8') as file:
+        prompt_template = file.read()
+    
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=OPENAI_MODEL, temperature=OPENAI_TEMPERATURE)
 
     try:
         prompt = ChatPromptTemplate.from_template(prompt_template)
@@ -129,13 +117,11 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
         elif current_section and line and not line.startswith('<'):
             result[current_section].append(line)
     
-    # Add any remaining recommendation
     if current_recommendation:
         result['recommendations'].append(current_recommendation)
     
     logger.info(f"Parsed result: {json.dumps(result, indent=2, ensure_ascii=False)}")
     return result
-
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
     enhanced_coverage = []
@@ -160,7 +146,6 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
             })
     return enhanced_coverage
 
-
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()
     enhanced_coverage_str = json.dumps(enhanced_coverage, ensure_ascii=False, indent=2)
@@ -182,6 +167,8 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     12. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties
     13. Integreer de officiële productbeschrijvingen naadloos in de uitleg van de huidige situatie
     14. Geef een korte uitleg over waarom bepaalde wijzigingen of toevoegingen aan de verzekering voordelig kunnen zijn
+    15. Vraag bij elke aanbeveling of de klant een berekening wil ontvangen voor premievergelijking
+    16. Vermeld bij de arbeidsongeschiktheidsverzekering dat dit gebaseerd is op de gegevens bij Veldhuis Advies
     """
 
     prompt = f"""
@@ -190,46 +177,42 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     Schrijf een e-mail met de volgende structuur:
 
     1. Openingszin met naam en functie
-    2. Korte verklaring van reden voor contact
-
-    3. Voor elke relevante verzekering in de huidige dekking:
+    2. Voor elke relevante verzekering in de huidige dekking:
        - Naam verzekering (in bold)
        - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
        - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
-       - Vraag: Stel een relevante vraag om de klant te betrekken
+       - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
 
-    4. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
-
-    5. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
+    3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
+    4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
 
     Gebruik de volgende informatie:
 
     Transcript:
-    {{transcript}}
+    {transcript}
 
     Huidige dekking (met productbeschrijvingen):
-    {{enhanced_coverage}}
+    {enhanced_coverage_str}
 
     Geselecteerde aanbevelingen:
-    {{selected_recommendations}}
+    {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
 
     Beschikbare verzekeringen bij Veldhuis Advies:
-    {{verzekeringen}}
+    {", ".join(st.secrets.get("VERZEKERINGEN", []))}
 
     Productbeschrijvingen:
-    {{product_descriptions}}
+    {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
 
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o-2024-08-06", temperature=0.5)
-    feedback_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model="gpt-4o-mini", temperature=0.5)
+    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=OPENAI_MODEL, temperature=OPENAI_TEMPERATURE)
+    feedback_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=FEEDBACK_MODEL, temperature=FEEDBACK_TEMPERATURE)
 
     try:
-        st.markdown("**Denken...**")
+        logging.info("Starting email generation")
         prompt_template = ChatPromptTemplate.from_template(prompt)
         
-        st.markdown("**Schrijven...**")
         chain = prompt_template | chat_model | StrOutputParser()
         result = chain.invoke({
             "transcript": transcript,
@@ -238,8 +221,9 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
             "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)
         })
+        logging.info("Initial email generated")
+        logging.debug(f"Initial email content: {result}")
 
-        st.markdown("**Feedback loop...**")
         feedback_prompt = f"""
         {guidelines}
 
@@ -249,21 +233,23 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         2. De toon persoonlijk en informeel is (tenzij anders aangegeven in het transcript)
         3. Productbeschrijvingen goed zijn geïntegreerd in de uitleg van de huidige situatie
         4. Adviezen concreet en specifiek zijn voor de situatie van de klant, met uitleg waarom ze voordelig kunnen zijn
-        5. Er bij elk onderwerp een relevante vraag wordt gesteld
+        5. Er bij elk onderwerp een relevante vraag wordt gesteld, inclusief een aanbod voor premieberekening
         6. De afsluiting kort en vriendelijk is, met een duidelijke uitnodiging om te reageren
         7. Het telefoonnummer 0578-699760 is vermeld
         8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
         9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
+        10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
 
         E-mail:
-        {{email}}
+        {result}
 
         Geef puntsgewijs feedback en suggesties voor verbetering.
         """
         feedback_chain = LLMChain(llm=feedback_model, prompt=ChatPromptTemplate.from_template(feedback_prompt))
         feedback = feedback_chain.run(email=result)
+        logging.info("Feedback generated")
+        logging.debug(f"Feedback content: {feedback}")
 
-        st.markdown("**Verbeterde versie schrijven...**")
         improvement_prompt = f"""
         {guidelines}
 
@@ -273,24 +259,27 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         2. De toon consistent persoonlijk en informeel blijft (tenzij anders aangegeven)
         3. Productbeschrijvingen naadloos zijn geïntegreerd
         4. Adviezen concreet en relevant zijn, met uitleg waarom ze voordelig kunnen zijn
-        5. Elke sectie een duidelijke vraag bevat
+        5. Elke sectie een duidelijke vraag bevat, inclusief een aanbod voor premieberekening
         6. De e-mail bondig en to-the-point blijft
         7. De afsluiting kort en uitnodigend is
         8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
         9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
+        10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
 
         Originele e-mail:
-        {{original_email}}
+        {result}
 
         Feedback:
-        {{feedback}}
+        {feedback}
 
         Schrijf een verbeterde versie van de e-mail.
         """
         improvement_chain = LLMChain(llm=chat_model, prompt=ChatPromptTemplate.from_template(improvement_prompt))
         improved_result = improvement_chain.run(original_email=result, feedback=feedback)
+        logging.info("Improved email generated")
+        logging.debug(f"Improved email content: {improved_result}")
 
         return improved_result
     except Exception as e:
-        st.error(f"Error in generate_email: {str(e)}")
+        logging.error(f"Error in generate_email: {str(e)}")
         raise e

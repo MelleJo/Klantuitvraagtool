@@ -39,11 +39,11 @@ def render_input_step(config):
             update_session_state('transcription_complete', True)
 
     elif input_method == "Voer tekst in of plak tekst":
-        input_text = st.text_area("Voer tekst in of plak tekst:", height=200)
-        if st.button("Verwerk tekst"):
-            update_session_state('transcript', input_text)
-            update_session_state('input_processed', True)
-            update_session_state('transcription_complete', True)
+        input_text = st.text_area("Voer tekst in of plak tekst:", height=200, key="input_text_area")
+        # Update session state immediately when text is entered
+        update_session_state('transcript', input_text)
+        update_session_state('input_processed', True)
+        update_session_state('transcription_complete', True)
 
     elif input_method == "Upload audiobestand":
         uploaded_file = st.file_uploader("Upload een audiobestand", type=["wav", "mp3", "m4a", "ogg", "weba", "mp4"])
@@ -69,7 +69,7 @@ def render_input_step(config):
 
     if st.session_state.get('input_processed', False):
         st.markdown("### 📄 Gegenereerd transcript")
-        st.text_area("", value=st.session_state.get('transcript', ''), height=200, key="transcript_display")
+        st.text_area("", value=st.session_state.get('transcript', ''), height=200, key="transcript_display", disabled=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 

@@ -1,5 +1,4 @@
 import streamlit as st
-import simplejson as json
 from typing import Dict, Any
 import traceback
 from ui.pages import (
@@ -40,7 +39,14 @@ def on_previous_click():
     move_to_step(st.session_state.active_step - 1)
 
 def on_next_click():
-    move_to_step(st.session_state.active_step + 1)
+    if st.session_state.active_step == 1:
+        # Check if there's a valid transcript before proceeding
+        if st.session_state.get('transcript', '').strip():
+            move_to_step(st.session_state.active_step + 1)
+        else:
+            st.error("Voer eerst een geldige tekst in voordat u doorgaat.")
+    else:
+        move_to_step(st.session_state.active_step + 1)
 
 def render_navigation():
     """Display navigation buttons."""
@@ -105,6 +111,7 @@ def main() -> None:
         elif st.session_state.active_step == 4:
             render_client_report_step()
 
+        
         render_navigation()
 
         st.markdown("<br><br>", unsafe_allow_html=True)

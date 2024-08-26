@@ -17,8 +17,22 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def load_product_descriptions() -> Dict[str, Any]:
-    with open('product_descriptions.json', 'r', encoding='utf-8') as file:
-        return json.load(file)
+    # Get the directory of the current script
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Go up one level to the project root
+    project_root = os.path.dirname(current_dir)
+    
+    # Construct the full path to the JSON file
+    json_path = os.path.join(project_root, 'product_descriptions.json')
+    
+    try:
+        with open(json_path, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file 'product_descriptions.json' was not found at {json_path}. Please ensure the file exists at this location.")
+    except json.JSONDecodeError:
+        raise ValueError("The file 'product_descriptions.json' contains invalid JSON. Please check the file contents.")
 
 def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
     for category, products in product_descriptions.items():

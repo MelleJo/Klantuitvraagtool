@@ -149,6 +149,7 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()
+    enhanced_coverage_str = json.dumps(enhanced_coverage, ensure_ascii=False, indent=2)
 
     current_coverage = [item['coverage'] for item in enhanced_coverage]
     title = "Verzekeringsadvies"
@@ -195,6 +196,12 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     Titel: {{title}}
     Huidige dekking: {{current_coverage}}
     Eigendommen: {{eigendommen}}
+    Transcript: {{transcript}}
+    Geselecteerde aanbevelingen: {{selected_recommendations}}
+    Beschikbare verzekeringen bij Veldhuis Advies: {{verzekeringen}}
+    Productbeschrijvingen: {{product_descriptions}}
+
+    Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
 
     chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=OPENAI_MODEL, temperature=OPENAI_TEMPERATURE)
@@ -208,7 +215,11 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         result = chain.invoke({
             "title": title,
             "current_coverage": current_coverage,
-            "eigendommen": eigendommen
+            "eigendommen": eigendommen,
+            "transcript": transcript,
+            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
+            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
+            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)
         })
         logging.info("Initial email generated")
         logging.debug(f"Initial email content: {result}")
@@ -230,7 +241,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
 
         E-mail:
-        {result}
+        {{email}}
 
         Geef puntsgewijs feedback en suggesties voor verbetering.
         """
@@ -256,10 +267,10 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
 
         Originele e-mail:
-        {result}
+        {{original_email}}
 
         Feedback:
-        {feedback}
+        {{feedback}}
 
         Schrijf een verbeterde versie van de e-mail.
         """

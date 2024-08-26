@@ -193,13 +193,13 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
     Gebruik de volgende informatie:
 
-    Titel: {title}
-    Huidige dekking: {current_coverage}
-    Eigendommen: {eigendommen}
-    Transcript: {transcript}
-    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
-    Beschikbare verzekeringen bij Veldhuis Advies: {", ".join(st.secrets.get("VERZEKERINGEN", []))}
-    Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+    Titel: {{title}}
+    Huidige dekking: {{current_coverage}}
+    Eigendommen: {{eigendommen}}
+    Transcript: {{transcript}}
+    Geselecteerde aanbevelingen: {{selected_recommendations}}
+    Beschikbare verzekeringen bij Veldhuis Advies: {{verzekeringen}}
+    Productbeschrijvingen: {{product_descriptions}}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
@@ -217,7 +217,6 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             "current_coverage": current_coverage,
             "eigendommen": eigendommen,
             "transcript": transcript,
-            "enhanced_coverage": enhanced_coverage_str,
             "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
             "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
             "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)

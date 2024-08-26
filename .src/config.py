@@ -23,7 +23,7 @@ LOG_LEVEL = 'DEBUG'
 
 # File paths
 PRODUCT_DESCRIPTIONS_FILE = '../product_descriptions.json'
-INSURANCE_ADVISOR_PROMPT_FILE = '../prompts/insurance_advisor_prompt.txt'
+INSURANCE_ADVISOR_PROMPT_FILE = 'prompts/insurance_advisor_prompt.txt'
 
 # Other configurations
 MAX_TOKENS = 10000

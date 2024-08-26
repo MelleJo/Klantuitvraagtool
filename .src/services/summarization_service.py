@@ -151,6 +151,10 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     product_descriptions = load_product_descriptions()
     enhanced_coverage_str = json.dumps(enhanced_coverage, ensure_ascii=False, indent=2)
 
+    current_coverage = [item['coverage'] for item in enhanced_coverage]
+    title = "Verzekeringsadvies"
+    eigendommen = product_descriptions.get('eigendommen', {})
+
     guidelines = """
     # Verzekeringsadvies E-mail Richtlijnen
 
@@ -189,20 +193,13 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
     Gebruik de volgende informatie:
 
-    Transcript:
-    {transcript}
-
-    Huidige dekking (met productbeschrijvingen):
-    {enhanced_coverage_str}
-
-    Geselecteerde aanbevelingen:
-    {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
-
-    Beschikbare verzekeringen bij Veldhuis Advies:
-    {", ".join(st.secrets.get("VERZEKERINGEN", []))}
-
-    Productbeschrijvingen:
-    {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+    Titel: {title}
+    Huidige dekking: {current_coverage}
+    Eigendommen: {eigendommen}
+    Transcript: {transcript}
+    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
+    Beschikbare verzekeringen bij Veldhuis Advies: {", ".join(st.secrets.get("VERZEKERINGEN", []))}
+    Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
@@ -216,6 +213,9 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         
         chain = prompt_template | chat_model | StrOutputParser()
         result = chain.invoke({
+            "title": title,
+            "current_coverage": current_coverage,
+            "eigendommen": eigendommen,
             "transcript": transcript,
             "enhanced_coverage": enhanced_coverage_str,
             "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),

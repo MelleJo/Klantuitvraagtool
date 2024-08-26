@@ -185,10 +185,14 @@ def render_client_report_step():
                         progress_bar.progress((i + 1) / len(stages))
                         
                         if i == 0:  # This is where we actually generate the email
+                            enhanced_coverage = [
+                                {"title": item, "coverage": item} 
+                                for item in st.session_state.get('suggestions', {}).get('current_coverage', [])
+                            ]
                             email_content = generate_email(
-                                st.session_state.get('transcript', ''),
-                                st.session_state.get('suggestions', {}),
-                                st.session_state.get('selected_suggestions', [])
+                                transcript=st.session_state.get('transcript', ''),
+                                enhanced_coverage=enhanced_coverage,
+                                selected_recommendations=st.session_state.get('selected_suggestions', [])
                             )
                         
                         time.sleep(1)  # Simulate processing time for demonstration

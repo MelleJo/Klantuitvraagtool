@@ -158,9 +158,7 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()
     
-    # Convert enhanced_coverage to a format that can be easily used in the prompt
-    current_coverage = [f"{item['title']}: {item['coverage']}" for item in enhanced_coverage]
-    current_coverage_str = "\n".join(current_coverage)
+    current_coverage = "\n".join([f"{item.get('title', 'Onbekende verzekering')}: {item.get('coverage', 'Geen details beschikbaar')}" for item in enhanced_coverage])
 
     title = "Verzekeringsadvies"
     eigendommen = product_descriptions.get('eigendommen', {})
@@ -205,12 +203,12 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
     Titel: {title}
     Huidige dekking:
-    {current_coverage_str}
-    Eigendommen: {json.dumps(eigendommen, ensure_ascii=False, indent=2)}
+    {current_coverage}
+    Eigendommen: {json.dumps(eigendommen, ensure_ascii=False)}
     Transcript: {transcript}
-    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
+    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False)}
     Beschikbare verzekeringen bij Veldhuis Advies: {", ".join(st.secrets.get("VERZEKERINGEN", []))}
-    Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+    Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False)}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
@@ -225,12 +223,12 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         chain = prompt_template | chat_model | StrOutputParser()
         result = chain.invoke({
             "title": title,
-            "current_coverage": current_coverage_str,
+            "current_coverage": current_coverage,
             "eigendommen": json.dumps(eigendommen, ensure_ascii=False),
             "transcript": transcript,
-            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
+            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False),
             "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
-            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)
+            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False)
         })
         logging.info("Initial email generated")
         logging.debug(f"Initial email content: {result}")

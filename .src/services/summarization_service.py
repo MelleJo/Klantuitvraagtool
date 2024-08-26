@@ -146,25 +146,6 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
             })
     return enhanced_coverage
 
-Certainly! I'll provide you with suggestions for improvements along with code that you can easily copy and paste. These suggestions will focus on enhancing the generate_email function to better incorporate product descriptions and provide more detailed explanations.
-Here's an improved version of the generate_email function:
-pythonCopyimport json
-from typing import List, Dict, Any
-import streamlit as st
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains import LLMChain
-from langchain_core.output_parsers import StrOutputParser
-
-def load_product_descriptions() -> Dict[str, Any]:
-    with open('product_descriptions.json', 'r', encoding='utf-8') as file:
-        return json.load(file)
-
-def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
-    for category, products in product_descriptions.items():
-        if product_name.lower() in products:
-            return products[product_name.lower()]['description']
-    return "Geen specifieke productbeschrijving beschikbaar."
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()

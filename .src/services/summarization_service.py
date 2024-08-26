@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def load_product_descriptions() -> Dict[str, Any]:
-    with open('product_descriptions.json', 'r') as file:
+    with open('product_descriptions.json', 'r', encoding='utf-8') as file:
         return json.load(file)
 
 def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
@@ -146,6 +146,26 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
             })
     return enhanced_coverage
 
+Certainly! I'll provide you with suggestions for improvements along with code that you can easily copy and paste. These suggestions will focus on enhancing the generate_email function to better incorporate product descriptions and provide more detailed explanations.
+Here's an improved version of the generate_email function:
+pythonCopyimport json
+from typing import List, Dict, Any
+import streamlit as st
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
+
+def load_product_descriptions() -> Dict[str, Any]:
+    with open('product_descriptions.json', 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
+    for category, products in product_descriptions.items():
+        if product_name.lower() in products:
+            return products[product_name.lower()]['description']
+    return "Geen specifieke productbeschrijving beschikbaar."
+
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     product_descriptions = load_product_descriptions()
     enhanced_coverage_str = json.dumps(enhanced_coverage, ensure_ascii=False, indent=2)
@@ -165,6 +185,8 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     10. Vermeld altijd het telefoonnummer 0578-699760
     11. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd
     12. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties
+    13. Integreer de officiële productbeschrijvingen naadloos in de uitleg van de huidige situatie
+    14. Geef een korte uitleg over waarom bepaalde wijzigingen of toevoegingen aan de verzekering voordelig kunnen zijn
     """
 
     prompt = f"""
@@ -178,7 +200,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     3. Voor elke relevante verzekering in de huidige dekking:
        - Naam verzekering (in bold)
        - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
-       - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's
+       - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
        - Vraag: Stel een relevante vraag om de klant te betrekken
 
     4. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
@@ -199,6 +221,9 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     Beschikbare verzekeringen bij Veldhuis Advies:
     {{verzekeringen}}
 
+    Productbeschrijvingen:
+    {{product_descriptions}}
+
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
 
@@ -215,7 +240,8 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             "transcript": transcript,
             "enhanced_coverage": enhanced_coverage_str,
             "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
-            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", []))
+            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
+            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)
         })
 
         st.markdown("**Feedback loop...**")
@@ -227,10 +253,12 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         1. De e-mail direct begint met naam en functie, zonder uitgebreide introductie
         2. De toon persoonlijk en informeel is (tenzij anders aangegeven in het transcript)
         3. Productbeschrijvingen goed zijn geïntegreerd in de uitleg van de huidige situatie
-        4. Adviezen concreet en specifiek zijn voor de situatie van de klant
+        4. Adviezen concreet en specifiek zijn voor de situatie van de klant, met uitleg waarom ze voordelig kunnen zijn
         5. Er bij elk onderwerp een relevante vraag wordt gesteld
         6. De afsluiting kort en vriendelijk is, met een duidelijke uitnodiging om te reageren
         7. Het telefoonnummer 0578-699760 is vermeld
+        8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
+        9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
 
         E-mail:
         {{email}}
@@ -249,10 +277,12 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         1. De e-mail voldoet aan alle genoemde richtlijnen
         2. De toon consistent persoonlijk en informeel blijft (tenzij anders aangegeven)
         3. Productbeschrijvingen naadloos zijn geïntegreerd
-        4. Adviezen concreet en relevant zijn
+        4. Adviezen concreet en relevant zijn, met uitleg waarom ze voordelig kunnen zijn
         5. Elke sectie een duidelijke vraag bevat
         6. De e-mail bondig en to-the-point blijft
         7. De afsluiting kort en uitnodigend is
+        8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
+        9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
 
         Originele e-mail:
         {{original_email}}
@@ -267,5 +297,5 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
         return improved_result
     except Exception as e:
-        logger.error(f"Error in generate_email: {str(e)}")
+        st.error(f"Error in generate_email: {str(e)}")
         raise e

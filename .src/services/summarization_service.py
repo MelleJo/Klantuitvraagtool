@@ -156,15 +156,14 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
     return enhanced_coverage
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
-    try:
-        product_descriptions = load_product_descriptions()
-    except Exception as e:
-        logger.error(f"Error loading product descriptions: {str(e)}")
-        return f"Er is een fout opgetreden bij het laden van de productbeschrijvingen: {str(e)}"
+    product_descriptions = load_product_descriptions()
+    
+    # Convert enhanced_coverage to a format that can be easily used in the prompt
+    current_coverage = [f"{item['title']}: {item['coverage']}" for item in enhanced_coverage]
+    current_coverage_str = "\n".join(current_coverage)
 
-    current_coverage = [item['coverage'] for item in enhanced_coverage]
     title = "Verzekeringsadvies"
-    eigendommen = json.dumps(product_descriptions.get('eigendommen', {}), ensure_ascii=False)
+    eigendommen = product_descriptions.get('eigendommen', {})
 
     guidelines = """
     # Verzekeringsadvies E-mail Richtlijnen
@@ -204,9 +203,14 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
     Gebruik de volgende informatie:
 
-    Titel: {{title}}
-    Huidige dekking: {{current_coverage}}
-    Eigendommen: {{eigendommen}}
+    Titel: {title}
+    Huidige dekking:
+    {current_coverage_str}
+    Eigendommen: {json.dumps(eigendommen, ensure_ascii=False, indent=2)}
+    Transcript: {transcript}
+    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False, indent=2)}
+    Beschikbare verzekeringen bij Veldhuis Advies: {", ".join(st.secrets.get("VERZEKERINGEN", []))}
+    Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
 
     Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
     """
@@ -221,8 +225,12 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         chain = prompt_template | chat_model | StrOutputParser()
         result = chain.invoke({
             "title": title,
-            "current_coverage": current_coverage,
-            "eigendommen": eigendommen
+            "current_coverage": current_coverage_str,
+            "eigendommen": json.dumps(eigendommen, ensure_ascii=False),
+            "transcript": transcript,
+            "selected_recommendations": json.dumps(selected_recommendations, ensure_ascii=False, indent=2),
+            "verzekeringen": ", ".join(st.secrets.get("VERZEKERINGEN", [])),
+            "product_descriptions": json.dumps(product_descriptions, ensure_ascii=False, indent=2)
         })
         logging.info("Initial email generated")
         logging.debug(f"Initial email content: {result}")
@@ -244,7 +252,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
 
         E-mail:
-        {{email}}
+        {result}
 
         Geef puntsgewijs feedback en suggesties voor verbetering.
         """
@@ -270,10 +278,10 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
 
         Originele e-mail:
-        {{original_email}}
+        {result}
 
         Feedback:
-        {{feedback}}
+        {feedback}
 
         Schrijf een verbeterde versie van de e-mail.
         """

@@ -185,13 +185,30 @@ def render_client_report_step():
                         progress_bar.progress((i + 1) / len(stages))
                         
                         if i == 0:
-                            current_coverage = st.session_state.get('suggestions', {}).get('current_coverage', [])
+                            transcript = st.session_state.get('transcript', '')
+                            suggestions = st.session_state.get('suggestions', {})
+                            selected_suggestions = st.session_state.get('selected_suggestions', [])
+
+                            logging.info(f"Transcript: {transcript}")
+                            logging.info(f"Suggestions: {suggestions}")
+                            logging.info(f"Selected suggestions: {selected_suggestions}")
+
+                            current_coverage = suggestions.get('current_coverage', [])
                             enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
-                            email_content = generate_email(
-                                transcript=st.session_state.get('transcript', ''),
-                                enhanced_coverage=enhanced_coverage,
-                                selected_recommendations=st.session_state.get('selected_suggestions', [])
-                            )
+
+                            logging.info(f"Enhanced coverage: {enhanced_coverage}")
+
+                            try:
+                                email_content = generate_email(
+                                    transcript=transcript,
+                                    enhanced_coverage=enhanced_coverage,
+                                    selected_recommendations=selected_suggestions
+                                )
+                            except Exception as e:
+                                logging.error(f"Error in generate_email: {str(e)}")
+                                logging.error(f"Error type: {type(e)}")
+                                logging.error(f"Error args: {e.args}")
+                                raise
                         
                         time.sleep(1)
                     
@@ -200,6 +217,9 @@ def render_client_report_step():
                     status_text.empty()
                     st.success("Klantrapport succesvol gegenereerd!")
             except Exception as e:
+                logging.error(f"Error in render_client_report_step: {str(e)}")
+                logging.error(f"Error type: {type(e)}")
+                logging.error(f"Error args: {e.args}")
                 st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
                 st.stop()
 

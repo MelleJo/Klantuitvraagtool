@@ -3,8 +3,8 @@ import logging
 import os
 from typing import List, Dict, Any
 import streamlit as st
-from ..autogen_agents import analyze_transcript as autogen_analyze_transcript, generate_email as autogen_generate_email
-from ..config import (
+from src.autogen_agents import analyze_transcript as autogen_analyze_transcript, generate_email as autogen_generate_email
+from src.config import (
     LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE,
     INPUT_METHODS, load_config, OPENAI_MODEL, OPENAI_TEMPERATURE
 )

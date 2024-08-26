@@ -1,7 +1,7 @@
 import streamlit as st
 from typing import Dict, Any
 import traceback
-from src.ui.pages import (
+from ui.pages import (
     render_input_step,
     render_analysis_step,
     render_recommendations_step,
@@ -9,8 +9,8 @@ from src.ui.pages import (
     render_feedback_form,
     render_conversation_history
 )
-from src.utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
-from src.ui.components import ImprovedUIStyled
+from utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
+from ui.components import ImprovedUIStyled
 
 # Set the page configuration at the beginning
 st.set_page_config(

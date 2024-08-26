@@ -23,7 +23,7 @@ LOG_FILE = 'email_generation.log'
 LOG_LEVEL = 'DEBUG'
 
 # File paths
-PRODUCT_DESCRIPTIONS_FILE = os.path.join(PROJECT_ROOT, 'product_descriptions.json')
+PRODUCT_DESCRIPTIONS_FILE = os.path.join(PROJECT_ROOT, '.src', 'product_descriptions.json')
 INSURANCE_ADVISOR_PROMPT_FILE = os.path.join(PROJECT_ROOT, 'prompts', 'insurance_advisor_prompt.txt')
 
 # Other configurations

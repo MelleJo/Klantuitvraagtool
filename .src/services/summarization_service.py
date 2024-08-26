@@ -44,15 +44,20 @@ def get_product_description(product_name: str, product_descriptions: Dict[str, A
     return "Geen specifieke productbeschrijving beschikbaar."
 
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
-    with open(INSURANCE_ADVISOR_PROMPT_FILE, 'r', encoding='utf-8') as file:
-        prompt_template = file.read()
-    
-    chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=OPENAI_MODEL, temperature=OPENAI_TEMPERATURE)
-
     try:
+        logger.info("Starting transcript analysis")
+        
+        with open(INSURANCE_ADVISOR_PROMPT_FILE, 'r', encoding='utf-8') as file:
+            prompt_template = file.read()
+        
+        chat_model = ChatOpenAI(api_key=st.secrets["OPENAI_API_KEY"], model=OPENAI_MODEL, temperature=OPENAI_TEMPERATURE)
+        
         prompt = ChatPromptTemplate.from_template(prompt_template)
         chain = prompt | chat_model
+        
+        logger.info("Sending request to OpenAI API")
         result = chain.invoke({"TRANSCRIPT": transcript})
+        logger.info("Received response from OpenAI API")
         
         logger.debug(f"Raw analysis result: {result.content}")
         
@@ -86,50 +91,58 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
     current_section = None
     current_recommendation = None
     
-    for line in content.split('\n'):
-        line = line.strip()
-        logger.debug(f"Processing line: {line}")
-        
-        if line.startswith('<bestaande_dekking>'):
-            current_section = 'current_coverage'
-        elif line.startswith('<dekkingshiaten>'):
-            current_section = 'coverage_gaps'
-        elif line.startswith('<verzekeringsaanbevelingen>'):
-            current_section = 'recommendations'
-        elif line.startswith('<aanvullende_opmerkingen>'):
-            current_section = 'additional_comments'
-        elif line.startswith('</'):
-            if current_recommendation:
-                result['recommendations'].append(current_recommendation)
-                logger.debug(f"Appending recommendation: {current_recommendation}")
-                current_recommendation = None
-            if line.startswith('</verzekeringsaanbevelingen>'):
-                current_section = None
-        elif current_section == 'recommendations':
-            if line.startswith('Aanbeveling:'):
+    try:
+        for line_number, line in enumerate(content.split('\n'), 1):
+            line = line.strip()
+            logger.debug(f"Processing line {line_number}: {line}")
+            
+            if line.startswith('<bestaande_dekking>'):
+                current_section = 'current_coverage'
+            elif line.startswith('<dekkingshiaten>'):
+                current_section = 'coverage_gaps'
+            elif line.startswith('<verzekeringsaanbevelingen>'):
+                current_section = 'recommendations'
+            elif line.startswith('<aanvullende_opmerkingen>'):
+                current_section = 'additional_comments'
+            elif line.startswith('</'):
                 if current_recommendation:
                     result['recommendations'].append(current_recommendation)
                     logger.debug(f"Appending recommendation: {current_recommendation}")
-                current_recommendation = {'title': line[12:].strip(), 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
-            elif line.startswith('Beschrijving:'):
-                current_recommendation['description'] = line[12:].strip()
-            elif line.startswith('Rechtvaardiging:'):
-                current_recommendation['rechtvaardiging'] = line[16:].strip()
-            elif line.startswith('Specifieke risico\'s:'):
-                continue  # Skip this line, we'll collect risks in the else clause
-            elif current_recommendation:
-                if not current_recommendation['specific_risks'] or current_recommendation['specific_risks'][-1].startswith('-'):
-                    current_recommendation['specific_risks'].append(line)
-                else:
-                    current_recommendation['specific_risks'][-1] += ' ' + line
-        elif current_section and line and not line.startswith('<'):
-            result[current_section].append(line)
-    
-    if current_recommendation:
-        result['recommendations'].append(current_recommendation)
-    
-    logger.info(f"Parsed result: {json.dumps(result, indent=2, ensure_ascii=False)}")
-    return result
+                    current_recommendation = None
+                if line.startswith('</verzekeringsaanbevelingen>'):
+                    current_section = None
+            elif current_section == 'recommendations':
+                if line.startswith('Aanbeveling:'):
+                    if current_recommendation:
+                        result['recommendations'].append(current_recommendation)
+                        logger.debug(f"Appending recommendation: {current_recommendation}")
+                    current_recommendation = {'title': line[12:].strip(), 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
+                elif line.startswith('Beschrijving:'):
+                    current_recommendation['description'] = line[12:].strip()
+                elif line.startswith('Rechtvaardiging:'):
+                    current_recommendation['rechtvaardiging'] = line[16:].strip()
+                elif line.startswith('Specifieke risico\'s:'):
+                    continue  # Skip this line, we'll collect risks in the else clause
+                elif current_recommendation:
+                    if not current_recommendation['specific_risks'] or current_recommendation['specific_risks'][-1].startswith('-'):
+                        current_recommendation['specific_risks'].append(line)
+                    else:
+                        current_recommendation['specific_risks'][-1] += ' ' + line
+            elif current_section and line and not line.startswith('<'):
+                result[current_section].append(line)
+        
+        if current_recommendation:
+            result['recommendations'].append(current_recommendation)
+        
+        logger.info(f"Parsed result: {json.dumps(result, indent=2, ensure_ascii=False)}")
+        return result
+    except Exception as e:
+        logger.error(f"Error in parse_analysis_result at line {line_number}: {str(e)}")
+        logger.error(f"Problematic line: {line}")
+        logger.error(f"Current section: {current_section}")
+        logger.error(f"Current recommendation: {current_recommendation}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        raise
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
     enhanced_coverage = []

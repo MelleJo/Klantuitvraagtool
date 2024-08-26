@@ -10,7 +10,8 @@ from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
 from config import (
     OPENAI_MODEL, OPENAI_TEMPERATURE, FEEDBACK_MODEL, FEEDBACK_TEMPERATURE,
-    LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE, INSURANCE_ADVISOR_PROMPT_FILE
+    LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE, INSURANCE_ADVISOR_PROMPT_FILE,
+    INPUT_METHODS, load_config
 )
 
 # Setup logging

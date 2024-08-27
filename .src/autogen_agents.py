@@ -79,7 +79,7 @@ email_generator = autogen.AssistantAgent(
     system_message="You are an expert in crafting personalized and professional emails. Your role is to create a client-friendly email summarizing the insurance analysis and recommendations.",
     llm_config={"config_list": config_list},
     human_input_mode="NEVER",
-    max_consecutive_auto_reply=3
+    max_consecutive_auto_reply=1
 )
 
 quality_control = autogen.AssistantAgent(

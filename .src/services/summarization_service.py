@@ -2,6 +2,11 @@ import json
 import logging
 import os
 from typing import List, Dict, Any
+
+from langchain import OpenAI
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+
 import streamlit as st
 import sys
 from pathlib import Path
@@ -49,33 +54,57 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
-        logger.info("Starting email generation")
+        logger.info("Starting email generation using LangChain")
 
-        # Convert analysis and recommendations to JSON strings
+        # Prepare the input data
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations_json = json.dumps(selected_recommendations, ensure_ascii=False)
 
-        # Debug logs for the content being passed to the email generator
-        logger.debug(f"Transcript: {transcript[:500]}")  # Log first 500 chars
-        logger.debug(f"Analysis JSON: {analysis_json[:500]}")  # Log first 500 chars
-        logger.debug(f"Recommendations JSON: {recommendations_json[:500]}")  # Log first 500 chars
+        logger.debug(f"Transcript: {transcript}")
+        logger.debug(f"Analysis JSON: {analysis_json}")
+        logger.debug(f"Recommendations JSON: {recommendations_json}")
 
-        if not transcript.strip() or not analysis_json.strip() or not recommendations_json.strip():
-            logger.error("Input data is missing or incomplete")
+        # Ensure all inputs are provided
+        if not transcript or not analysis_json or not recommendations_json:
+            logger.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Send data to the email generator
-        user_proxy.initiate_chat(
-            email_generator,
-            message=f"Generate a personalized email for the client. Here is the data:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
+        # Setup LangChain with OpenAI or any other model you use
+        llm = OpenAI(temperature=0.1)
+
+        # Define the prompt template for email generation
+        prompt_template = """
+        You are an expert in writing professional emails. Based on the following information, generate a well-structured and clear email for a client.
+
+        Transcript: {transcript}
+
+        Analysis: {analysis}
+
+        Recommendations: {recommendations}
+
+        The email should be polite, professional, and should address the client's needs appropriately. Use bullet points where necessary and ensure the email is ready to be sent without further edits.
+        """
+
+        # Initialize the chain with the prompt template
+        prompt = PromptTemplate(
+            template=prompt_template,
+            input_variables=["transcript", "analysis", "recommendations"]
         )
 
-        email_content = email_generator.last_message().get("content", "")
+        chain = LLMChain(prompt=prompt, llm=llm)
+
+        # Run the chain to generate the email content
+        email_content = chain.run({
+            "transcript": transcript,
+            "analysis": analysis_json,
+            "recommendations": recommendations_json
+        })
+
         logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
 
         if not email_content.strip():
-            logger.error("Email generator returned empty content.")
-            raise ValueError("Email generator did not return any content.")
+            logger.error("LangChain returned empty email content.")
+            raise ValueError("LangChain did not return any email content.")
 
         return email_content
 

@@ -15,6 +15,13 @@ from ui.pages import (
 from utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
 from ui.components import ImprovedUIStyled
 
+import logging
+
+# Ensure logging is properly configured
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
 # Rest of your app.py code remains the same
 
 # Set the page configuration at the beginning

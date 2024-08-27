@@ -49,25 +49,27 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
-        logger.info("Starting simplified email generation")
+        logger.info("Starting email generation")
 
-        # Convert analysis and recommendations to JSON
+        # Convert analysis and recommendations to JSON strings
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations_json = json.dumps(selected_recommendations, ensure_ascii=False)
 
-        # Logging the inputs for debugging
+        # Debug logs for the content being passed to the email generator
         logger.debug(f"Transcript: {transcript[:500]}")  # Log first 500 chars
         logger.debug(f"Analysis JSON: {analysis_json[:500]}")  # Log first 500 chars
         logger.debug(f"Recommendations JSON: {recommendations_json[:500]}")  # Log first 500 chars
 
         if not transcript.strip() or not analysis_json.strip() or not recommendations_json.strip():
+            logger.error("Input data is missing or incomplete")
             raise ValueError("Input data missing or incomplete")
 
         # Send data to the email generator
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
+            message=f"Generate a personalized email for the client. Here is the data:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
         )
+
         email_content = email_generator.last_message().get("content", "")
         logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
 
@@ -80,6 +82,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
     enhanced_coverage = []

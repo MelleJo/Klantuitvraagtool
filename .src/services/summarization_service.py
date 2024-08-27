@@ -97,6 +97,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
 
 
+
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
     enhanced_coverage = []
     for item in current_coverage:

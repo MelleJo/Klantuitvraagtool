@@ -1,9 +1,10 @@
 import autogen
-from typing import Dict, Any
+from typing import Dict, Any, List
 import streamlit as st
 import logging
 import json
 import os
+import streamlit as st
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 
@@ -160,54 +161,151 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
-def generate_email(transcript: str, analysis_json: str, recommendations_json: str) -> str:
+def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
-        logger.info("Starting email generation")
+        product_descriptions = load_product_descriptions()
         
-        # Step 1: Generate initial email draft
+        current_coverage = "\n".join([f"{item.get('title', 'Onbekende verzekering')}: {item.get('coverage', 'Geen details beschikbaar')}" for item in enhanced_coverage])
+
+        title = "Verzekeringsadvies"
+        eigendommen = product_descriptions.get('eigendommen', {})
+        bedrijfsgebouw = eigendommen.get('bedrijfsgebouw', {})
+
+        guidelines = """
+        # Verzekeringsadvies E-mail Richtlijnen
+
+        1. Begin direct met je naam en functie bij Veldhuis Advies
+        2. Gebruik een informele, persoonlijke toon (je/jij), tenzij het transcript aangeeft dat formeel taalgebruik (u) nodig is
+        3. Vermijd een uitgebreide introductie of samenvatting aan het begin
+        4. Gebruik de gegeven productbeschrijvingen bij het uitleggen van de huidige situatie
+        5. Geef concrete, specifieke adviezen gebaseerd op de situatie van de klant
+        6. Stel bij elk onderwerp een relevante vraag om de klant te betrekken
+        7. Vermijd het noemen van eigen risico's of veronderstellen dat de klant ergens niet voor verzekerd is
+        8. Gebruik korte, krachtige zinnen en paragrafen
+        9. Sluit af met een beknopte, vriendelijke uitnodiging om te reageren
+        10. Vermeld altijd het telefoonnummer 0578-699760
+        11. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd
+        12. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties
+        13. Integreer de officiële productbeschrijvingen naadloos in de uitleg van de huidige situatie
+        14. Geef een korte uitleg over waarom bepaalde wijzigingen of toevoegingen aan de verzekering voordelig kunnen zijn
+        15. Vraag bij elke aanbeveling of de klant een berekening wil ontvangen voor premievergelijking
+        16. Vermeld bij de arbeidsongeschiktheidsverzekering dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+        """
+
+        email_structure = """
+        Schrijf een e-mail met de volgende structuur:
+
+        1. Openingszin met naam en functie
+        2. Voor elke relevante verzekering in de huidige dekking:
+           - Naam verzekering (in bold)
+           - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
+           - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
+           - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
+
+        3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
+        4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
+        """
+
+        # Step 1: Generate initial email
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Generate a professional email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
+            message=f"""
+            {guidelines}
+            {email_structure}
+            
+            Gebruik de volgende informatie:
+            
+            Titel: {title}
+            Huidige dekking:
+            {current_coverage}
+            Eigendommen: {json.dumps(eigendommen, ensure_ascii=False)}
+            Bedrijfsgebouw: {json.dumps(bedrijfsgebouw, ensure_ascii=False)}
+            Transcript: {transcript}
+            Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False)}
+            Beschikbare verzekeringen bij Veldhuis Advies: {", ".join(st.secrets.get("VERZEKERINGEN", []))}
+            Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False)}
+
+            Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
+            """
         )
         
-        initial_draft = email_generator.last_message().get("content", "")
-        logger.info("Initial email draft generated")
-        
-        if not initial_draft.strip():
-            logger.warning("Email generator returned empty content. Using a default template.")
-            initial_draft = "Dear [Client],\n\nThank you for your recent inquiry about your insurance coverage. Based on our analysis, we have some recommendations for you. [Insert key points here]\n\nPlease let us know if you have any questions.\n\nBest regards,\n[Your Name]"
+        initial_email = email_generator.last_message().get("content", "")
+        logging.info("Initial email generated")
+        logging.debug(f"Initial email content: {initial_email[:500]}...")  # Log first 500 chars
 
-        # Step 2: Quality control review
+        # Step 2: Generate feedback
         user_proxy.initiate_chat(
             quality_control,
-            message=f"Review and improve this email draft, ensuring it's concise, professional, and covers all key points:\n\n{initial_draft}"
+            message=f"""
+            {guidelines}
+
+            Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Controleer specifiek of:
+
+            1. De e-mail direct begint met naam en functie, zonder uitgebreide introductie
+            2. De toon persoonlijk en informeel is (tenzij anders aangegeven in het transcript)
+            3. Productbeschrijvingen goed zijn geïntegreerd in de uitleg van de huidige situatie
+            4. Adviezen concreet en specifiek zijn voor de situatie van de klant, met uitleg waarom ze voordelig kunnen zijn
+            5. Er bij elk onderwerp een relevante vraag wordt gesteld, inclusief een aanbod voor premieberekening
+            6. De afsluiting kort en vriendelijk is, met een duidelijke uitnodiging om te reageren
+            7. Het telefoonnummer 0578-699760 is vermeld
+            8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
+            9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
+            10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+
+            E-mail:
+            {initial_email}
+
+            Geef puntsgewijs feedback en suggesties voor verbetering.
+            """
         )
         
-        quality_control_feedback = quality_control.last_message().get("content", "")
-        logger.info("Quality control feedback received")
+        feedback = quality_control.last_message().get("content", "")
+        logging.info("Feedback generated")
+        logging.debug(f"Feedback content: {feedback[:500]}...")  # Log first 500 chars
 
-        if not quality_control_feedback.strip():
-            logger.warning("Quality control returned empty feedback. Proceeding with the initial draft.")
-            return initial_draft
-
-        # Step 3: Generate final email based on quality control feedback
+        # Step 3: Improve email based on feedback
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Revise the email based on this feedback:\n\nOriginal draft:\n{initial_draft}\n\nFeedback:\n{quality_control_feedback}"
+            message=f"""
+            {guidelines}
+
+            Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen. Zorg ervoor dat:
+
+            1. De e-mail voldoet aan alle genoemde richtlijnen
+            2. De toon consistent persoonlijk en informeel blijft (tenzij anders aangegeven)
+            3. Productbeschrijvingen naadloos zijn geïntegreerd
+            4. Adviezen concreet en relevant zijn, met uitleg waarom ze voordelig kunnen zijn
+            5. Elke sectie een duidelijke vraag bevat, inclusief een aanbod voor premieberekening
+            6. De e-mail bondig en to-the-point blijft
+            7. De afsluiting kort en uitnodigend is
+            8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
+            9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
+            10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+
+            Originele e-mail:
+            {initial_email}
+
+            Feedback:
+            {feedback}
+
+            Schrijf een verbeterde versie van de e-mail.
+            """
         )
         
-        final_email = email_generator.last_message().get("content", "")
-        logger.info("Final email generated")
-        
-        if not final_email.strip():
-            logger.warning("Final email generation returned empty content. Using the initial draft.")
-            return initial_draft
+        improved_email = email_generator.last_message().get("content", "")
+        logging.info("Improved email generated")
+        logging.debug(f"Improved email content: {improved_email[:500]}...")  # Log first 500 chars
 
-        return final_email
+        return improved_email
 
     except Exception as e:
-        logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
-        return f"An error occurred while generating the email: {str(e)}"
+        logging.error(f"Error in generate_email: {str(e)}")
+        logging.error(f"Error type: {type(e)}")
+        logging.error(f"Error args: {e.args}")
+        logging.error(f"Transcript: {transcript}")
+        logging.error(f"Enhanced coverage: {enhanced_coverage}")
+        logging.error(f"Selected recommendations: {selected_recommendations}")
+        raise
 
 def load_insurance_prompt() -> str:
     prompt_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'insurance_advisor_prompt.txt')

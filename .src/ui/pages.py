@@ -180,57 +180,27 @@ def render_client_report_step():
 
     if 'email_content' not in st.session_state or not st.session_state.get('email_content'):
         if st.button("Genereer klantrapport"):
-            progress_placeholder = st.empty()
-            email_placeholder = st.empty()
+            with st.spinner("Rapport wordt gegenereerd..."):
+                try:
+                    transcript = st.session_state.get('transcript', '')
+                    suggestions = st.session_state.get('suggestions', {})
+                    selected_suggestions = st.session_state.get('selected_suggestions', [])
 
-            try:
-                with st.spinner("Rapport wordt gegenereerd..."):
-                    stages = ["Denken...", "Schrijven...", "Feedback verwerken...", "Verbeterde versie schrijven..."]
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
+                    current_coverage = suggestions.get('current_coverage', [])
+                    enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
 
-                    for i, stage in enumerate(stages):
-                        status_text.text(stage)
-                        progress_bar.progress((i + 1) / len(stages))
-
-                        if i == 0:
-                            transcript = st.session_state.get('transcript', '')
-                            suggestions = st.session_state.get('suggestions', {})
-                            selected_suggestions = st.session_state.get('selected_suggestions', [])
-
-                            logging.info(f"Transcript: {transcript}")
-                            logging.info(f"Suggestions: {suggestions}")
-                            logging.info(f"Selected suggestions: {selected_suggestions}")
-
-                            current_coverage = suggestions.get('current_coverage', [])
-                            enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
-
-                            logging.info(f"Enhanced coverage: {enhanced_coverage}")
-
-                            try:
-                                email_content = generate_email(
-                                    transcript=transcript,
-                                    enhanced_coverage=enhanced_coverage,
-                                    selected_recommendations=selected_suggestions
-                                )
-                            except Exception as e:
-                                logging.error(f"Error in generate_email: {str(e)}")
-                                logging.error(f"Error type: {type(e)}")
-                                logging.error(f"Error args: {e.args}")
-                                raise
-
-                        time.sleep(1)
-
+                    email_content = generate_email(
+                        transcript=transcript,
+                        enhanced_coverage=enhanced_coverage,
+                        selected_recommendations=selected_suggestions
+                    )
                     update_session_state('email_content', email_content)
-                    progress_bar.empty()
-                    status_text.empty()
                     st.success("Klantrapport succesvol gegenereerd!")
-            except Exception as e:
-                logging.error(f"Error in render_client_report_step: {str(e)}")
-                logging.error(f"Error type: {type(e)}")
-                logging.error(f"Error args: {e.args}")
-                st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
-                st.stop()
+                    st.rerun()  # Rerun to display the generated content
+                except Exception as e:
+                    logging.error(f"Error in render_client_report_step: {str(e)}")
+                    st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
+                    st.stop()
 
     if st.session_state.get('email_content'):
         st.markdown("### 📥 Rapportinhoud")
@@ -258,28 +228,6 @@ def render_conversation_history():
                 st.markdown("**Gegenereerde e-mail:**")
                 st.markdown(f'<div class="content">{gesprek.get("klantuitvraag", "")}</div>', unsafe_allow_html=True)
     
-def render_feedback_form():
-    with st.form(key="feedback_form"):
-        user_first_name = st.text_input("Uw voornaam (verplicht bij feedback):")
-        feedback = st.radio("Was deze klantuitvraag nuttig?", ["Positief", "Negatief"])
-        additional_feedback = st.text_area("Laat aanvullende feedback achter:")
-        submit_button = st.form_submit_button(label="Verzend feedback")
-
-        if submit_button:
-            if not user_first_name:
-                st.warning("Voornaam is verplicht bij het geven van feedback.", icon="⚠️")
-            else:
-                success = send_feedback_email(
-                    transcript=st.session_state.get('transcript', ''),
-                    klantuitvraag=st.session_state.get('klantuitvraag', ''),
-                    feedback=feedback,
-                    additional_feedback=additional_feedback,
-                    user_first_name=user_first_name
-                )
-                if success:
-                    st.success("Bedankt voor uw feedback!")
-                else:
-                    st.error("Er is een fout opgetreden bij het verzenden van de feedback. Probeer het later opnieuw.")
 
 def render_feedback_form():
     with st.form(key="feedback_form"):

@@ -58,7 +58,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         # Generate initial email
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
+            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting for the email content:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
         )
         
         initial_email = email_generator.last_message()["content"]
@@ -67,7 +67,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         # Quality control review
         user_proxy.initiate_chat(
             quality_control,
-            message=f"Please review and improve this email draft:\n\n{initial_email}"
+            message=f"Please review and improve this email draft, ensuring proper markdown formatting is maintained:\n\n{initial_email}"
         )
         
         final_email = quality_control.last_message()["content"]

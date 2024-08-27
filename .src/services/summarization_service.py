@@ -6,10 +6,6 @@ from typing import List, Dict, Any
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from typing import List, Dict, Any
-import json
-import logging
-
 import streamlit as st
 import sys
 from pathlib import Path
@@ -59,7 +55,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
-        logger.info("Starting email generation using LangChain")
+        logger.info("Starting email generation using AutoGen agents")
 
         # Convert coverage and recommendations to JSON strings
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
@@ -73,32 +69,40 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             logger.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Step 1: Create the prompt template
-        system_template = "Create a professional email using the following transcript, analysis, and recommendations."
-        prompt_template = ChatPromptTemplate.from_messages([
-            ('system', system_template),
-            ('user', f'Transcript: {transcript}\nAnalysis: {analysis_json}\nRecommendations: {recommendations_json}')
-        ])
+        # Step 1: Generate initial email draft
+        user_proxy.initiate_chat(
+            email_generator,
+            message=f"Generate a professional email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
+        )
+        
+        initial_draft = email_generator.last_message()["content"]
+        logger.debug(f"Initial email draft: {initial_draft[:500]}...")  # Log first 500 chars
 
-        # Step 2: Set up the language model
-        model = ChatOpenAI(model_name="gpt-4o-2024-08-06", temperature=0.3, api_key=st.secrets["OPENAI_API_KEY"])
+        if not initial_draft.strip():
+            raise ValueError("Email generator did not return any content.")
 
-        # Step 3: Set up the output parser to extract the email content
-        parser = StrOutputParser()
+        # Step 2: Quality control review
+        user_proxy.initiate_chat(
+            quality_control,
+            message=f"Review and improve this email draft, ensuring it's concise, professional, and covers all key points:\n\n{initial_draft}"
+        )
+        
+        quality_control_feedback = quality_control.last_message()["content"]
+        logger.debug(f"Quality control feedback: {quality_control_feedback[:500]}...")  # Log first 500 chars
 
-        # Step 4: Chain the components together using LCEL
-        chain = prompt_template | model | parser
+        # Step 3: Generate final email based on quality control feedback
+        user_proxy.initiate_chat(
+            email_generator,
+            message=f"Revise the email based on this feedback:\n\nOriginal draft:\n{initial_draft}\n\nFeedback:\n{quality_control_feedback}"
+        )
+        
+        final_email = email_generator.last_message()["content"]
+        logger.debug(f"Final email content: {final_email[:500]}...")  # Log first 500 chars
 
-        # Step 5: Generate the email content
-        email_content = chain.invoke(transcript, analysis_json, recommendations_json)
+        if not final_email.strip():
+            raise ValueError("Final email generation did not return any content.")
 
-        logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
-
-        if not email_content.strip():
-            logger.error("LangChain returned empty email content.")
-            raise ValueError("LangChain did not return any email content.")
-
-        return email_content
+        return final_email
 
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)

@@ -167,22 +167,43 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
 def generate_email(transcript: str, analysis: str, recommendations: str) -> str:
     try:
         logger.info("Starting email generation")
+        
+        # Step 1: Generate initial email draft
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Please generate a personalized email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
+            message=f"Generate a professional email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
         )
         
-        email_draft = email_generator.last_message()["content"]
-        logger.info("Email draft generated")
+        initial_draft = email_generator.last_message()["content"]
+        logger.info("Initial email draft generated")
         
+        if not initial_draft.strip():
+            raise ValueError("Email generator did not return any content.")
+
+        # Step 2: Quality control review
         user_proxy.initiate_chat(
             quality_control,
-            message=f"Please review and improve this email draft:\n\n{email_draft}"
+            message=f"Review and improve this email draft, ensuring it's concise, professional, and covers all key points:\n\n{initial_draft}"
         )
         
-        final_email = quality_control.last_message()["content"]
+        quality_control_feedback = quality_control.last_message()["content"]
+        logger.info("Quality control feedback received")
+
+        if not quality_control_feedback.strip():
+            raise ValueError("Quality control did not return any feedback.")
+
+        # Step 3: Generate final email based on quality control feedback
+        user_proxy.initiate_chat(
+            email_generator,
+            message=f"Revise the email based on this feedback:\n\nOriginal draft:\n{initial_draft}\n\nFeedback:\n{quality_control_feedback}"
+        )
+        
+        final_email = email_generator.last_message()["content"]
         logger.info("Final email generated")
         
+        if not final_email.strip():
+            raise ValueError("Final email generation did not return any content.")
+
         return final_email
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)

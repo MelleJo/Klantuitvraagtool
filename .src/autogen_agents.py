@@ -111,7 +111,6 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         analysis = transcript_analyst.last_message()["content"]
         logger.info("Transcript analysis completed")
         
-        # Parse the analysis result
         parsed_result = parse_analysis_result(analysis)
         
         return parsed_result

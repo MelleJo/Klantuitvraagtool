@@ -160,14 +160,14 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
-def generate_email(transcript: str, analysis: str, recommendations: str) -> str:
+def generate_email(transcript: str, analysis_json: str, recommendations_json: str) -> str:
     try:
         logger.info("Starting email generation")
         
         # Step 1: Generate initial email draft
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Generate a professional email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
+            message=f"Generate a professional email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
         )
         
         initial_draft = email_generator.last_message().get("content", "")

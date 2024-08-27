@@ -42,7 +42,7 @@ transcript_analyst = autogen.AssistantAgent(
     <aanbeveling>
     Aanbeveling: [Title of the recommendation]
     Beschrijving: [Describe the recommended insurance]
-    Rechtvaardiging: [Explain why this insurance is important for the client]
+    Rechtvaardiging: [Explain why this insurance is important for specifically this client, based on any info you can derrive out of the transcript or based on the client's business type]
     Specifieke risico's:
     - [Describe specific risk 1]
     - [Describe specific risk 2]
@@ -56,6 +56,7 @@ transcript_analyst = autogen.AssistantAgent(
     </aanvullende_opmerkingen>
     </analyse>
     """,
+    human_input_mode="NEVER",
     llm_config={"config_list": config_list}
 )
 

@@ -9,11 +9,17 @@ import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+code_execution_config = {
+    "work_dir": "coding",
+    "use_docker": False,
+}
+
 # Initialize OpenAI config
 config_list = [
     {
         'model': 'gpt-4o-2024-08-06',
-        'api_key': st.secrets["OPENAI_API_KEY"]
+        'api_key': st.secrets["OPENAI_API_KEY"],
+        
     }
 ]
 

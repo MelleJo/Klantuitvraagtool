@@ -48,9 +48,61 @@ quality_control = autogen.AssistantAgent(
     llm_config={"config_list": config_list}
 )
 
+def parse_analysis_result(content: str) -> Dict[str, Any]:
+    result = {
+        'current_coverage': [],
+        'coverage_gaps': [],
+        'recommendations': [],
+        'additional_comments': []
+    }
+
+    current_section = None
+    current_recommendation = None
+
+    for line in content.split('\n'):
+        line = line.strip()
+        if line.startswith('<bestaande_dekking>'):
+            current_section = 'current_coverage'
+        elif line.startswith('<dekkingshiaten>'):
+            current_section = 'coverage_gaps'
+        elif line.startswith('<verzekeringsaanbevelingen>'):
+            current_section = 'recommendations'
+        elif line.startswith('<aanvullende_opmerkingen>'):
+            current_section = 'additional_comments'
+        elif line.startswith('</'):
+            if current_recommendation:
+                result['recommendations'].append(current_recommendation)
+                current_recommendation = None
+            if line.startswith('</verzekeringsaanbevelingen>'):
+                current_section = None
+        elif current_section == 'recommendations':
+            if line.startswith('Aanbeveling:'):
+                if current_recommendation:
+                    result['recommendations'].append(current_recommendation)
+                current_recommendation = {'title': line[12:].strip(), 'description': '', 'rechtvaardiging': '', 'specific_risks': []}
+            elif line.startswith('Beschrijving:'):
+                current_recommendation['description'] = line[12:].strip()
+            elif line.startswith('Rechtvaardiging:'):
+                current_recommendation['rechtvaardiging'] = line[16:].strip()
+            elif line.startswith('Specifieke risico\'s:'):
+                continue
+            elif current_recommendation:
+                if not current_recommendation['specific_risks'] or current_recommendation['specific_risks'][-1].startswith('-'):
+                    current_recommendation['specific_risks'].append(line)
+                else:
+                    current_recommendation['specific_risks'][-1] += ' ' + line
+        elif current_section and line and not line.startswith('<'):
+            result[current_section].append(line)
+
+    if current_recommendation:
+        result['recommendations'].append(current_recommendation)
+
+    return result
+
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
+        
         user_proxy.initiate_chat(
             transcript_analyst,
             message=f"Please analyze this insurance-related transcript and extract key information about the client's current coverage and potential needs:\n\n{transcript}"
@@ -59,18 +111,10 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         analysis = transcript_analyst.last_message()["content"]
         logger.info("Transcript analysis completed")
         
-        user_proxy.initiate_chat(
-            recommendation_agent,
-            message=f"Based on this analysis, please generate tailored insurance recommendations:\n\n{analysis}"
-        )
+        # Parse the analysis result
+        parsed_result = parse_analysis_result(analysis)
         
-        recommendations = recommendation_agent.last_message()["content"]
-        logger.info("Recommendations generated")
-        
-        return {
-            "analysis": analysis,
-            "recommendations": recommendations
-        }
+        return parsed_result
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}

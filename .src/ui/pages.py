@@ -14,7 +14,7 @@ from ui.components import (
 )
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
-from services.summarization_service import analyze_transcript, generate_email
+from services.summarization_service import analyze_transcript, generate_email_wrapper
 from services.email_service import send_feedback_email
 import os
 import html
@@ -174,6 +174,8 @@ def render_recommendations_step():
     
     st.markdown("</div>", unsafe_allow_html=True)
     
+from services.summarization_service import generate_email_wrapper
+
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")
@@ -189,21 +191,18 @@ def render_client_report_step():
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
 
-                    email_content = generate_email(
+                    email_content = generate_email_wrapper(
                         transcript=transcript,
                         enhanced_coverage=enhanced_coverage,
                         selected_recommendations=selected_suggestions
                     )
-
-                    # Debug logging to verify content
-                    logger.debug(f"Generated email content: {email_content}")
 
                     if not email_content:
                         raise ValueError("Email generator did not return any content.")
 
                     update_session_state('email_content', email_content)
                     st.success("Klantrapport succesvol gegenereerd!")
-                    st.rerun()  # Rerun to display the generated content
+                    st.rerun()
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")
                     st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")

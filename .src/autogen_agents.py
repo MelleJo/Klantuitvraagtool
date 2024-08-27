@@ -26,7 +26,7 @@ user_proxy = autogen.UserProxyAgent(
 
 transcript_analyst = autogen.AssistantAgent(
     name="TranscriptAnalyst",
-    system_message="You are an expert in analyzing insurance-related transcripts. Your role is to extract key information about the client's current insurance coverage and potential needs.",
+    system_message="You are an expert in analyzing insurance-related transcripts. Your role is to extract key information about the client's current coverage and potential needs.",
     llm_config={"config_list": config_list}
 )
 
@@ -103,12 +103,47 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
         
-        user_proxy.initiate_chat(
-            transcript_analyst,
-            message=f"Please analyze this insurance-related transcript and extract key information about the client's current coverage and potential needs:\n\n{transcript}"
-        )
+        # Create a message for the transcript analyst
+        message = f"""
+        Please analyze this insurance-related transcript and extract key information about the client's current coverage and potential needs. Provide your analysis in the following format:
+
+        <analyse>
+        <bestaande_dekking>
+        [List current insurance policies, one per line]
+        </bestaande_dekking>
+
+        <dekkingshiaten>
+        [List identified coverage gaps, one per line]
+        </dekkingshiaten>
+
+        <verzekeringsaanbevelingen>
+        [For each recommendation, include:]
+        <aanbeveling>
+        Aanbeveling: [Title of the recommendation]
+        Beschrijving: [Describe the recommended insurance]
+        Rechtvaardiging: [Explain why this insurance is important for the client]
+        Specifieke risico's:
+        - [Describe specific risk 1]
+        - [Describe specific risk 2]
+        - [Add more risks if needed]
+        </aanbeveling>
+        [Repeat for each recommendation]
+        </verzekeringsaanbevelingen>
+
+        <aanvullende_opmerkingen>
+        [List any assumptions or unclear points, one per line]
+        </aanvullende_opmerkingen>
+        </analyse>
+
+        Here's the transcript:
+
+        {transcript}
+        """
         
-        analysis = transcript_analyst.last_message()["content"]
+        # Get the analysis directly from the transcript analyst
+        response = transcript_analyst.generate_response(message)
+        analysis = response.content
+        
         logger.info("Transcript analysis completed")
         
         parsed_result = parse_analysis_result(analysis)
@@ -117,6 +152,8 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
+
+# Keep the parse_analysis_result function as it is
 
 def generate_email(transcript: str, analysis: str, recommendations: str) -> str:
     try:

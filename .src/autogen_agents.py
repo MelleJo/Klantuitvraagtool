@@ -68,7 +68,7 @@ transcript_analyst = autogen.AssistantAgent(
     """,
     human_input_mode="NEVER",
     llm_config={"config_list": config_list},
-    max_consecutive_auto_reply=1
+    max_consecutive_auto_reply=3
 )
 
 recommendation_agent = autogen.AssistantAgent(
@@ -76,7 +76,7 @@ recommendation_agent = autogen.AssistantAgent(
     system_message="You are an expert in insurance products and generating tailored recommendations. Your role is to suggest appropriate insurance products based on the client's needs and current coverage.",
     llm_config={"config_list": config_list},
     human_input_mode="NEVER",
-    max_consecutive_auto_reply=1
+    max_consecutive_auto_reply=3
 )
 
 email_generator = autogen.AssistantAgent(
@@ -84,7 +84,7 @@ email_generator = autogen.AssistantAgent(
     system_message="You are an expert in crafting personalized and professional emails. Your role is to create a client-friendly email summarizing the insurance analysis and recommendations.",
     llm_config={"config_list": config_list},
     human_input_mode="NEVER",
-    max_consecutive_auto_reply=1
+    max_consecutive_auto_reply=3
 )
 
 quality_control = autogen.AssistantAgent(
@@ -92,7 +92,7 @@ quality_control = autogen.AssistantAgent(
     system_message="You are responsible for reviewing and improving the outputs from other agents. Ensure all content is accurate, professional, and tailored to the client's needs.",
     llm_config={"config_list": config_list},
     human_input_mode="NEVER",
-    max_consecutive_auto_reply=1
+    max_consecutive_auto_reply=3
 )
 
 def parse_analysis_result(content: str) -> Dict[str, Any]:

@@ -3,7 +3,7 @@ import logging
 import os
 from typing import List, Dict, Any
 
-from langchain import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from typing import List, Dict, Any

@@ -8,6 +8,7 @@ import streamlit as st
 from openai import OpenAI
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
+client = OpenAI
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

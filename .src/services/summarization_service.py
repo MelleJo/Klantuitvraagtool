@@ -5,12 +5,6 @@ from typing import List, Dict, Any
 import streamlit as st
 import sys
 from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parent.parent.parent
-sys.path.append(str(project_root))
-
-# Import from the .src folder directly
 from autogen_agents import analyze_transcript as autogen_analyze_transcript, generate_email as autogen_generate_email
 from config import (
     LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE,

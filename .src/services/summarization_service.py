@@ -49,7 +49,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
-        logger.info("Starting email generation process")
+        logger.info("Starting simplified email generation")
 
         # Convert analysis and recommendations to JSON
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
@@ -63,54 +63,23 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         if not transcript.strip() or not analysis_json.strip() or not recommendations_json.strip():
             raise ValueError("Input data missing or incomplete")
 
-        # Attempt to generate the email with markdown formatting
+        # Send data to the email generator
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
+            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
         )
-        initial_email = email_generator.last_message().get("content", "")
-        logger.debug(f"Initial Email Content: {initial_email[:500]}")  # Log first 500 chars
+        email_content = email_generator.last_message().get("content", "")
+        logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
 
-        # If initial email is empty or has an issue, attempt plain text fallback
-        if not initial_email.strip() or 'exitcode: 1' in initial_email or 'unknown language markdown' in initial_email:
-            logger.warning("Markdown processing failed, falling back to plain text")
-            user_proxy.initiate_chat(
-                email_generator,
-                message="The markdown formatting failed. Please generate the email in plain text format."
-            )
-            initial_email = email_generator.last_message().get("content", "")
-            logger.debug(f"Plain Text Email Content: {initial_email[:500]}")  # Log first 500 chars
-
-        # Ensure the email is not empty
-        if not initial_email.strip():
-            logger.error("Email generator returned empty content after fallback.")
+        if not email_content.strip():
+            logger.error("Email generator returned empty content.")
             raise ValueError("Email generator did not return any content.")
 
-        # Perform quality control
-        user_proxy.initiate_chat(
-            quality_control,
-            message=f"Please review the following email draft and suggest improvements:\n\n{initial_email}"
-        )
-        revised_email = quality_control.last_message().get("content", "")
-        logger.debug(f"Revised Email Content: {revised_email[:500]}")  # Log first 500 chars
-
-        if not revised_email.strip():
-            logger.error("Quality control returned empty content.")
-            raise ValueError("Quality control did not return any content.")
-
-        return revised_email
+        return email_content
 
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
-
-
-
-
-
-
-
-
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
     enhanced_coverage = []

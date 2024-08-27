@@ -173,11 +173,13 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
-def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str) -> str:
     try:
-        product_descriptions = load_product_descriptions()
+        # Parse JSON strings
+        enhanced_coverage_list = json.loads(enhanced_coverage)
+        selected_recommendations_list = json.loads(selected_recommendations)
         
-        current_coverage = "\n".join([f"{item.get('title', 'Onbekende verzekering')}: {item.get('coverage', 'Geen details beschikbaar')}" for item in enhanced_coverage])
+        current_coverage = "\n".join([f"{item.get('title', 'Onbekende verzekering')}: {item.get('coverage', 'Geen details beschikbaar')}" for item in enhanced_coverage_list])
 
         guidelines = """
         # Verzekeringsadvies E-mail Richtlijnen
@@ -223,8 +225,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             Huidige dekking:
             {current_coverage}
             Transcript: {transcript}
-            Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False)}
-            Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False)}
+            Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
 
             Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
             """

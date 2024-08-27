@@ -60,10 +60,10 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         logger.debug(f"Analysis JSON: {analysis_json[:500]}")  # Log first 500 chars
         logger.debug(f"Recommendations JSON: {recommendations_json[:500]}")  # Log first 500 chars
 
-        if not transcript or not analysis_json or not recommendations_json:
+        if not transcript.strip() or not analysis_json.strip() or not recommendations_json.strip():
             raise ValueError("Input data missing or incomplete")
 
-        # First attempt: Generate email with markdown formatting
+        # Attempt to generate the email with markdown formatting
         user_proxy.initiate_chat(
             email_generator,
             message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
@@ -71,31 +71,39 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         initial_email = email_generator.last_message().get("content", "")
         logger.debug(f"Initial Email Content: {initial_email[:500]}")  # Log first 500 chars
 
-        # Quality control: ask for improvements
-        user_proxy.initiate_chat(
-            quality_control,
-            message=f"Please review the following email draft and suggest improvements:\n\n{initial_email}"
-        )
-        revised_email = quality_control.last_message().get("content", "")
-        logger.debug(f"Revised Email Content: {revised_email[:500]}")  # Log first 500 chars
-
-        if not revised_email.strip() or 'exitcode: 1' in revised_email or 'unknown language markdown' in revised_email:
-            logger.warning("Markdown processing or revision failed, falling back to plain text")
+        # If initial email is empty or has an issue, attempt plain text fallback
+        if not initial_email.strip() or 'exitcode: 1' in initial_email or 'unknown language markdown' in initial_email:
+            logger.warning("Markdown processing failed, falling back to plain text")
             user_proxy.initiate_chat(
                 email_generator,
-                message="Please provide the email content in plain text format."
+                message="The markdown formatting failed. Please generate the email in plain text format."
             )
-            revised_email = email_generator.last_message().get("content", "")
-            logger.debug(f"Plain Text Email Content: {revised_email[:500]}")  # Log first 500 chars
+            initial_email = email_generator.last_message().get("content", "")
+            logger.debug(f"Plain Text Email Content: {initial_email[:500]}")  # Log first 500 chars
+
+        # Ensure the email is not empty
+        if not initial_email.strip():
+            logger.error("Email generator returned empty content after fallback.")
+            raise ValueError("Email generator did not return any content.")
+
+        # Perform quality control
+        user_proxy.initiate_chat(
+            quality_control_agent,
+            message=f"Please review the following email draft and suggest improvements:\n\n{initial_email}"
+        )
+        revised_email = quality_control_agent.last_message().get("content", "")
+        logger.debug(f"Revised Email Content: {revised_email[:500]}")  # Log first 500 chars
 
         if not revised_email.strip():
-            raise ValueError("Email generator returned empty content after fallback.")
+            logger.error("Quality control returned empty content.")
+            raise ValueError("Quality control did not return any content.")
 
         return revised_email
 
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 
 

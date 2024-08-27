@@ -194,11 +194,18 @@ def render_client_report_step():
                         enhanced_coverage=enhanced_coverage,
                         selected_recommendations=selected_suggestions
                     )
+
+                    # Debug logging to verify content
+                    logger.debug(f"Generated email content: {email_content}")
+
+                    if not email_content:
+                        raise ValueError("Email generator did not return any content.")
+
                     update_session_state('email_content', email_content)
                     st.success("Klantrapport succesvol gegenereerd!")
                     st.rerun()  # Rerun to display the generated content
                 except Exception as e:
-                    logging.error(f"Error in render_client_report_step: {str(e)}")
+                    logger.error(f"Error in render_client_report_step: {str(e)}")
                     st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
                     st.stop()
 

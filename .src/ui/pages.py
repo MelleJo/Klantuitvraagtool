@@ -32,30 +32,32 @@ def render_input_step(config):
 
     if input_method == "Upload tekstbestand":
         uploaded_file = st.file_uploader("Upload een bestand:", type=['txt', 'docx', 'pdf'])
-        if uploaded_file:
-            transcript = process_uploaded_file(uploaded_file)
-            update_session_state('transcript', transcript)
-            update_session_state('input_processed', True)
-            update_session_state('transcription_complete', True)
+        if uploaded_file is not None:
+            with st.spinner("Bestand wordt verwerkt..."):
+                transcript = process_uploaded_file(uploaded_file)
+                update_session_state('transcript', transcript)
+                update_session_state('input_processed', True)
+                update_session_state('transcription_complete', True)
+            st.success("Bestand succesvol geüpload en verwerkt!")
 
     elif input_method == "Voer tekst in of plak tekst":
         input_text = st.text_area("Voer tekst in of plak tekst:", height=200, key="input_text_area")
-        # Update session state immediately when text is entered
-        update_session_state('transcript', input_text)
-        update_session_state('input_processed', True)
-        update_session_state('transcription_complete', True)
+        if input_text:
+            update_session_state('transcript', input_text)
+            update_session_state('input_processed', True)
+            update_session_state('transcription_complete', True)
 
     elif input_method == "Upload audiobestand":
         uploaded_file = st.file_uploader("Upload een audiobestand", type=["wav", "mp3", "m4a", "ogg", "weba", "mp4"])
-        if uploaded_file:
-            audio_file_path = process_audio_input(input_method, uploaded_file)
-            if audio_file_path:
-                with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+        if uploaded_file is not None:
+            with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                audio_file_path = process_audio_input(input_method, uploaded_file)
+                if audio_file_path:
                     transcript = transcribe_audio(audio_file_path)
                     update_session_state('transcript', transcript)
                     update_session_state('input_processed', True)
                     update_session_state('transcription_complete', True)
-                os.unlink(audio_file_path)
+                    st.success("Audio succesvol verwerkt en getranscribeerd!")
 
     elif input_method == "Neem audio op":
         audio_file_path = process_audio_input(input_method)
@@ -65,11 +67,12 @@ def render_input_step(config):
                 update_session_state('transcript', transcript)
                 update_session_state('input_processed', True)
                 update_session_state('transcription_complete', True)
-            os.unlink(audio_file_path)
+            st.success("Audio succesvol opgenomen en getranscribeerd!")
 
     if st.session_state.get('input_processed', False):
         st.markdown("### 📄 Gegenereerd transcript")
         st.text_area("", value=st.session_state.get('transcript', ''), height=200, key="transcript_display", disabled=True)
+    
     st.markdown("</div>", unsafe_allow_html=True)
 
 

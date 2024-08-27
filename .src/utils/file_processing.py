@@ -15,15 +15,12 @@ def process_uploaded_file(uploaded_file):
             tmp_docx.write(uploaded_file.getvalue())
             tmp_docx_path = tmp_docx.name
         transcript = read_docx(tmp_docx_path)
-        tempfile.NamedTemporaryFile(delete=True)
     elif uploaded_file.name.endswith('.pdf'):
         pdf_reader = PdfReader(uploaded_file)
         transcript = ""
         for page in pdf_reader.pages:
             transcript += page.extract_text()
-    else:
+    else:  # Assume it's a text file
         transcript = uploaded_file.getvalue().decode("utf-8")
     
     return transcript
-
-print("file_processing.py loaded successfully")

@@ -11,10 +11,6 @@ from config import (
     INPUT_METHODS, load_config, OPENAI_MODEL, OPENAI_TEMPERATURE
 )
 
-# Rest of your summarization_service.py code remains the same
-
-# Rest of your summarization_service.py code remains the same
-# Setup logging
 logging.basicConfig(filename=LOG_FILE, level=getattr(logging, LOG_LEVEL))
 logger = logging.getLogger(__name__)
 

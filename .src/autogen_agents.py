@@ -173,11 +173,9 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
-import json
-import logging
-from typing import List, Dict, Any
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, max_retries: int = 3) -> str:
+
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str) -> str:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
@@ -219,94 +217,48 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
         """
 
-        for attempt in range(max_retries):
-            try:
-                # Step 1: Generate initial email
-                user_proxy.initiate_chat(
-                    email_generator,
-                    message=f"""
-                    {guidelines}
-                    {email_structure}
-                    
-                    Gebruik de volgende informatie:
-                    
-                    Huidige dekking:
-                    {current_coverage}
-                    Transcript: {transcript}
-                    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
+        prompt = f"""
+        {guidelines}
+        {email_structure}
+        
+        Gebruik de volgende informatie:
+        
+        Huidige dekking:
+        {current_coverage}
+        Transcript: {transcript}
+        Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
 
-                    Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
-                    """
-                )
-                
-                initial_email = email_generator.last_message().get("content", "")
-                if not initial_email.strip():
-                    raise ValueError("Initial email generation returned empty content.")
-                
-                logging.info(f"Initial email generated (Attempt {attempt + 1})")
-                logging.debug(f"Initial email content: {initial_email[:500]}...")  # Log first 500 chars
+        Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
+        """
 
-                # Step 2: Generate feedback
-                user_proxy.initiate_chat(
-                    quality_control,
-                    message=f"""
-                    {guidelines}
+        response = ChatCompletion.create(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000,
+            api_key=st.secrets["OPENAI_API_KEY"]
+        )
 
-                    Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Geef puntsgewijs feedback en suggesties voor verbetering.
+        email_content = response.choices[0].message.content.strip()
+        
+        if not email_content:
+            raise ValueError("Email generation returned empty content.")
 
-                    E-mail:
-                    {initial_email}
-                    """
-                )
-                
-                feedback = quality_control.last_message().get("content", "")
-                if not feedback.strip():
-                    raise ValueError("Feedback generation returned empty content.")
-                
-                logging.info(f"Feedback generated (Attempt {attempt + 1})")
-                logging.debug(f"Feedback content: {feedback[:500]}...")  # Log first 500 chars
+        logger.info("Email generated successfully")
+        logger.debug(f"Email content: {email_content[:500]}...")  # Log first 500 chars
 
-                # Step 3: Improve email based on feedback
-                user_proxy.initiate_chat(
-                    email_generator,
-                    message=f"""
-                    {guidelines}
-
-                    Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen. Zorg ervoor dat de verbeterde e-mail volledig is en alle gevraagde elementen bevat.
-
-                    Originele e-mail:
-                    {initial_email}
-
-                    Feedback:
-                    {feedback}
-
-                    Schrijf een verbeterde versie van de e-mail.
-                    """
-                )
-                
-                improved_email = email_generator.last_message().get("content", "")
-                if not improved_email.strip():
-                    raise ValueError("Improved email generation returned empty content.")
-                
-                logging.info(f"Improved email generated (Attempt {attempt + 1})")
-                logging.debug(f"Improved email content: {improved_email[:500]}...")  # Log first 500 chars
-
-                return improved_email
-
-            except Exception as e:
-                logging.warning(f"Attempt {attempt + 1} failed: {str(e)}")
-                if attempt == max_retries - 1:
-                    raise
-
-        raise ValueError(f"Failed to generate email after {max_retries} attempts")
+        return email_content
 
     except Exception as e:
-        logging.error(f"Error in generate_email: {str(e)}")
-        logging.error(f"Error type: {type(e)}")
-        logging.error(f"Error args: {e.args}")
-        logging.error(f"Transcript: {transcript}")
-        logging.error(f"Enhanced coverage: {enhanced_coverage}")
-        logging.error(f"Selected recommendations: {selected_recommendations}")
+        logger.error(f"Error in generate_email: {str(e)}")
+        logger.error(f"Error type: {type(e)}")
+        logger.error(f"Error args: {e.args}")
+        logger.error(f"Transcript: {transcript}")
+        logger.error(f"Enhanced coverage: {enhanced_coverage}")
+        logger.error(f"Selected recommendations: {selected_recommendations}")
         raise
 
 def load_insurance_prompt() -> str:

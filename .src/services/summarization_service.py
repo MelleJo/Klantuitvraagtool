@@ -90,7 +90,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         chain = prompt_template | model | parser
 
         # Step 5: Generate the email content
-        email_content = chain.invoke()
+        email_content = chain.invoke(transcript, analysis_json, recommendations_json)
 
         logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
 

@@ -12,11 +12,6 @@ os.environ["AUTOGEN_USE_DOCKER"] = "0"
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-code_execution_config = {
-    "work_dir": "coding",
-    "use_docker": False,
-}
-
 # Initialize OpenAI config
 config_list = [
     {

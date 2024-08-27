@@ -177,12 +177,12 @@ def render_recommendations_step():
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")
-    
+
     if 'email_content' not in st.session_state or not st.session_state.get('email_content'):
         if st.button("Genereer klantrapport"):
             progress_placeholder = st.empty()
             email_placeholder = st.empty()
-            
+
             try:
                 with st.spinner("Rapport wordt gegenereerd..."):
                     stages = ["Denken...", "Schrijven...", "Feedback verwerken...", "Verbeterde versie schrijven..."]
@@ -192,7 +192,7 @@ def render_client_report_step():
                     for i, stage in enumerate(stages):
                         status_text.text(stage)
                         progress_bar.progress((i + 1) / len(stages))
-                        
+
                         if i == 0:
                             transcript = st.session_state.get('transcript', '')
                             suggestions = st.session_state.get('suggestions', {})
@@ -218,9 +218,9 @@ def render_client_report_step():
                                 logging.error(f"Error type: {type(e)}")
                                 logging.error(f"Error args: {e.args}")
                                 raise
-                        
+
                         time.sleep(1)
-                    
+
                     update_session_state('email_content', email_content)
                     progress_bar.empty()
                     status_text.empty()
@@ -235,7 +235,7 @@ def render_client_report_step():
     if st.session_state.get('email_content'):
         st.markdown("### 📥 Rapportinhoud")
         st.markdown(st.session_state.get('email_content', ''), unsafe_allow_html=True)
-        
+
         st.download_button(
             label="Download rapport",
             data=st.session_state.get('email_content', ''),

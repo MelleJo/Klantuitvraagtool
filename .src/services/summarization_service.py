@@ -50,17 +50,34 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
+from autogen_agents import email_generator, quality_control, user_proxy
+
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
         logger.info("Starting email generation using AutoGen")
-        
+
         analysis = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations = json.dumps(selected_recommendations, ensure_ascii=False)
+
+        # Generate initial email
+        user_proxy.initiate_chat(
+            email_generator,
+            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
+        )
         
-        email_content = autogen_generate_email(transcript, analysis, recommendations)
+        initial_email = email_generator.last_message()["content"]
+        logger.info("Initial email draft generated")
+
+        # Quality control review
+        user_proxy.initiate_chat(
+            quality_control,
+            message=f"Please review and improve this email draft:\n\n{initial_email}"
+        )
         
-        logger.info("Email generation completed")
-        return email_content
+        final_email = quality_control.last_message()["content"]
+        logger.info("Final email generated after quality control")
+
+        return final_email
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise

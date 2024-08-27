@@ -4,8 +4,11 @@ import os
 from typing import List, Dict, Any
 
 from langchain import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from typing import List, Dict, Any
+import json
+import logging
 
 import streamlit as st
 import sys
@@ -58,7 +61,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     try:
         logger.info("Starting email generation using LangChain")
 
-        # Prepare the input data
+        # Convert coverage and recommendations to JSON strings
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations_json = json.dumps(selected_recommendations, ensure_ascii=False)
 
@@ -70,29 +73,26 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             logger.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Set up LangChain with the chat model (e.g., GPT-4)
-        chat_llm = ChatOpenAI(model_name="gpt-4o-2024-08-06")
+        # Step 1: Create the prompt template
+        system_template = "Create a professional email using the following transcript, analysis, and recommendations."
+        prompt_template = ChatPromptTemplate.from_messages([
+            ('system', system_template),
+            ('user', f'Transcript: {transcript}\nAnalysis: {analysis_json}\nRecommendations: {recommendations_json}')
+        ])
 
-        # Define the chat prompt template
-        system_message_template = SystemMessagePromptTemplate.from_template("You are an expert in writing professional emails.")
-        human_message_template = HumanMessagePromptTemplate.from_template("""
-            Based on the following information, generate a well-structured and clear email for a client.
-            Transcript: {transcript}
-            Analysis: {analysis}
-            Recommendations: {recommendations}
-            The email should be polite, professional, and should address the client's needs appropriately. Use bullet points where necessary and ensure the email is ready to be sent without further edits.
-        """)
+        # Step 2: Set up the language model
+        model = ChatOpenAI(model_name="gpt-4o-2024-08-06", temperature=0.3, api_key=st.secrets["OPENAI_API_KEY"])
 
-        prompt = ChatPromptTemplate.from_messages([system_message_template, human_message_template])
+        # Step 3: Set up the output parser to extract the email content
+        parser = StrOutputParser()
 
-        # Initialize the chain with the chat prompt template
-        chain = LLMChain(prompt=prompt, llm=chat_llm)
+        # Step 4: Chain the components together using LCEL
+        chain = prompt_template | model | parser
 
-        # Run the chain to generate the email content
-        email_content = chain.run({
-            "transcript": transcript,
-            "analysis": analysis_json,
-            "recommendations": recommendations_json
+        # Step 5: Generate the email content
+        email_content = chain.invoke({
+            "language": "Dutch",  # Assuming the email is to be generated in Dutch
+            "text": "Generate the email content based on the provided data."
         })
 
         logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars

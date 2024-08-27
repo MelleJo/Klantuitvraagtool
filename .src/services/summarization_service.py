@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 import streamlit as st
 import sys
 from pathlib import Path
-from autogen_agents import email_generator, quality_control, user_proxy
+from autogen_agents import email_generator, quality_control, user_proxy, analyze_transcript as autogen_analyze_transcript
 from config import (
     LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE,
     INPUT_METHODS, load_config, OPENAI_MODEL, OPENAI_TEMPERATURE

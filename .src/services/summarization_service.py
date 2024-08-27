@@ -55,38 +55,32 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         analysis = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations = json.dumps(selected_recommendations, ensure_ascii=False)
 
-        logger.debug(f"Transcript: {transcript[:200]}...")  # Log part of the transcript
-        logger.debug(f"Analysis: {analysis}")
-        logger.debug(f"Recommendations: {recommendations}")
+        logger.debug(f"Transcript: {transcript}")
+        logger.debug(f"Analysis JSON: {analysis}")
+        logger.debug(f"Recommendations JSON: {recommendations}")
+
+        if not transcript or not analysis or not recommendations:
+            logger.error("One or more inputs are empty, skipping email generation.")
+            raise ValueError("Input data missing or incomplete")
 
         user_proxy.initiate_chat(
             email_generator,
             message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting for the email content:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
         )
-        
+
         initial_email = email_generator.last_message().get("content", "")
         logger.info("Initial email draft generated")
-        logger.debug(f"Initial Email: {initial_email[:200]}...")
+        logger.debug(f"Initial Email: {initial_email[:200]}...")  # Log the first 200 characters for context
 
         if not initial_email:
-            raise ValueError("No content received from email generator")
+            logger.error("Email generator returned empty content.")
+            raise ValueError("Email generator did not return any content.")
 
-        user_proxy.initiate_chat(
-            quality_control,
-            message=f"Please review and improve this email draft, ensuring proper markdown formatting is maintained:\n\n{initial_email}"
-        )
-        
-        final_email = quality_control.last_message().get("content", "")
-        logger.info("Final email generated after quality control")
-        logger.debug(f"Final Email: {final_email[:200]}...")
-
-        if not final_email:
-            raise ValueError("No content received from quality control")
-
-        return final_email
+        return initial_email
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:

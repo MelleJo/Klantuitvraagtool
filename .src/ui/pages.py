@@ -30,26 +30,10 @@ def render_input_step(config):
     st.subheader("📝 Gegevens invoeren")
     input_method = st.selectbox("Selecteer invoermethode:", config["INPUT_METHODS"])
 
-    if input_method == "Upload tekstbestand":
-        uploaded_file = st.file_uploader("Upload een bestand:", type=['txt', 'docx', 'pdf'])
-        if uploaded_file is not None:
-            with st.spinner("Bestand wordt verwerkt..."):
-                transcript = process_uploaded_file(uploaded_file)
-                update_session_state('transcript', transcript)
-                update_session_state('input_processed', True)
-                update_session_state('transcription_complete', True)
-            st.success("Bestand succesvol geüpload en verwerkt!")
-
-    elif input_method == "Voer tekst in of plak tekst":
-        input_text = st.text_area("Voer tekst in of plak tekst:", height=200, key="input_text_area")
-        if input_text:
-            update_session_state('transcript', input_text)
-            update_session_state('input_processed', True)
-            update_session_state('transcription_complete', True)
-
-    elif input_method == "Upload audiobestand":
+    if input_method == "Upload audiobestand":
         uploaded_file = st.file_uploader("Upload een audiobestand", type=["wav", "mp3", "m4a", "ogg", "weba", "mp4"])
         if uploaded_file is not None:
+            st.info("Audiobestand geüpload. Transcriptie wordt gestart...")
             with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
                 audio_file_path = process_audio_input(input_method, uploaded_file)
                 if audio_file_path:
@@ -69,7 +53,29 @@ def render_input_step(config):
                 update_session_state('transcription_complete', True)
             st.success("Audio succesvol opgenomen en getranscribeerd!")
 
-    if st.session_state.get('input_processed', False):
+    elif input_method == "Upload tekstbestand":
+        uploaded_file = st.file_uploader("Upload een bestand:", type=['txt', 'docx', 'pdf'])
+        if uploaded_file is not None:
+            st.info("Bestand geüpload. Verwerking wordt gestart...")
+            with st.spinner("Bestand wordt verwerkt..."):
+                transcript = process_uploaded_file(uploaded_file)
+                update_session_state('transcript', transcript)
+                update_session_state('input_processed', True)
+                update_session_state('transcription_complete', True)
+            st.success("Bestand succesvol geüpload en verwerkt!")
+
+    elif input_method == "Voer tekst in of plak tekst":
+        input_text = st.text_area("Voer tekst in of plak tekst:", height=200, key="input_text_area")
+        if st.button("Verwerk tekst"):
+            if input_text:
+                update_session_state('transcript', input_text)
+                update_session_state('input_processed', True)
+                update_session_state('transcription_complete', True)
+                st.success("Tekst succesvol verwerkt!")
+            else:
+                st.warning("Voer eerst tekst in voordat u op 'Verwerk tekst' klikt.")
+
+    if st.session_state.get('transcription_complete', False):
         st.markdown("### 📄 Gegenereerd transcript")
         st.text_area("", value=st.session_state.get('transcript', ''), height=200, key="transcript_display", disabled=True)
     

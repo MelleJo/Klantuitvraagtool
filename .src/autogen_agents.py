@@ -233,14 +233,17 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
         """
 
-        response = client.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
-            prompt=prompt,
-            max_tokens=2000,
-            temperature=0.7
+            messages=[
+                {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000
         )
 
-        email_content = response.choices[0].text.strip()
+        email_content = response.choices[0].message.content.strip()
         
         if not email_content:
             raise ValueError("Email generation returned empty content.")

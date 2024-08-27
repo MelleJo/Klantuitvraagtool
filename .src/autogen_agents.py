@@ -5,7 +5,6 @@ import logging
 import json
 import os
 
-
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 
 # Setup logging
@@ -18,7 +17,6 @@ config_list = [
         'model': 'gpt-4o-2024-08-06',
         'api_key': st.secrets["OPENAI_API_KEY"],
         'temperature': 0.1
-        
     }
 ]
 
@@ -145,7 +143,6 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
         
-        # Initiate the chat with a termination function
         user_proxy.initiate_chat(
             transcript_analyst,
             message=f"Please analyze this insurance-related transcript:\n\n{transcript}",
@@ -153,7 +150,6 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
             max_turns=1
         )
         
-        # Get the last message from the transcript analyst
         analysis = transcript_analyst.last_message()["content"]
         logger.info("Transcript analysis completed")
         
@@ -174,11 +170,12 @@ def generate_email(transcript: str, analysis: str, recommendations: str) -> str:
             message=f"Generate a professional email for the client based on this transcript, analysis, and recommendations:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
         )
         
-        initial_draft = email_generator.last_message()["content"]
+        initial_draft = email_generator.last_message().get("content", "")
         logger.info("Initial email draft generated")
         
         if not initial_draft.strip():
-            raise ValueError("Email generator did not return any content.")
+            logger.warning("Email generator returned empty content. Using a default template.")
+            initial_draft = "Dear [Client],\n\nThank you for your recent inquiry about your insurance coverage. Based on our analysis, we have some recommendations for you. [Insert key points here]\n\nPlease let us know if you have any questions.\n\nBest regards,\n[Your Name]"
 
         # Step 2: Quality control review
         user_proxy.initiate_chat(
@@ -186,11 +183,12 @@ def generate_email(transcript: str, analysis: str, recommendations: str) -> str:
             message=f"Review and improve this email draft, ensuring it's concise, professional, and covers all key points:\n\n{initial_draft}"
         )
         
-        quality_control_feedback = quality_control.last_message()["content"]
+        quality_control_feedback = quality_control.last_message().get("content", "")
         logger.info("Quality control feedback received")
 
         if not quality_control_feedback.strip():
-            raise ValueError("Quality control did not return any feedback.")
+            logger.warning("Quality control returned empty feedback. Proceeding with the initial draft.")
+            return initial_draft
 
         # Step 3: Generate final email based on quality control feedback
         user_proxy.initiate_chat(
@@ -198,16 +196,18 @@ def generate_email(transcript: str, analysis: str, recommendations: str) -> str:
             message=f"Revise the email based on this feedback:\n\nOriginal draft:\n{initial_draft}\n\nFeedback:\n{quality_control_feedback}"
         )
         
-        final_email = email_generator.last_message()["content"]
+        final_email = email_generator.last_message().get("content", "")
         logger.info("Final email generated")
         
         if not final_email.strip():
-            raise ValueError("Final email generation did not return any content.")
+            logger.warning("Final email generation returned empty content. Using the initial draft.")
+            return initial_draft
 
         return final_email
+
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
-        raise
+        return f"An error occurred while generating the email: {str(e)}"
 
 def load_insurance_prompt() -> str:
     prompt_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'insurance_advisor_prompt.txt')

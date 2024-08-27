@@ -88,10 +88,10 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
         # Perform quality control
         user_proxy.initiate_chat(
-            quality_control_agent,
+            quality_control,
             message=f"Please review the following email draft and suggest improvements:\n\n{initial_email}"
         )
-        revised_email = quality_control_agent.last_message().get("content", "")
+        revised_email = quality_control.last_message().get("content", "")
         logger.debug(f"Revised Email Content: {revised_email[:500]}")  # Log first 500 chars
 
         if not revised_email.strip():

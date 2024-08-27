@@ -55,28 +55,39 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         analysis = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations = json.dumps(selected_recommendations, ensure_ascii=False)
 
-        # Generate initial email
+        logger.debug(f"Transcript: {transcript[:200]}...")  # Log part of the transcript
+        logger.debug(f"Analysis: {analysis}")
+        logger.debug(f"Recommendations: {recommendations}")
+
         user_proxy.initiate_chat(
             email_generator,
             message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting for the email content:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
         )
         
-        initial_email = email_generator.last_message()["content"]
+        initial_email = email_generator.last_message().get("content", "")
         logger.info("Initial email draft generated")
+        logger.debug(f"Initial Email: {initial_email[:200]}...")
 
-        # Quality control review
+        if not initial_email:
+            raise ValueError("No content received from email generator")
+
         user_proxy.initiate_chat(
             quality_control,
             message=f"Please review and improve this email draft, ensuring proper markdown formatting is maintained:\n\n{initial_email}"
         )
         
-        final_email = quality_control.last_message()["content"]
+        final_email = quality_control.last_message().get("content", "")
         logger.info("Final email generated after quality control")
+        logger.debug(f"Final Email: {final_email[:200]}...")
+
+        if not final_email:
+            raise ValueError("No content received from quality control")
 
         return final_email
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:
     enhanced_coverage = []

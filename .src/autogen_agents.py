@@ -5,6 +5,7 @@ import logging
 import json
 import os
 import streamlit as st
+from openai import OpenAI
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 
@@ -231,15 +232,14 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
         """
 
-        response = ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=2000,
-            api_key=st.secrets["OPENAI_API_KEY"]
+            max_tokens=2000
         )
 
         email_content = response.choices[0].message.content.strip()

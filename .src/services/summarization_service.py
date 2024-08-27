@@ -70,6 +70,17 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
 
         initial_email = email_generator.last_message().get("content", "")
         logger.info("Initial email draft generated")
+
+        # Check if markdown processing failed and fallback to plain text
+        if 'exitcode: 1' in initial_email or 'markdown' in initial_email:
+            logger.warning("Markdown processing failed, attempting plain text fallback")
+            user_proxy.initiate_chat(
+                email_generator,
+                message=f"Please generate the email in plain text format instead."
+            )
+            initial_email = email_generator.last_message().get("content", "")
+            logger.info("Fallback to plain text email draft generated")
+
         logger.debug(f"Initial Email: {initial_email[:200]}...")  # Log the first 200 characters for context
 
         if not initial_email:
@@ -80,6 +91,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 
 

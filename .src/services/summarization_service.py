@@ -49,49 +49,54 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
-        logger.info("Starting email generation using AutoGen")
+        logger.info("Starting email generation process")
 
-        analysis = json.dumps(enhanced_coverage, ensure_ascii=False)
-        recommendations = json.dumps(selected_recommendations, ensure_ascii=False)
+        # Convert analysis and recommendations to JSON
+        analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
+        recommendations_json = json.dumps(selected_recommendations, ensure_ascii=False)
 
-        logger.debug(f"Transcript: {transcript}")
-        logger.debug(f"Analysis JSON: {analysis}")
-        logger.debug(f"Recommendations JSON: {recommendations}")
+        # Logging the inputs for debugging
+        logger.debug(f"Transcript: {transcript[:500]}")  # Log first 500 chars
+        logger.debug(f"Analysis JSON: {analysis_json[:500]}")  # Log first 500 chars
+        logger.debug(f"Recommendations JSON: {recommendations_json[:500]}")  # Log first 500 chars
 
-        if not transcript or not analysis or not recommendations:
-            logger.error("One or more inputs are empty, skipping email generation.")
+        if not transcript or not analysis_json or not recommendations_json:
             raise ValueError("Input data missing or incomplete")
 
-        # Generate email
+        # First attempt: Generate email with markdown formatting
         user_proxy.initiate_chat(
             email_generator,
-            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting for the email content:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
+            message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting:\n\nTranscript: {transcript}\n\nAnalysis: {analysis_json}\n\nRecommendations: {recommendations_json}"
         )
-
         initial_email = email_generator.last_message().get("content", "")
-        logger.info("Initial email draft generated")
         logger.debug(f"Initial Email Content: {initial_email[:500]}")  # Log first 500 chars
 
-        if 'exitcode: 1' in initial_email or 'unknown language markdown' in initial_email:
-            logger.warning("Markdown processing failed, attempting plain text fallback")
+        # Quality control: ask for improvements
+        user_proxy.initiate_chat(
+            quality_control,
+            message=f"Please review the following email draft and suggest improvements:\n\n{initial_email}"
+        )
+        revised_email = quality_control.last_message().get("content", "")
+        logger.debug(f"Revised Email Content: {revised_email[:500]}")  # Log first 500 chars
+
+        if not revised_email.strip() or 'exitcode: 1' in revised_email or 'unknown language markdown' in revised_email:
+            logger.warning("Markdown processing or revision failed, falling back to plain text")
             user_proxy.initiate_chat(
                 email_generator,
-                message="The markdown formatting failed. Please generate the email in plain text format."
+                message="Please provide the email content in plain text format."
             )
-            initial_email = email_generator.last_message().get("content", "")
-            logger.info("Fallback to plain text email draft generated")
-            logger.debug(f"Fallback Email Content: {initial_email[:500]}")  # Log first 500 chars
+            revised_email = email_generator.last_message().get("content", "")
+            logger.debug(f"Plain Text Email Content: {revised_email[:500]}")  # Log first 500 chars
 
-        if not initial_email.strip():
-            logger.error("Email generator returned empty content after fallback.")
-            raise ValueError("Email generator did not return any content.")
+        if not revised_email.strip():
+            raise ValueError("Email generator returned empty content after fallback.")
 
-        # Ensure the email is returned properly
-        return initial_email
+        return revised_email
 
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 
 

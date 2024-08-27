@@ -142,16 +142,13 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
 
     return result
 
-def load_product_descriptions() -> Dict[str, Any]:
-    product_descriptions_file = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
+def load_product_descriptions():
+    file_path = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
     try:
-        with open(product_descriptions_file, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
-    except FileNotFoundError:
-        logging.error(f"Product descriptions file not found at {product_descriptions_file}")
-        return {}
-    except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON in product descriptions file: {str(e)}")
+    except Exception as e:
+        logging.error(f"Error loading product descriptions: {str(e)}")
         return {}
 
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
@@ -181,34 +178,51 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
+        product_descriptions = load_product_descriptions()
         
-        current_coverage = "\n".join([f"{item.get('title', 'Onbekende verzekering')}: {item.get('coverage', 'Geen details beschikbaar')}" for item in enhanced_coverage_list])
+        current_coverage = []
+        for item in enhanced_coverage_list:
+            title = item.get('title', 'Onbekende verzekering').replace('- ', '').strip()
+            coverage = item.get('coverage', 'Geen details beschikbaar')
+            description = ''
+            for category, products in product_descriptions.items():
+                if isinstance(products, dict):
+                    for product, details in products.items():
+                        if product.lower() in title.lower():
+                            description = details.get('description', '')
+                            break
+                    if description:
+                        break
+            current_coverage.append(f"{title}:\n{coverage}\nOfficiële beschrijving: {description}")
+
+        current_coverage_str = "\n\n".join(current_coverage)
 
         guidelines = """
         # Verzekeringsadvies E-mail Richtlijnen
 
-        1. Begin direct met je naam en functie bij Veldhuis Advies
+        1. Begin met een persoonlijke introductie die de klant bedankt en uitlegt waarom je contact opneemt
         2. Gebruik een informele, persoonlijke toon (je/jij), tenzij het transcript aangeeft dat formeel taalgebruik (u) nodig is
-        3. Vermijd een uitgebreide introductie of samenvatting aan het begin
-        4. Gebruik de gegeven productbeschrijvingen bij het uitleggen van de huidige situatie
-        5. Geef concrete, specifieke adviezen gebaseerd op de situatie van de klant
-        6. Stel bij elk onderwerp een relevante vraag om de klant te betrekken
-        7. Vermijd het noemen van eigen risico's of veronderstellen dat de klant ergens niet voor verzekerd is
-        8. Gebruik korte, krachtige zinnen en paragrafen
-        9. Sluit af met een beknopte, vriendelijke uitnodiging om te reageren
-        10. Vermeld altijd het telefoonnummer 0578-699760
-        11. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd
-        12. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties
-        13. Integreer de officiële productbeschrijvingen naadloos in de uitleg van de huidige situatie
-        14. Geef een korte uitleg over waarom bepaalde wijzigingen of toevoegingen aan de verzekering voordelig kunnen zijn
-        15. Vraag bij elke aanbeveling of de klant een berekening wil ontvangen voor premievergelijking
-        16. Vermeld bij de arbeidsongeschiktheidsverzekering dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+        3. Integreer de officiële productbeschrijvingen naadloos in de uitleg van de huidige situatie
+        4. Geef concrete, specifieke adviezen gebaseerd op de situatie van de klant
+        5. Stel bij elk onderwerp een relevante vraag om de klant te betrekken
+        6. Vermijd het noemen van eigen risico's of veronderstellen dat de klant ergens niet voor verzekerd is
+        7. Gebruik korte, krachtige zinnen en paragrafen
+        8. Sluit af met een beknopte, vriendelijke uitnodiging om te reageren
+        9. Vermeld altijd het telefoonnummer 0578-699760
+        10. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd
+        11. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties
+        12. Geef een korte uitleg over waarom bepaalde wijzigingen of toevoegingen aan de verzekering voordelig kunnen zijn
+        13. Vraag bij elke aanbeveling of de klant een berekening wil ontvangen voor premievergelijking
+        14. Vermeld bij de arbeidsongeschiktheidsverzekering dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+        15. Bij het bespreken van de bedrijfsschadeverzekering, leg uit waarom tegenwoordig de hersteltijd na een calamiteit langer kan duren (bijv. schaarste van materialen en personeel, langere levertijden)
+        16. Gebruik een vriendelijke en open toon bij het bespreken van mogelijke personeelswijzigingen, bijvoorbeeld: "Mocht je inmiddels personeel hebben, dan..."
+        17. Wanneer je spreekt over mogelijk nieuw personeel, noem ook dat dit nieuwe risico's met zich mee kan brengen die we samen kunnen bespreken
         """
 
         email_structure = """
         Schrijf een e-mail met de volgende structuur:
 
-        1. Openingszin met naam en functie
+        1. Persoonlijke introductie
         2. Voor elke relevante verzekering in de huidige dekking:
            - Naam verzekering (in bold)
            - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
@@ -225,12 +239,16 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         
         Gebruik de volgende informatie:
         
+        Introductie:
+        Beste [Naam],
+        Ik zie in ons dossier dat u al sinds enige tijd een aantal verzekeringen bij ons hebt lopen. Ik heb mij verdiept in jouw bedrijf en de verzekeringen die je hebt lopen. En daar vallen me een paar dingen in op, die ik graag met je wil bespreken.
+
         Huidige dekking:
-        {current_coverage}
+        {current_coverage_str}
         Transcript: {transcript}
         Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
 
-        Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
+        Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat, inclusief de introductie, officiële productbeschrijvingen, en de specifieke punten over de bedrijfsschadeverzekering en mogelijke personeelswijzigingen.
         """
 
         response = client.chat.completions.create(
@@ -239,7 +257,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
+            temperature=0.3,
             max_tokens=2000
         )
 

@@ -8,7 +8,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from klantuitvraagtool_2.ui.pages import (
+# Import from the .src folder directly
+from ui.pages import (
     render_input_step,
     render_analysis_step,
     render_recommendations_step,
@@ -16,8 +17,10 @@ from klantuitvraagtool_2.ui.pages import (
     render_feedback_form,
     render_conversation_history
 )
-from klantuitvraagtool_2.utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
-from klantuitvraagtool_2.ui.components import ImprovedUIStyled
+from utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
+from ui.components import ImprovedUIStyled
+
+# Rest of your app.py code remains the same
 
 # Set the page configuration at the beginning
 st.set_page_config(

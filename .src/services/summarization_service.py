@@ -10,11 +10,14 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
 
-from klantuitvraagtool_2.autogen_agents import analyze_transcript as autogen_analyze_transcript, generate_email as autogen_generate_email
-from klantuitvraagtool_2.config import (
+# Import from the .src folder directly
+from autogen_agents import analyze_transcript as autogen_analyze_transcript, generate_email as autogen_generate_email
+from config import (
     LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE,
     INPUT_METHODS, load_config, OPENAI_MODEL, OPENAI_TEMPERATURE
 )
+
+# Rest of your summarization_service.py code remains the same
 
 # Rest of your summarization_service.py code remains the same
 # Setup logging

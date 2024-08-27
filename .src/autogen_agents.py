@@ -173,9 +173,12 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str) -> str:
+import json
+import logging
+from typing import List, Dict, Any
+
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, max_retries: int = 3) -> str:
     try:
-        # Parse JSON strings
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
         
@@ -202,79 +205,100 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         16. Vermeld bij de arbeidsongeschiktheidsverzekering dat dit gebaseerd is op de gegevens bij Veldhuis Advies
         """
 
-        # Step 1: Generate initial email
-        user_proxy.initiate_chat(
-            email_generator,
-            message=f"""
-            {guidelines}
-            
-            Schrijf een e-mail met de volgende structuur:
+        email_structure = """
+        Schrijf een e-mail met de volgende structuur:
 
-            1. Openingszin met naam en functie
-            2. Voor elke relevante verzekering in de huidige dekking:
-               - Naam verzekering (in bold)
-               - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
-               - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
-               - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
+        1. Openingszin met naam en functie
+        2. Voor elke relevante verzekering in de huidige dekking:
+           - Naam verzekering (in bold)
+           - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
+           - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
+           - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
 
-            3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
-            4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
+        3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
+        4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
+        """
 
-            Gebruik de volgende informatie:
-            
-            Huidige dekking:
-            {current_coverage}
-            Transcript: {transcript}
-            Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
+        for attempt in range(max_retries):
+            try:
+                # Step 1: Generate initial email
+                user_proxy.initiate_chat(
+                    email_generator,
+                    message=f"""
+                    {guidelines}
+                    {email_structure}
+                    
+                    Gebruik de volgende informatie:
+                    
+                    Huidige dekking:
+                    {current_coverage}
+                    Transcript: {transcript}
+                    Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
 
-            Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
-            """
-        )
-        
-        initial_email = email_generator.last_message().get("content", "")
-        logging.info("Initial email generated")
-        logging.debug(f"Initial email content: {initial_email[:500]}...")  # Log first 500 chars
+                    Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
+                    """
+                )
+                
+                initial_email = email_generator.last_message().get("content", "")
+                if not initial_email.strip():
+                    raise ValueError("Initial email generation returned empty content.")
+                
+                logging.info(f"Initial email generated (Attempt {attempt + 1})")
+                logging.debug(f"Initial email content: {initial_email[:500]}...")  # Log first 500 chars
 
-        # Step 2: Generate feedback
-        user_proxy.initiate_chat(
-            quality_control,
-            message=f"""
-            {guidelines}
+                # Step 2: Generate feedback
+                user_proxy.initiate_chat(
+                    quality_control,
+                    message=f"""
+                    {guidelines}
 
-            Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Geef puntsgewijs feedback en suggesties voor verbetering.
+                    Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Geef puntsgewijs feedback en suggesties voor verbetering.
 
-            E-mail:
-            {initial_email}
-            """
-        )
-        
-        feedback = quality_control.last_message().get("content", "")
-        logging.info("Feedback generated")
-        logging.debug(f"Feedback content: {feedback[:500]}...")  # Log first 500 chars
+                    E-mail:
+                    {initial_email}
+                    """
+                )
+                
+                feedback = quality_control.last_message().get("content", "")
+                if not feedback.strip():
+                    raise ValueError("Feedback generation returned empty content.")
+                
+                logging.info(f"Feedback generated (Attempt {attempt + 1})")
+                logging.debug(f"Feedback content: {feedback[:500]}...")  # Log first 500 chars
 
-        # Step 3: Improve email based on feedback
-        user_proxy.initiate_chat(
-            email_generator,
-            message=f"""
-            {guidelines}
+                # Step 3: Improve email based on feedback
+                user_proxy.initiate_chat(
+                    email_generator,
+                    message=f"""
+                    {guidelines}
 
-            Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen.
+                    Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen. Zorg ervoor dat de verbeterde e-mail volledig is en alle gevraagde elementen bevat.
 
-            Originele e-mail:
-            {initial_email}
+                    Originele e-mail:
+                    {initial_email}
 
-            Feedback:
-            {feedback}
+                    Feedback:
+                    {feedback}
 
-            Schrijf een verbeterde versie van de e-mail.
-            """
-        )
-        
-        improved_email = email_generator.last_message().get("content", "")
-        logging.info("Improved email generated")
-        logging.debug(f"Improved email content: {improved_email[:500]}...")  # Log first 500 chars
+                    Schrijf een verbeterde versie van de e-mail.
+                    """
+                )
+                
+                improved_email = email_generator.last_message().get("content", "")
+                if not improved_email.strip():
+                    raise ValueError("Improved email generation returned empty content.")
+                
+                logging.info(f"Improved email generated (Attempt {attempt + 1})")
+                logging.debug(f"Improved email content: {improved_email[:500]}...")  # Log first 500 chars
 
-        return improved_email
+                return improved_email
+
+            except Exception as e:
+                logging.warning(f"Attempt {attempt + 1} failed: {str(e)}")
+                if attempt == max_retries - 1:
+                    raise
+
+        raise ValueError(f"Failed to generate email after {max_retries} attempts")
 
     except Exception as e:
         logging.error(f"Error in generate_email: {str(e)}")

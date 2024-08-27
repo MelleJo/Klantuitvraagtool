@@ -76,17 +76,18 @@ def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, st
 
         email_content = generate_email(transcript, analysis_json, recommendations_json)
 
-        logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
-
         if not email_content.strip():
             logger.error("Email generation returned empty content.")
             raise ValueError("Email generation did not return any content.")
+
+        logger.info("Email generated successfully")
+        logger.debug(f"Generated Email Content: {email_content[:500]}")  # Log first 500 chars
 
         return email_content
 
     except Exception as e:
         logger.error(f"Error in generate_email_wrapper: {str(e)}", exc_info=True)
-        raise
+        raise  # Re-raise the exception to be handled by the calling function
 
 # Load product descriptions when this module is imported
 product_descriptions = load_product_descriptions()

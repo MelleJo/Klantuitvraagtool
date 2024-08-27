@@ -1,6 +1,6 @@
 import streamlit as st
 import simplejson as json
-from .components import (
+from ui.components import (
     display_input_method_selector,
     display_text_input,
     display_file_uploader,

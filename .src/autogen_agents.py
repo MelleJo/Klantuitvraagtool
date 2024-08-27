@@ -140,6 +140,18 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
 
     return result
 
+def load_product_descriptions() -> Dict[str, Any]:
+    product_descriptions_file = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
+    try:
+        with open(product_descriptions_file, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logging.error(f"Product descriptions file not found at {product_descriptions_file}")
+        return {}
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON in product descriptions file: {str(e)}")
+        return {}
+
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
@@ -167,10 +179,6 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         
         current_coverage = "\n".join([f"{item.get('title', 'Onbekende verzekering')}: {item.get('coverage', 'Geen details beschikbaar')}" for item in enhanced_coverage])
 
-        title = "Verzekeringsadvies"
-        eigendommen = product_descriptions.get('eigendommen', {})
-        bedrijfsgebouw = eigendommen.get('bedrijfsgebouw', {})
-
         guidelines = """
         # Verzekeringsadvies E-mail Richtlijnen
 
@@ -192,37 +200,30 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         16. Vermeld bij de arbeidsongeschiktheidsverzekering dat dit gebaseerd is op de gegevens bij Veldhuis Advies
         """
 
-        email_structure = """
-        Schrijf een e-mail met de volgende structuur:
-
-        1. Openingszin met naam en functie
-        2. Voor elke relevante verzekering in de huidige dekking:
-           - Naam verzekering (in bold)
-           - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
-           - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
-           - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
-
-        3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
-        4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
-        """
-
         # Step 1: Generate initial email
         user_proxy.initiate_chat(
             email_generator,
             message=f"""
             {guidelines}
-            {email_structure}
             
+            Schrijf een e-mail met de volgende structuur:
+
+            1. Openingszin met naam en functie
+            2. Voor elke relevante verzekering in de huidige dekking:
+               - Naam verzekering (in bold)
+               - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
+               - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
+               - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
+
+            3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
+            4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
+
             Gebruik de volgende informatie:
             
-            Titel: {title}
             Huidige dekking:
             {current_coverage}
-            Eigendommen: {json.dumps(eigendommen, ensure_ascii=False)}
-            Bedrijfsgebouw: {json.dumps(bedrijfsgebouw, ensure_ascii=False)}
             Transcript: {transcript}
             Geselecteerde aanbevelingen: {json.dumps(selected_recommendations, ensure_ascii=False)}
-            Beschikbare verzekeringen bij Veldhuis Advies: {", ".join(st.secrets.get("VERZEKERINGEN", []))}
             Productbeschrijvingen: {json.dumps(product_descriptions, ensure_ascii=False)}
 
             Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur.
@@ -239,23 +240,10 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             message=f"""
             {guidelines}
 
-            Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Controleer specifiek of:
-
-            1. De e-mail direct begint met naam en functie, zonder uitgebreide introductie
-            2. De toon persoonlijk en informeel is (tenzij anders aangegeven in het transcript)
-            3. Productbeschrijvingen goed zijn geïntegreerd in de uitleg van de huidige situatie
-            4. Adviezen concreet en specifiek zijn voor de situatie van de klant, met uitleg waarom ze voordelig kunnen zijn
-            5. Er bij elk onderwerp een relevante vraag wordt gesteld, inclusief een aanbod voor premieberekening
-            6. De afsluiting kort en vriendelijk is, met een duidelijke uitnodiging om te reageren
-            7. Het telefoonnummer 0578-699760 is vermeld
-            8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
-            9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
-            10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+            Beoordeel de volgende e-mail op basis van de bovenstaande richtlijnen. Geef puntsgewijs feedback en suggesties voor verbetering.
 
             E-mail:
             {initial_email}
-
-            Geef puntsgewijs feedback en suggesties voor verbetering.
             """
         )
         
@@ -269,18 +257,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             message=f"""
             {guidelines}
 
-            Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen. Zorg ervoor dat:
-
-            1. De e-mail voldoet aan alle genoemde richtlijnen
-            2. De toon consistent persoonlijk en informeel blijft (tenzij anders aangegeven)
-            3. Productbeschrijvingen naadloos zijn geïntegreerd
-            4. Adviezen concreet en relevant zijn, met uitleg waarom ze voordelig kunnen zijn
-            5. Elke sectie een duidelijke vraag bevat, inclusief een aanbod voor premieberekening
-            6. De e-mail bondig en to-the-point blijft
-            7. De afsluiting kort en uitnodigend is
-            8. Er geen aannames worden gemaakt over wanneer verzekeringen voor het laatst zijn gewijzigd
-            9. Termen als "profiteren" worden vermeden bij het beschrijven van verzekeringssituaties
-            10. Bij de arbeidsongeschiktheidsverzekering wordt vermeld dat dit gebaseerd is op de gegevens bij Veldhuis Advies
+            Verbeter de volgende e-mail op basis van de gegeven feedback en de bovenstaande richtlijnen.
 
             Originele e-mail:
             {initial_email}

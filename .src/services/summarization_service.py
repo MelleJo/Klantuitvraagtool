@@ -70,7 +70,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             raise ValueError("Input data missing or incomplete")
 
         # Setup LangChain with OpenAI or any other model you use
-        llm = OpenAI(temperature=0.1)
+        llm = OpenAI(model='gpt-4o-2024-08-06', temperature=0.1)
 
         # Define the prompt template for email generation
         prompt_template = """

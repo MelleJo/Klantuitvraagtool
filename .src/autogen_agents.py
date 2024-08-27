@@ -8,7 +8,7 @@ import streamlit as st
 from openai import OpenAI
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
-client = OpenAI
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -233,33 +233,30 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat.
         """
 
-        response = client.chat.completions.create(
+        response = client.completions.create(
             model="gpt-4o-2024-08-06",
-            messages=[
-                {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000
+            prompt=prompt,
+            max_tokens=2000,
+            temperature=0.7
         )
 
-        email_content = response.choices[0].message.content.strip()
+        email_content = response.choices[0].text.strip()
         
         if not email_content:
             raise ValueError("Email generation returned empty content.")
 
-        logger.info("Email generated successfully")
-        logger.debug(f"Email content: {email_content[:500]}...")  # Log first 500 chars
+        logging.info("Email generated successfully")
+        logging.debug(f"Email content: {email_content[:500]}...")  # Log first 500 chars
 
         return email_content
 
     except Exception as e:
-        logger.error(f"Error in generate_email: {str(e)}")
-        logger.error(f"Error type: {type(e)}")
-        logger.error(f"Error args: {e.args}")
-        logger.error(f"Transcript: {transcript}")
-        logger.error(f"Enhanced coverage: {enhanced_coverage}")
-        logger.error(f"Selected recommendations: {selected_recommendations}")
+        logging.error(f"Error in generate_email: {str(e)}")
+        logging.error(f"Error type: {type(e)}")
+        logging.error(f"Error args: {e.args}")
+        logging.error(f"Transcript: {transcript}")
+        logging.error(f"Enhanced coverage: {enhanced_coverage}")
+        logging.error(f"Selected recommendations: {selected_recommendations}")
         raise
 
 def load_insurance_prompt() -> str:

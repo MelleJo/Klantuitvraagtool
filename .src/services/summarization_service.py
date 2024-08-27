@@ -3,9 +3,9 @@ import logging
 import os
 from typing import List, Dict, Any
 
-from langchain import OpenAI
+from langchain import ChatOpenAI
 from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 
 import streamlit as st
 import sys
@@ -52,6 +52,8 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         return {"error": str(e)}
 
 
+
+
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
         logger.info("Starting email generation using LangChain")
@@ -64,34 +66,27 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         logger.debug(f"Analysis JSON: {analysis_json}")
         logger.debug(f"Recommendations JSON: {recommendations_json}")
 
-        # Ensure all inputs are provided
         if not transcript or not analysis_json or not recommendations_json:
             logger.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Setup LangChain with OpenAI or any other model you use
-        llm = OpenAI(model='gpt-4o-2024-08-06', temperature=0.1)
+        # Set up LangChain with the chat model (e.g., GPT-4)
+        chat_llm = ChatOpenAI(model_name="gpt-4o-2024-08-06")
 
-        # Define the prompt template for email generation
-        prompt_template = """
-        You are an expert in writing professional emails. Based on the following information, generate a well-structured and clear email for a client.
+        # Define the chat prompt template
+        system_message_template = SystemMessagePromptTemplate.from_template("You are an expert in writing professional emails.")
+        human_message_template = HumanMessagePromptTemplate.from_template("""
+            Based on the following information, generate a well-structured and clear email for a client.
+            Transcript: {transcript}
+            Analysis: {analysis}
+            Recommendations: {recommendations}
+            The email should be polite, professional, and should address the client's needs appropriately. Use bullet points where necessary and ensure the email is ready to be sent without further edits.
+        """)
 
-        Transcript: {transcript}
+        prompt = ChatPromptTemplate.from_messages([system_message_template, human_message_template])
 
-        Analysis: {analysis}
-
-        Recommendations: {recommendations}
-
-        The email should be polite, professional, and should address the client's needs appropriately. Use bullet points where necessary and ensure the email is ready to be sent without further edits.
-        """
-
-        # Initialize the chain with the prompt template
-        prompt = PromptTemplate(
-            template=prompt_template,
-            input_variables=["transcript", "analysis", "recommendations"]
-        )
-
-        chain = LLMChain(prompt=prompt, llm=llm)
+        # Initialize the chain with the chat prompt template
+        chain = LLMChain(prompt=prompt, llm=chat_llm)
 
         # Run the chain to generate the email content
         email_content = chain.run({
@@ -111,6 +106,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 
 def couple_coverage_with_descriptions(current_coverage: List[str], product_descriptions: Dict[str, Any]) -> List[Dict[str, str]]:

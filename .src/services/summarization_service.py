@@ -46,7 +46,6 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
 
-from autogen_agents import email_generator, quality_control, user_proxy
 
 def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]]) -> str:
     try:
@@ -63,7 +62,7 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
             logger.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Try generating email with markdown formatting
+        # Attempt to generate email with markdown formatting
         user_proxy.initiate_chat(
             email_generator,
             message=f"Generate a personalized email for the client based on this transcript, analysis, and recommendations. Use markdown formatting for the email content:\n\nTranscript: {transcript}\n\nAnalysis: {analysis}\n\nRecommendations: {recommendations}"
@@ -73,25 +72,26 @@ def generate_email(transcript: str, enhanced_coverage: List[Dict[str, str]], sel
         logger.info("Initial email draft generated")
         logger.debug(f"Initial Email: {initial_email[:200]}...")  # Log the first 200 characters for context
 
+        # Check if markdown processing failed and fallback to plain text
         if 'exitcode: 1' in initial_email or 'unknown language markdown' in initial_email:
             logger.warning("Markdown processing failed, attempting plain text fallback")
             user_proxy.initiate_chat(
                 email_generator,
-                message=f"Please generate the email in plain text format instead."
+                message="The markdown formatting failed. Please generate the email in plain text format."
             )
             initial_email = email_generator.last_message().get("content", "")
             logger.info("Fallback to plain text email draft generated")
+            logger.debug(f"Plain Text Email: {initial_email[:200]}...")  # Log the first 200 characters for context
 
-        logger.debug(f"Final Email: {initial_email[:200]}...")  # Log the first 200 characters for context
-
-        if not initial_email:
-            logger.error("Email generator returned empty content.")
+        if not initial_email.strip():
+            logger.error("Email generator returned empty content after fallback.")
             raise ValueError("Email generator did not return any content.")
 
         return initial_email
     except Exception as e:
         logger.error(f"Error in generate_email: {str(e)}", exc_info=True)
         raise
+
 
 
 

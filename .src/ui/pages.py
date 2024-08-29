@@ -16,6 +16,7 @@ from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
 from services.summarization_service import analyze_transcript, generate_email_wrapper
 from services.email_service import send_feedback_email
+from autogen_agents import correction_AI
 import os
 import html
 import time
@@ -191,6 +192,7 @@ def render_client_report_step():
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
 
+                    # Step 1: Generate the email content
                     email_content = generate_email_wrapper(
                         transcript=transcript,
                         enhanced_coverage=enhanced_coverage,
@@ -200,9 +202,16 @@ def render_client_report_step():
                     if not email_content:
                         raise ValueError("Email generator did not return any content.")
 
-                    update_session_state('email_content', email_content)
-                    st.success("Klantrapport succesvol gegenereerd!")
+                    # Step 2: Apply the Correction AI
+                    st.info("Correcting email text...")
+                    corrected_email_content = correction_AI(email_content)  # No need to pass guidelines
+                    
+                    # Step 3: Update the session state with the corrected content
+                    update_session_state('email_content', corrected_email_content)
+
+                    st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
                     st.rerun()
+
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")
                     st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
@@ -220,6 +229,7 @@ def render_client_report_step():
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 def render_conversation_history():
     st.subheader("Laatste vijf gesprekken")

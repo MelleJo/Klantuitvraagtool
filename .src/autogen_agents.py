@@ -305,7 +305,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         raise
 
 
-def def_correction_AI(guidelines: str, email_result: str) -> str:
+def correction_AI(guidelines: str, email_result: str) -> str:
     # Construct the prompt for the correction AI
     prompt = f"""
     You are a language model that follows strict guidelines to ensure that the content is accurate, formal where required, free of assumptions, and does not contain jargon without explanations.

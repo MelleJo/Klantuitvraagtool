@@ -3,7 +3,7 @@ import logging
 from typing import List, Dict, Any
 
 import streamlit as st
-from autogen_agents import analyze_transcript, generate_email
+from autogen_agents import analyze_transcript, generate_email, correction_AI
 from config import (
     LOG_FILE, LOG_LEVEL, PRODUCT_DESCRIPTIONS_FILE,
     INPUT_METHODS, load_config

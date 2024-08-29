@@ -31,25 +31,46 @@ logging.basicConfig(filename='app.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
-    guidelines_dir = os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')
-    available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
+    # Get the absolute path to the current file
+    current_file_path = os.path.abspath(__file__)
     
-    # Prepare the analysis content
-    analysis_content = json.dumps(analysis_result, ensure_ascii=False)
+    # Navigate to the project root (assuming 'pages.py' is in 'src/ui/')
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
     
-    # Use GPT-4o-mini to identify relevant insurances
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are an AI assistant that identifies relevant insurance types from an analysis."},
-            {"role": "user", "content": f"Given the following analysis result, identify the relevant insurance types from this list: {', '.join(available_files)}. Respond with only the relevant insurance types, separated by commas.\n\nAnalysis:\n{analysis_content}"}
-        ],
-        temperature=0.2,
-        max_tokens=100
-    )
+    # Construct the path to the insurance_guidelines directory
+    guidelines_dir = os.path.join(project_root, '.src', 'insurance_guidelines')
     
-    identified_insurances = [ins.strip() for ins in response.choices[0].message.content.split(',')]
-    return [ins for ins in identified_insurances if ins in available_files]
+    try:
+        if not os.path.exists(guidelines_dir):
+            raise FileNotFoundError(f"The directory {guidelines_dir} does not exist.")
+        
+        available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
+        
+        if not available_files:
+            logging.warning(f"No .txt files found in {guidelines_dir}")
+            return []
+        
+        # Prepare the analysis content
+        analysis_content = json.dumps(analysis_result, ensure_ascii=False)
+        
+        # Use GPT-4o-mini to identify relevant insurances
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an AI assistant that identifies relevant insurance types from an analysis."},
+                {"role": "user", "content": f"Given the following analysis result, identify the relevant insurance types from this list: {', '.join(available_files)}. Respond with only the relevant insurance types, separated by commas.\n\nAnalysis:\n{analysis_content}"}
+            ],
+            temperature=0.2,
+            max_tokens=100
+        )
+        
+        identified_insurances = [ins.strip() for ins in response.choices[0].message.content.split(',')]
+        return [ins for ins in identified_insurances if ins in available_files]
+    
+    except Exception as e:
+        logging.error(f"Error in get_available_insurances: {str(e)}")
+        st.error(f"Er is een fout opgetreden bij het ophalen van de beschikbare verzekeringen: {str(e)}")
+        return []
 
 
 
@@ -200,8 +221,11 @@ def render_recommendations_step():
 
             # Add insurance type checklist
             st.subheader("Geïdentificeerde verzekeringen")
-            for insurance in identified_insurances:
-                st.checkbox(insurance.capitalize(), value=True, key=f"insurance_checkbox_{insurance}")
+            if identified_insurances:
+                for insurance in identified_insurances:
+                    st.checkbox(insurance.capitalize(), value=True, key=f"insurance_checkbox_{insurance}")
+            else:
+                st.info("Geen specifieke verzekeringen geïdentificeerd. Controleer de analyse of voeg handmatig toe.")
 
             # Add dropdown to include additional insurances
             available_insurances = [f.split('.')[0] for f in os.listdir(os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')) if f.endswith('.txt')]

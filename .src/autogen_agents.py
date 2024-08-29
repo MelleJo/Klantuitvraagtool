@@ -14,6 +14,17 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def load_product_descriptions():
+    file_path = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except Exception as e:
+        logging.error(f"Error loading product descriptions: {str(e)}")
+        return {}
+
+product_descriptions = load_product_descriptions()
+
 # Initialize OpenAI config
 config_list = [
     {
@@ -47,7 +58,7 @@ transcript_analyst = autogen.AssistantAgent(
     [For each recommendation, include:]
     <aanbeveling>
     Aanbeveling: [Title of the recommendation]
-    Beschrijving: [Describe the recommended insurance]
+    Beschrijving: [Describe the recommended insurance, based on {product_descriptions}]
     Rechtvaardiging: [Explain why this insurance is important for specifically this client, based on any info you can derrive out of the transcript or based on the client's business type]
     Specifieke risico's:
     - [Describe specific risk 1]
@@ -142,18 +153,6 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
 
     return result
 
-def load_product_descriptions():
-    file_path = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    except Exception as e:
-        logging.error(f"Error loading product descriptions: {str(e)}")
-        return {}
-
-
-        
-
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
@@ -174,7 +173,6 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error in analyze_transcript: {str(e)}", exc_info=True)
         return {"error": str(e)}
-
 
 
 def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str) -> str:
@@ -220,6 +218,27 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         15. Bij het bespreken van de bedrijfsschadeverzekering, leg uit waarom tegenwoordig de hersteltijd na een calamiteit langer kan duren (bijv. schaarste van materialen en personeel, langere levertijden)
         16. Gebruik een vriendelijke en open toon bij het bespreken van mogelijke personeelswijzigingen, bijvoorbeeld: "Mocht je inmiddels personeel hebben, dan..."
         17. Wanneer je spreekt over mogelijk nieuw personeel, noem ook dat dit nieuwe risico's met zich mee kan brengen die we samen kunnen bespreken
+        18. Vraag bij een AVB (aansprakelijkheidsverzekering), rechtsbijstandsverzekering altijd aan dat het van groot belang is dat het belangrijk of de hoedanigheid (ingesproken door adviseur in transcript, zo niet geef je aan [HOEDANIGHEID]) nog overeen komt. Dat is echt belangrijk. 
+        19. Als je vraagt om iets te controlen of iets nog correct is: hoedanigheid, kms, waarde, et cetera, dan is het van cruciaal belang dat je ook aangeeft wat er momenteel op de polis staat. Mocht je deze informatie niet uit het transcript kunnen halen dan maak je een placeholder (met []) en geef je aan dat de adviseur dat nog moet invullen. Bovendien is het bij het "controleren" van iets niet een kwestie van "het kan lonen om het aan te passen" maar: als dit veranderd is, dan moet dit worden aangepast op de polis. 
+        20. Bij personeel, overweeg het volgende (herschrijf uiteraard): (je kunt overwegen om een WIA-excedent (ongevallen)of WGA Hiaat aan te schaffen, het kan prettig zijn voor je personeel, dit kan helpen met het behouden van personeel. Mocht je hier eens over in gesprek willen gaan dan hoor ik het graag.)
+        21. Iets als een "brutal loan verzekering" bestaat niet, gebruik alleen bestaande verzekeringen (of onderwerpen), als je iets niet goed kunt plaatsen op basis van het transcript dan zet je gewoon je gedachten/vraag binnen [] als een placeholder dat de adviseur dit zelf nog gaat aanvullen.
+        22. Bij een woonhuisverzekeing: u heeft een woonhuisverzekering bij ons lopen. De volgende aspecten kunnen van invloed zijn op de dekking: zonnepanelen, zwembad, aanbouw, verbouwing. Mocht er iets veranderd zijn dan horen we het graag. 
+        23. In plaats van: "Gezien de mogelijke hoge dagwaarde, is het verstandig om te controleren of de dekking nog voldoende is." doe je iets meer in de trant van: "Het kan verstandig om te evalueren wat de huidige dagwaarde is en of de dekking nog steeds gewenst is?"
+        24. Indien reisverzekering zonder annulering: Reis je vaak / boek je vaak in het jaar een vakantie, overweeg dan… 
+        25. Geef nooit aan dat iets "goed" is verzekerd, dat is immers een subjectief oordeel. 
+        26. Gebruik geen afkortingen die een verzekeringsleek niet begrijpt, zoals SVI.
+        27. Indien over een auto of bestelauto, bespreek altijd WA/Casco/beperkt casco, dat bespreek je i.v.m. de dagwaarde en de input van de adviseur.
+        28. Noem altijd de clausules en alarmeisen, uiteraard haal je deze informatie enkel uit het transcript en verzin je ze niet.
+        29. Zorg heel duidelijk dat je verzekeringen niet met elkaar verwart.
+        30. Vraag nooit de klant hoe die een dekking ervaart, dat is waardeloos. 
+        31. De opzicht clausule (wel of niet) is cruciaal bij het bespreken van de AVB, mocht daar geen info over instaan in het transcript maak dan een placeholder met de boodschap aan de adviseur om dit aan te vullen.
+        32. ZZP of personeel (wel of niet) is cruciaal bij het bespreken van de AVB, mocht daar geen info over instaan in het transcript maak dan een placeholder met de boodschap aan de adviseur om dit aan te vullen. Hierbij is het belangrijk aan te geven dat zelfs als iemand je tijdelijk mee helpt, dat je dan geen ZZP'er meer bent voor de verzekering (en uitkering daarvan).
+        33. Geef nooit aan dat het "voordelig" kan zijn om een dekking uit te breiden, dat kost immers altijd meer geld. 
+        34. Er zijn verzekeringen waarbij we veel kunnen vergelijken (auto’s, bestelauto’s, inboedel, avb, bedrijfsschade, brand) en verzekeringen waarbij we niet veel kunnen vergelijken (garage, RB, cyber), wat dus betekent dat we bij de verzekeringen waar we wel kunnen vergelijken aan kunnen bieden om een vergelijk op te stellen. Maar bij een verzekering waarbij we niet veel kunnen vergelijken, dat je dan aangeeft dat we een offerte kunnen maken of het uitzoeken maar niet vergelijken.
+        35. Indien inboedel en inventaris (goederen), geef dan altijd het verschil aan tussen goederen en inventaris, met een voorbeeld. Doe hetzelfde met huurdersbelang en eigenaarsbelang.
+        36. Geef aan dat i.v.m. vergunningen, personeelstekort en andere omstandigheden het tegenwoordig vaak vrij lang duurt voordat je weer "draait" als onderneming. Dus dat het best verstandig kan zijn om te evalueren of het uitkeringstermijn van de bedrijfsschade wel voldoende is.
+        37. Zeg nooit, tenzij expliciet vermeldt, iets over het eigen risico.
+        38. In geval van AOV/pensioen noem iets in de trant van het volgende: Als ondernemer kan je pensioen kan je opbouwen via bancaire lijfrente, fiscaal aantrekkelijk om te sparen, nog niet zo bekend onder ondernemers. Heb je daar interesse in en dan kunnen we een afspraak plannen. Het is verstandig om daar een beetje op tijd mee te beginnen. Zouden we je daar een keer over kunnen bellen. 
         """
 
         email_structure = """
@@ -228,12 +247,12 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         1. Persoonlijke introductie
         2. Voor elke relevante verzekering in de huidige dekking:
            - Naam verzekering (in bold)
-           - Huidige situatie: Beschrijf kort de dekking, gebruik hierbij de gegeven productbeschrijving
+           - Huidige situatie: Beschrijf hier duidelijk, en uitgebreid wat de verzekering precies doet. Hier kun je informatie over de verzekeringsproducten vandaan halen: {product_descriptions}, en indien genoemd ook de dekking van de klant als daar bepaalde details in zijn. Hier is het ontzettend belangrijk dat je niet hallucineert of assumpties maakt. Geef ook altijd een duidelijk illustratief voorbeeld.
            - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
            - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
 
         3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
-        4. Korte, vriendelijke afsluiting met verzoek om reactie en contactgegevens
+        4. Het einde moet zoiets zijn als: ik ga er van uit dat ik je hier mee duidelijkheid geef over je / op weg helpen -> graag hoor ik of alle informatie nog actueel is, en of ik je ergens mee kan helpen?)
         """
 
         prompt = f"""
@@ -260,7 +279,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3,
+            temperature=0.2,
             max_tokens=2000
         )
 

@@ -90,5 +90,6 @@ def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, st
         logging.error(f"Error in generate_email_wrapper: {str(e)}", exc_info=True)
         raise
 
+
 # Load product descriptions when this module is imported
 product_descriptions = load_product_descriptions()

@@ -23,15 +23,33 @@ import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 import logging
 from typing import List, Dict
+from openai import OpenAI
 
-
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def get_available_insurances() -> List[str]:
+def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
     guidelines_dir = os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')
-    return [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
+    available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
+    
+    # Prepare the analysis content
+    analysis_content = json.dumps(analysis_result, ensure_ascii=False)
+    
+    # Use GPT-4o-mini to identify relevant insurances
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are an AI assistant that identifies relevant insurance types from an analysis."},
+            {"role": "user", "content": f"Given the following analysis result, identify the relevant insurance types from this list: {', '.join(available_files)}. Respond with only the relevant insurance types, separated by commas.\n\nAnalysis:\n{analysis_content}"}
+        ],
+        temperature=0.2,
+        max_tokens=100
+    )
+    
+    identified_insurances = [ins.strip() for ins in response.choices[0].message.content.split(',')]
+    return [ins for ins in identified_insurances if ins in available_files]
 
 
 
@@ -145,7 +163,8 @@ def render_recommendations_step():
     if 'suggestions' not in st.session_state or not st.session_state.get('suggestions'):
         st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
     else:
-        recommendations = st.session_state.get('suggestions', {}).get('recommendations', [])
+        analysis_result = st.session_state.get('suggestions', {})
+        recommendations = analysis_result.get('recommendations', [])
         
         if not recommendations:
             st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
@@ -176,16 +195,16 @@ def render_recommendations_step():
             update_session_state('selected_suggestions', selected_recommendations)
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
 
+            # Identify relevant insurances
+            identified_insurances = get_available_insurances(analysis_result)
+
             # Add insurance type checklist
             st.subheader("Geïdentificeerde verzekeringen")
-            available_insurances = get_available_insurances()
-            identified_insurances = [rec['title'].lower() for rec in selected_recommendations]
-            
-            for insurance in available_insurances:
-                is_identified = insurance in identified_insurances
-                st.checkbox(insurance.capitalize(), value=is_identified, key=f"insurance_checkbox_{insurance}")
+            for insurance in identified_insurances:
+                st.checkbox(insurance.capitalize(), value=True, key=f"insurance_checkbox_{insurance}")
 
             # Add dropdown to include additional insurances
+            available_insurances = [f.split('.')[0] for f in os.listdir(os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')) if f.endswith('.txt')]
             additional_insurance = st.selectbox(
                 "Voeg een extra verzekering toe",
                 [""] + [ins for ins in available_insurances if ins not in identified_insurances]

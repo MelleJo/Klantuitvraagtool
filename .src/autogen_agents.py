@@ -236,7 +236,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=3000
+            max_tokens=8000  # Increased to utilize more of the context window
         )
 
         email_content = response.choices[0].message.content.strip()
@@ -244,8 +244,8 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         if not email_content:
             raise ValueError("Email generation returned empty content.")
 
-        # Apply correction AI
-        corrected_email = correction_AI(email_content)
+        # Apply correction AI with maximized context
+        corrected_email = correction_AI(email_content, guidelines)
 
         logging.info("Email generated and corrected successfully")
         logging.debug(f"Corrected email content: {corrected_email[:500]}...")  # Log first 500 chars
@@ -263,29 +263,40 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         raise
 
 
-def correction_AI(email_content: str) -> str:
-    # Construct the prompt for the correction AI
-    guidelines = load_guidelines()
-    prompt = f"""
-    You check line by line the {email_content} and check if it adheres to {guidelines}, if you see it is somewhere not adhering you fix that.
-    """
+def correction_AI(email_content: str, guidelines: str) -> str:
+    try:
+        prompt = f"""
+        Review and correct the following email content based on these guidelines:
 
-    # Call the GPT-4o model to correct the email
-     # Call the GPT-4o model to correct the email
-    response = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
-        messages=[
-            {"role": "system", "content": "You are an assistant that specializes in correcting AI-generated content based on strict guidelines."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=3000,  # Adjust based on expected output length
-        temperature=0.2  # Low temperature for deterministic output
-    )
+        Guidelines:
+        {guidelines}
 
-    # Extract the corrected email content
-    corrected_email = response.choices[0].message.content.strip()
+        Email Content:
+        {email_content}
 
-    return corrected_email
+        Please provide the corrected version of the email, ensuring it adheres to all guidelines.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=8000  # Increased to utilize more of the context window
+        )
+
+        corrected_email = response.choices[0].message.content.strip()
+
+        if not corrected_email:
+            raise ValueError("Correction AI returned empty content.")
+
+        return corrected_email
+
+    except Exception as e:
+        logging.error(f"Error in correction_AI: {str(e)}")
+        raise
 
 
 def load_insurance_prompt() -> str:

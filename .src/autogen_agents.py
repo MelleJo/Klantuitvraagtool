@@ -151,6 +151,9 @@ def load_product_descriptions():
         logging.error(f"Error loading product descriptions: {str(e)}")
         return {}
 
+
+        
+
 def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")

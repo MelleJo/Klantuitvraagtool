@@ -272,7 +272,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         raise
 
 
-def correction_AI(guidelines: str, email_content: str) -> str:
+def correction_AI(email_content: str) -> str:
     # Construct the prompt for the correction AI
     guidelines = load_guidelines()
     prompt = f"""

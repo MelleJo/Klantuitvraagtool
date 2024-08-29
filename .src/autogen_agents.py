@@ -292,7 +292,7 @@ def correction_AI(email_content: str) -> str:
     )
 
     # Extract the corrected email content
-    corrected_email = response.choices[0].message['content'].strip()
+    corrected_email = response.choices[0].message.content.strip()
 
     return corrected_email
 

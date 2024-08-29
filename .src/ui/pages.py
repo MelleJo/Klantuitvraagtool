@@ -22,9 +22,18 @@ import html
 import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 import logging
+from typing import List, Dict
+
+
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+def get_available_insurances() -> List[str]:
+    guidelines_dir = os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')
+    return [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
+
+
 
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -132,7 +141,7 @@ def on_generate_client_report():
 def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Aanbevelingen")
-    
+
     if 'suggestions' not in st.session_state or not st.session_state.get('suggestions'):
         st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
     else:
@@ -142,12 +151,12 @@ def render_recommendations_step():
             st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
         else:
             st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
-            
+
             selected_recommendations = []
             for i, rec in enumerate(recommendations):
                 if st.checkbox(rec.get('title', f"Aanbeveling {i+1}"), key=f"rec_checkbox_{i}"):
                     selected_recommendations.append(rec)
-                
+
                 with st.expander(f"Details voor {rec.get('title', f'Aanbeveling {i+1}')}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
                     if 'description' in rec:
@@ -163,16 +172,35 @@ def render_recommendations_step():
                             st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
                         st.markdown('</ul>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
-            
+
             update_session_state('selected_suggestions', selected_recommendations)
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
+
+            # Add insurance type checklist
+            st.subheader("Geïdentificeerde verzekeringen")
+            available_insurances = get_available_insurances()
+            identified_insurances = [rec['title'].lower() for rec in selected_recommendations]
             
+            for insurance in available_insurances:
+                is_identified = insurance in identified_insurances
+                st.checkbox(insurance.capitalize(), value=is_identified, key=f"insurance_checkbox_{insurance}")
+
+            # Add dropdown to include additional insurances
+            additional_insurance = st.selectbox(
+                "Voeg een extra verzekering toe",
+                [""] + [ins for ins in available_insurances if ins not in identified_insurances]
+            )
+            if additional_insurance:
+                identified_insurances.append(additional_insurance)
+
+            update_session_state('identified_insurances', identified_insurances)
+
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
-    
+
     st.markdown("</div>", unsafe_allow_html=True)
     
 from services.summarization_service import generate_email_wrapper

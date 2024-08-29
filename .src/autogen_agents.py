@@ -159,7 +159,11 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
         
         user_proxy.initiate_chat(
             transcript_analyst,
-            message=f"Please analyze this insurance-related transcript:\n\n{transcript}",
+            message=f"""Please analyze this insurance-related transcript and identify the relevant insurance types:
+
+{transcript}
+
+In your analysis, include a list of identified insurance types at the end.""",
             summary_method="last_msg",
             max_turns=1
         )
@@ -183,69 +187,52 @@ def load_guidelines() -> str:
         logging.error(f"Error loading guidelines: {str(e)}")
         return ""
 
+def load_insurance_specific_instructions(identified_insurances: List[str]) -> Dict[str, str]:
+    instructions = {}
+    instructions_dir = os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')
+    
+    for insurance in identified_insurances:
+        file_path = os.path.join(instructions_dir, f"{insurance}.txt")
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                instructions[insurance] = file.read()
+        else:
+            logging.warning(f"Specific instructions file not found for insurance type: {insurance}")
+    
+    return instructions
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str) -> str:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str]) -> str:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
         product_descriptions = load_product_descriptions()
         guidelines = load_guidelines()
-
-        current_coverage = []
-        for item in enhanced_coverage_list:
-            title = item.get('title', 'Onbekende verzekering').replace('- ', '').strip()
-            coverage = item.get('coverage', 'Geen details beschikbaar')
-            description = ''
-
-            for category, products in product_descriptions.items():
-                if isinstance(products, dict):
-                    for product, details in products.items():
-                        if product.lower() in title.lower():
-                            description = details.get('description', '')
-                            break
-                    if description:
-                        break
-                        
-            current_coverage.append(f"{title}:\n{coverage}\nOfficiële beschrijving: {description}")
-
-        current_coverage_str = "\n\n".join(current_coverage)
-
-        email_structure = """
-        Schrijf een e-mail met de volgende structuur:
-
-        1. Persoonlijke introductie
-        2. Voor elke relevante verzekering in de huidige dekking:
-           - Naam verzekering (in bold)
-           - Huidige situatie: Beschrijf hier duidelijk en uitgebreid wat de verzekering precies doet. Hier kun je informatie over de verzekeringsproducten vandaan halen: {product_descriptions}, en indien genoemd ook de dekking van de klant als daar bepaalde details in zijn. Hier is het ontzettend belangrijk dat je niet hallucineert of assumpties maakt. Geef ook altijd een duidelijk illustratief voorbeeld.
-           - Advies: Geef een concreet advies of aandachtspunt, gebaseerd op de huidige situatie en mogelijke risico's. Leg uit waarom dit advies voordelig kan zijn.
-           - Vraag: Stel een relevante vraag om de klant te betrekken, inclusief een aanbod om een berekening te maken voor premievergelijking
-
-        3. Eventuele overige aandachtspunten (bijv. over personeel of specifieke risico's)
-        4. Het einde moet zoiets zijn als: ik ga er van uit dat ik je hier mee duidelijkheid geef over je / op weg helpen -> graag hoor ik of alle informatie nog actueel is, en of ik je ergens mee kan helpen?)
-        """
+        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
 
         prompt = f"""
-        {guidelines}
-        {email_structure}
-        
-        Gebruik de volgende informatie:
-        
-        Introductie:
-        Beste [Naam],
-        Ik zie in ons dossier dat u al sinds enige tijd een aantal verzekeringen bij ons hebt lopen. Ik heb mij verdiept in jouw bedrijf en de verzekeringen die je hebt lopen. En daar vallen me een paar dingen in op, die ik graag met je wil bespreken.
+        Generate an email based on the following information:
 
-        Huidige dekking:
-        {current_coverage_str}
         Transcript: {transcript}
-        Geselecteerde aanbevelingen: {json.dumps(selected_recommendations_list, ensure_ascii=False)}
 
-        Genereer nu een e-mail volgens bovenstaande richtlijnen en structuur. Zorg ervoor dat de e-mail volledig is en alle gevraagde elementen bevat, inclusief de introductie, officiële productbeschrijvingen, en de specifieke punten over de bedrijfsschadeverzekering en mogelijke personeelswijzigingen.
+        Current Coverage and Analysis: {json.dumps(enhanced_coverage_list, indent=2)}
+
+        Selected Recommendations: {json.dumps(selected_recommendations_list, indent=2)}
+
+        Use the following specific instructions for each identified insurance type:
+
+        {json.dumps(insurance_specific_instructions, indent=2)}
+
+        General Guidelines:
+        {guidelines}
+
+        Ensure that you address each identified insurance type using its specific instructions.
+        The email should be structured, personalized, and follow all the general email writing guidelines provided.
         """
 
         response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
-                {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur bij Veldhuis Advies."},
+                {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
@@ -257,10 +244,13 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         if not email_content:
             raise ValueError("Email generation returned empty content.")
 
-        logging.info("Email generated successfully")
-        logging.debug(f"Email content: {email_content[:500]}...")  # Log first 500 chars
+        # Apply correction AI
+        corrected_email = correction_AI(email_content)
 
-        return email_content
+        logging.info("Email generated and corrected successfully")
+        logging.debug(f"Corrected email content: {corrected_email[:500]}...")  # Log first 500 chars
+
+        return corrected_email
 
     except Exception as e:
         logging.error(f"Error in generate_email: {str(e)}")
@@ -269,6 +259,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         logging.error(f"Transcript: {transcript}")
         logging.error(f"Enhanced coverage: {enhanced_coverage}")
         logging.error(f"Selected recommendations: {selected_recommendations}")
+        logging.error(f"Identified insurances: {identified_insurances}")
         raise
 
 

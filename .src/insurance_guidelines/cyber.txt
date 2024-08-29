@@ -1,0 +1,12 @@
+Guidelines for Cyberverzekering:
+
+1. Explain that this insurance is becoming increasingly important and covers financial consequences of hacking, system intrusion, lost data, data theft, and cyber attacks.
+2. Mention that it covers liability, own damage, and recovery costs.
+3. Emphasize that it includes support from experienced professionals to limit damage.
+4. Discuss specific risks relevant to the client's business, such as customer data protection, invoicing systems, and supply chain disruptions.
+5. Structure the advice as follows:
+   a. Brief explanation of what cyberverzekering covers
+   b. Discussion of potential cyber risks specific to the client's business
+   c. Benefits of having cyber insurance
+   d. Recommendations
+   e. Question for engagement

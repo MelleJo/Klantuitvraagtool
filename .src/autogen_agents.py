@@ -305,10 +305,10 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         raise
 
 
-def correction_AI(guidelines: str, email_result: str) -> str:
+def correction_AI(guidelines: str, email_content: str) -> str:
     # Construct the prompt for the correction AI
     prompt = f"""
-    You check line by line the {email_result} and check if it adheres to {guidelines}, if you see it is somewhere not adhering you fix that.
+    You check line by line the {email_content} and check if it adheres to {guidelines}, if you see it is somewhere not adhering you fix that.
     """
 
     # Call the GPT-4o model to correct the email

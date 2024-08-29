@@ -22,7 +22,7 @@ import html
 import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 import logging
-from typing import List, Dict
+from typing import List, Dict, Any
 from openai import OpenAI
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])

@@ -249,7 +249,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=2000
+            max_tokens=3000
         )
 
         email_content = response.choices[0].message.content.strip()
@@ -280,20 +280,21 @@ def correction_AI(email_content: str) -> str:
     """
 
     # Call the GPT-4o model to correct the email
+     # Call the GPT-4o model to correct the email
     response = client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
             {"role": "system", "content": "You are an assistant that specializes in correcting AI-generated content based on strict guidelines."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=1500,  # Adjust based on expected output length
+        max_tokens=3000,  # Adjust based on expected output length
         temperature=0.2  # Low temperature for deterministic output
     )
 
     # Extract the corrected email content
-    corrected_email = response['choices'][0]['message']['content'].strip()
+    corrected_email = response.choices[0].message['content'].strip()
 
-    return corrected_email 
+    return corrected_email
 
 
 def load_insurance_prompt() -> str:

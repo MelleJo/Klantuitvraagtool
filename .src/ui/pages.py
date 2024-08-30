@@ -268,6 +268,7 @@ def render_client_report_step():
                     transcript = st.session_state.get('transcript', '')
                     suggestions = st.session_state.get('suggestions', {})
                     selected_suggestions = st.session_state.get('selected_suggestions', [])
+                    identified_insurances = st.session_state.get('identified_insurances', [])  # Add this line
 
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
@@ -276,7 +277,8 @@ def render_client_report_step():
                     email_content = generate_email_wrapper(
                         transcript=transcript,
                         enhanced_coverage=enhanced_coverage,
-                        selected_recommendations=selected_suggestions
+                        selected_recommendations=selected_suggestions,
+                        identified_insurances=identified_insurances  # Add this line
                     )
 
                     if not email_content:
@@ -285,7 +287,7 @@ def render_client_report_step():
                     # Step 2: Apply the Correction AI
                     st.info("Correcting email text...")
                     corrected_email_content = correction_AI(email_content)  # No need to pass guidelines
-                    
+
                     # Step 3: Update the session state with the corrected content
                     update_session_state('email_content', corrected_email_content)
 

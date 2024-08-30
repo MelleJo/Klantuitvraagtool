@@ -189,10 +189,12 @@ def load_guidelines() -> str:
 
 def load_insurance_specific_instructions(identified_insurances: List[str]) -> Dict[str, str]:
     instructions = {}
-    instructions_dir = os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')
+    current_file_path = os.path.abspath(__file__)
+    project_root = os.path.dirname(os.path.dirname(current_file_path))
+    guidelines_dir = os.path.join(project_root, 'src', 'insurance_guidelines')
     
     for insurance in identified_insurances:
-        file_path = os.path.join(instructions_dir, f"{insurance}.txt")
+        file_path = os.path.join(guidelines_dir, f"{insurance}.txt")
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as file:
                 instructions[insurance] = file.read()
@@ -207,13 +209,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         selected_recommendations_list = json.loads(selected_recommendations)
         product_descriptions = load_product_descriptions()
         guidelines = load_guidelines()
-        
-        # Try to load insurance-specific instructions, but don't fail if not found
-        try:
-            insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
-        except FileNotFoundError:
-            logging.warning("Insurance guidelines directory not found. Proceeding without specific instructions.")
-            insurance_specific_instructions = {}
+        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
 
         prompt = f"""
         Generate an email based on the following information:
@@ -224,17 +220,19 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         Selected Recommendations: {json.dumps(selected_recommendations_list, indent=2)}
 
-        Identified Insurance Types: {', '.join(identified_insurances)}
-
-        Use the following specific instructions for each identified insurance type (if available):
+        Use the following specific instructions for each identified insurance type:
 
         {json.dumps(insurance_specific_instructions, indent=2)}
+
+        Product Descriptions:
+        {json.dumps(product_descriptions, indent=2)}
 
         General Guidelines:
         {guidelines}
 
-        Ensure that you address each identified insurance type, using specific instructions if available.
+        Ensure that you address each identified insurance type using its specific instructions.
         The email should be structured, personalized, and follow all the general email writing guidelines provided.
+        Focus on the identified insurance types and the selected recommendations.
         """
 
         response = client.chat.completions.create(

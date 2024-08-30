@@ -31,25 +31,7 @@ logging.basicConfig(filename='app.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
-    # Get the absolute path to the current file
-    current_file_path = os.path.abspath(__file__)
-    
-    # Navigate to the project root (assuming 'pages.py' is in 'src/ui/')
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
-    
-    # Construct the path to the insurance_guidelines directory
-    guidelines_dir = os.path.join(project_root, '.src', 'insurance_guidelines')
-    
     try:
-        if not os.path.exists(guidelines_dir):
-            raise FileNotFoundError(f"The directory {guidelines_dir} does not exist.")
-        
-        available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
-        
-        if not available_files:
-            logging.warning(f"No .txt files found in {guidelines_dir}")
-            return []
-        
         # Prepare the analysis content
         analysis_content = json.dumps(analysis_result, ensure_ascii=False)
         
@@ -58,14 +40,14 @@ def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are an AI assistant that identifies relevant insurance types from an analysis."},
-                {"role": "user", "content": f"Given the following analysis result, identify the relevant insurance types from this list: {', '.join(available_files)}. Respond with only the relevant insurance types, separated by commas.\n\nAnalysis:\n{analysis_content}"}
+                {"role": "user", "content": f"Given the following analysis result, identify the relevant insurance types. Respond with only the relevant insurance types, separated by commas.\n\nAnalysis:\n{analysis_content}"}
             ],
             temperature=0.2,
             max_tokens=100
         )
         
         identified_insurances = [ins.strip() for ins in response.choices[0].message.content.split(',')]
-        return [ins for ins in identified_insurances if ins in available_files]
+        return identified_insurances
     
     except Exception as e:
         logging.error(f"Error in get_available_insurances: {str(e)}")
@@ -228,10 +210,9 @@ def render_recommendations_step():
                 st.info("Geen specifieke verzekeringen geïdentificeerd. Controleer de analyse of voeg handmatig toe.")
 
             # Add dropdown to include additional insurances
-            available_insurances = [f.split('.')[0] for f in os.listdir(os.path.join(os.path.dirname(__file__), '..', '.src', 'insurance_guidelines')) if f.endswith('.txt')]
-            additional_insurance = st.selectbox(
-                "Voeg een extra verzekering toe",
-                [""] + [ins for ins in available_insurances if ins not in identified_insurances]
+            additional_insurance = st.text_input(
+                "Voeg een extra verzekering toe (optioneel)",
+                key="additional_insurance_input"
             )
             if additional_insurance:
                 identified_insurances.append(additional_insurance)

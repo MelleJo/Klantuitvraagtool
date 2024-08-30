@@ -207,7 +207,13 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         selected_recommendations_list = json.loads(selected_recommendations)
         product_descriptions = load_product_descriptions()
         guidelines = load_guidelines()
-        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
+        
+        # Try to load insurance-specific instructions, but don't fail if not found
+        try:
+            insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
+        except FileNotFoundError:
+            logging.warning("Insurance guidelines directory not found. Proceeding without specific instructions.")
+            insurance_specific_instructions = {}
 
         prompt = f"""
         Generate an email based on the following information:
@@ -218,14 +224,16 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         Selected Recommendations: {json.dumps(selected_recommendations_list, indent=2)}
 
-        Use the following specific instructions for each identified insurance type:
+        Identified Insurance Types: {', '.join(identified_insurances)}
+
+        Use the following specific instructions for each identified insurance type (if available):
 
         {json.dumps(insurance_specific_instructions, indent=2)}
 
         General Guidelines:
         {guidelines}
 
-        Ensure that you address each identified insurance type using its specific instructions.
+        Ensure that you address each identified insurance type, using specific instructions if available.
         The email should be structured, personalized, and follow all the general email writing guidelines provided.
         """
 

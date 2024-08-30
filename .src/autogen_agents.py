@@ -234,17 +234,19 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         The email should be structured, personalized, and follow all the general email writing guidelines provided.
         Focus on the identified insurance types and the selected recommendations.
         
-        Important points to include:
-        1. Explain the difference between inventory and goods if relevant.
-        2. Mention that Veldhuis Advies is an intermediary, not the insurer.
-        3. For each insurance type, explain the consequences of underinsurance or insufficient coverage.
-        4. Provide detailed explanations for each insurance type, avoiding brief or superficial descriptions.
-        5. Use bullet points instead of numbering for lists.
-        6. Format placeholders in all caps with square brackets.
-        7. Avoid double questions - ask for information or changes only once per topic.
-        8. For home insurance, always mention factors like solar panels, swimming pools, and renovations.
-        9. For business interruption insurance, always explain why recovery times might be longer nowadays.
-        10. For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
+        Crucial points to include:
+        1. Use dashes (-) instead of bullet points for all lists.
+        2. For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
+        3. Mention at least once that Veldhuis Advies is an intermediary: "Als tussenpersoon helpt Veldhuis Advies je bij het vinden van de beste verzekeringen voor jouw situatie."
+        4. For each insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
+        5. For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
+        6. For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
+        7. For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
+        8. Avoid double questions - ask for information or changes only once per topic.
+        9. Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
+        10. Provide specific examples of how each insurance type protects the client's business or personal assets.
+
+        The email should be comprehensive yet easy to read, with each insurance type clearly separated and explained.
         """
 
         response = client.chat.completions.create(
@@ -253,8 +255,8 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            max_tokens=8000
+            temperature=0.5,
+            max_tokens=14000
         )
 
         initial_email_content = response.choices[0].message.content.strip()
@@ -296,7 +298,19 @@ def correction_AI(email_content: str, guidelines: str) -> str:
         Email Content:
         {email_content}
 
-        Please provide the corrected version of the email, ensuring it adheres to all guidelines.
+        Please provide the corrected version of the email, ensuring it adheres to all guidelines. Pay special attention to:
+        1. Using dashes (-) instead of bullet points for all lists.
+        2. Including a detailed explanation of the difference between inventory and goods insurance.
+        3. Mentioning that Veldhuis Advies is an intermediary.
+        4. Providing detailed explanations for each insurance type and stating the consequences of underinsurance or insufficient coverage.
+        5. Discussing the "opzicht" clause for liability insurance.
+        6. Explaining longer recovery times for business interruption insurance.
+        7. Mentioning factors like solar panels, swimming pools, and renovations for home insurance.
+        8. Avoiding double questions.
+        9. Formatting all placeholders in all caps with square brackets.
+        10. Providing specific examples for each insurance type.
+
+        Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
         """
 
         response = client.chat.completions.create(
@@ -305,8 +319,8 @@ def correction_AI(email_content: str, guidelines: str) -> str:
                 {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            max_tokens=8000
+            temperature=0.5,
+            max_tokens=14000
         )
 
         corrected_email = response.choices[0].message.content.strip()

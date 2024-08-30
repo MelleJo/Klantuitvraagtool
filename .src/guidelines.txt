@@ -1,13 +1,13 @@
 1. Begin met een persoonlijke introductie die uitlegt waarom u contact opneemt, zonder te bedanken voor de langdurige relatie.
 2. Gebruik een informele, persoonlijke toon (je/jij), tenzij het transcript aangeeft dat formeel taalgebruik (u) nodig is.
 3. Plaats tekst onder kopjes, niet ernaast.
-4. Gebruik streepjes (-) in plaats van nummers voor opsommingen.
+4. Gebruik streepjes (-) in plaats van bullets (•) voor opsommingen.
 5. Maak placeholders duidelijk zichtbaar met hoofdletters en vierkante haken, bijvoorbeeld: [AANVULLEN OF ER MOMENTEEL CLAUSULE OPZICHT IS].
 6. Vermijd dubbele vragen. Vraag eenmaal om informatie of veranderingen door te geven.
-7. Geef uitgebreide uitleg over verzekeringsbegrippen, zoals het verschil tussen inventaris en goederen.
+7. Geef altijd een uitgebreide uitleg over het verschil tussen inventaris en goederen bij relevante verzekeringen.
 8. Zorg voor diepgaande informatie bij elk onderwerp. Vermijd oppervlakkige of te korte beschrijvingen.
 9. Groepeer verzekeringen onder relevante kopjes (Zakelijk, Particulier, etc.).
-10. Benadruk dat Veldhuis Advies een tussenpersoon is en niet de verzekeraar zelf.
+10. Benadruk minstens eenmaal dat Veldhuis Advies een tussenpersoon is en niet de verzekeraar zelf.
 11. Sluit af met een beknopte, vriendelijke uitnodiging om te reageren.
 12. Vermeld altijd het telefoonnummer 0578-699760.
 13. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd.
@@ -23,3 +23,4 @@
 23. Gebruik geen afkortingen die een verzekeringsleek niet begrijpt.
 24. Noem altijd de clausules en alarmeisen, uiteraard alleen als deze informatie uit het transcript komt.
 25. Leg bij elke verzekering uit wat de gevolgen kunnen zijn van onderverzekering of onvoldoende dekking.
+26. Geef concrete voorbeelden van hoe elke verzekering de bedrijfs- of persoonlijke bezittingen van de klant beschermt.

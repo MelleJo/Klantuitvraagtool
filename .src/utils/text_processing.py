@@ -9,6 +9,8 @@ def get_project_root():
 
 import os
 
+import logging
+
 def load_guidelines() -> str:
     current_file_path = os.path.abspath(__file__)
     project_root = os.path.dirname(os.path.dirname(current_file_path))

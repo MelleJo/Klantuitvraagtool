@@ -191,7 +191,7 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> Di
     instructions = {}
     current_file_path = os.path.abspath(__file__)
     project_root = os.path.dirname(current_file_path)
-    guidelines_dir = os.path.join(project_root, '.src', 'insurance_guidelines')
+    guidelines_dir = os.path.join(project_root, 'src', 'insurance_guidelines')
     
     for insurance in identified_insurances:
         file_path = os.path.join(guidelines_dir, f"{insurance}.txt")
@@ -203,7 +203,7 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> Di
     
     return instructions
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str]) -> str:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str]) -> Dict[str, str]:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
@@ -242,21 +242,25 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=8000  # Increased to utilize more of the context window
+            max_tokens=8000
         )
 
-        email_content = response.choices[0].message.content.strip()
+        initial_email_content = response.choices[0].message.content.strip()
         
-        if not email_content:
+        if not initial_email_content:
             raise ValueError("Email generation returned empty content.")
 
-        # Apply correction AI with maximized context
-        corrected_email = correction_AI(email_content, guidelines)
+        # Apply correction AI
+        corrected_email = correction_AI(initial_email_content, guidelines)
 
         logging.info("Email generated and corrected successfully")
-        logging.debug(f"Corrected email content: {corrected_email[:500]}...")  # Log first 500 chars
+        logging.debug(f"Initial email content: {initial_email_content[:500]}...")
+        logging.debug(f"Corrected email content: {corrected_email[:500]}...")
 
-        return corrected_email
+        return {
+            "initial_email": initial_email_content,
+            "corrected_email": corrected_email
+        }
 
     except Exception as e:
         logging.error(f"Error in generate_email: {str(e)}")
@@ -290,7 +294,7 @@ def correction_AI(email_content: str, guidelines: str) -> str:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=8000  # Increased to utilize more of the context window
+            max_tokens=8000
         )
 
         corrected_email = response.choices[0].message.content.strip()

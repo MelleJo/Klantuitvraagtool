@@ -24,6 +24,12 @@ from utils.session_state import update_session_state, move_to_step, clear_analys
 import logging
 from typing import List, Dict, Any
 from openai import OpenAI
+import streamlit as st
+import logging
+from utils.session_state import update_session_state
+from services.summarization_service import generate_email_wrapper
+from autogen_agents import correction_AI
+from utils.text_processing import load_guidelines
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -263,7 +269,7 @@ def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")
 
-    if 'email_content' not in st.session_state or not st.session_state.get('email_content'):
+    if 'initial_email_content' not in st.session_state or 'corrected_email_content' not in st.session_state:
         if st.button("Genereer klantrapport"):
             with st.spinner("Rapport wordt gegenereerd..."):
                 try:
@@ -275,7 +281,6 @@ def render_client_report_step():
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
 
-                    # Step 1: Generate the email content
                     email_content = generate_email_wrapper(
                         transcript=transcript,
                         enhanced_coverage=enhanced_coverage,
@@ -283,16 +288,8 @@ def render_client_report_step():
                         identified_insurances=identified_insurances
                     )
 
-                    if not email_content:
-                        raise ValueError("Email generator did not return any content.")
-
-                    # Step 2: Apply the Correction AI
-                    st.info("Correcting email text...")
-                    guidelines = load_guidelines()  # Load the general guidelines
-                    corrected_email_content = correction_AI(email_content, guidelines)
-
-                    # Step 3: Update the session state with the corrected content
-                    update_session_state('email_content', corrected_email_content)
+                    update_session_state('initial_email_content', email_content['initial_email'])
+                    update_session_state('corrected_email_content', email_content['corrected_email'])
 
                     st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
                     st.rerun()
@@ -302,16 +299,28 @@ def render_client_report_step():
                     st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
                     st.stop()
 
-    if st.session_state.get('email_content'):
-        st.markdown("### 📥 Rapportinhoud")
-        st.markdown(st.session_state.get('email_content', ''), unsafe_allow_html=True)
+    if st.session_state.get('initial_email_content') and st.session_state.get('corrected_email_content'):
+        st.markdown("### 📥 Oorspronkelijke rapportinhoud")
+        st.markdown(st.session_state.get('initial_email_content', ''), unsafe_allow_html=True)
 
-        st.download_button(
-            label="Download rapport",
-            data=st.session_state.get('email_content', ''),
-            file_name="VerzekeringRapport_Klant.md",
-            mime="text/markdown"
-        )
+        st.markdown("### 📝 Gecorrigeerde rapportinhoud")
+        st.markdown(st.session_state.get('corrected_email_content', ''), unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                label="Download oorspronkelijk rapport",
+                data=st.session_state.get('initial_email_content', ''),
+                file_name="Origineel_VerzekeringRapport_Klant.md",
+                mime="text/markdown"
+            )
+        with col2:
+            st.download_button(
+                label="Download gecorrigeerd rapport",
+                data=st.session_state.get('corrected_email_content', ''),
+                file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
+                mime="text/markdown"
+            )
 
     st.markdown("</div>", unsafe_allow_html=True)
 

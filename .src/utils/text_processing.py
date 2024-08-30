@@ -7,15 +7,19 @@ import pyperclip
 def get_project_root():
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-def load_prompt(file_name):
-    project_root = get_project_root()
-    path = os.path.join(project_root, 'prompts', file_name)
-    print(f"Attempting to load prompt from: {path}")
-    if not os.path.exists(path):
-        st.error(f"Bestand niet gevonden: {path}")
-        raise FileNotFoundError(f"Bestand niet gevonden: {path}")
-    with open(path, "r", encoding="utf-8") as file:
-        return file.read()
+import os
+
+def load_guidelines() -> str:
+    current_file_path = os.path.abspath(__file__)
+    project_root = os.path.dirname(os.path.dirname(current_file_path))
+    guidelines_path = os.path.join(project_root, 'guidelines.txt')
+    
+    try:
+        with open(guidelines_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        logging.error(f"Guidelines file not found at {guidelines_path}")
+        return "Guidelines file not found. Please check the file path."
 
 def copy_to_clipboard(transcript, klantuitvraag):
     text_to_copy = f"Transcript:\n\n{transcript}\n\nKlantuitvraag:\n\n{klantuitvraag}"

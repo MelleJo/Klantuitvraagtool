@@ -2,13 +2,13 @@ Guidelines for Cyberverzekering:
 
 Beschrijving cyberverzekering: De cyberverzekering wordt steeds belangrijker. Hiermee is uw bedrijf verzekerd tegen de (financiële) gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen. Ook de hoogoplopende kosten voor forensisch onderzoek vallen onder de dekking. Er is dus dekking voor aansprakelijkheid, eigen schade en herstel. U krijgt bovendien ondersteuning van een team van ervaren professionals om de schade te beperken. Zij helpen u bijvoorbeeld om databases en websites te repareren, belanghebbenden te informeren en juridische kosten te beperken.
 
-1. Explain that this insurance is becoming increasingly important and covers financial consequences of hacking, system intrusion, lost data, data theft, and cyber attacks.
-2. Mention that it covers liability, own damage, and recovery costs.
-3. Emphasize that it includes support from experienced professionals to limit damage.
-4. Discuss specific risks relevant to the client's business, such as customer data protection, invoicing systems, and supply chain disruptions.
-5. Structure the advice as follows:
-   a. Brief explanation of what cyberverzekering covers
-   b. Discussion of potential cyber risks specific to the client's business
-   c. Benefits of having cyber insurance
-   d. Recommendations
-   e. Question for engagement
+1. Leg uit dat een cyberverzekering beschermt tegen financiële gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen.
+2. Bespreek specifieke risico's voor het bedrijf van de klant, zoals:
+   - Verstoring van de toeleveringsketen
+   - Problemen met facturatiesystemen
+   - Datalekken van klantgegevens
+   - Reputatieschade bij cyberincidenten
+3. Leg uit dat ook bedrijven zonder webshop cyberrisico's lopen.
+4. Bespreek de ondersteuning die de verzekering biedt bij het beperken van schade na een cyberincident.
+5. Vraag naar de huidige cyberbeveiligingsmaatregelen van het bedrijf.
+6. Bied aan om een op maat gemaakte offerte op te stellen voor een cyberverzekering.

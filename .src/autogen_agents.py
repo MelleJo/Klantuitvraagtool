@@ -233,6 +233,18 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Ensure that you address each identified insurance type using its specific instructions.
         The email should be structured, personalized, and follow all the general email writing guidelines provided.
         Focus on the identified insurance types and the selected recommendations.
+        
+        Important points to include:
+        1. Explain the difference between inventory and goods if relevant.
+        2. Mention that Veldhuis Advies is an intermediary, not the insurer.
+        3. For each insurance type, explain the consequences of underinsurance or insufficient coverage.
+        4. Provide detailed explanations for each insurance type, avoiding brief or superficial descriptions.
+        5. Use bullet points instead of numbering for lists.
+        6. Format placeholders in all caps with square brackets.
+        7. Avoid double questions - ask for information or changes only once per topic.
+        8. For home insurance, always mention factors like solar panels, swimming pools, and renovations.
+        9. For business interruption insurance, always explain why recovery times might be longer nowadays.
+        10. For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
         """
 
         response = client.chat.completions.create(

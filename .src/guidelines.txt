@@ -1,39 +1,25 @@
-### Samengevoegde Richtlijnen
-
-1. **Begin met een persoonlijke introductie** die de klant bedankt voor hun langdurige relatie en uitlegt waarom je contact opneemt.
-  
-2. **Gebruik een informele, persoonlijke toon** (je/jij), tenzij het transcript aangeeft dat formeel taalgebruik (u) nodig is.
-
-3. **Integreer officiële productbeschrijvingen** naadloos in de uitleg van de huidige situatie en geef concrete, specifieke adviezen gebaseerd op de situatie van de klant.
-
-4. **Stel één relevante vraag per onderwerp** om de klant te betrekken en verwarring te voorkomen.
-
-5. **Vermijd betuttelende taal** en het noemen van eigen risico's of veronderstellen dat de klant ergens niet voor verzekerd is. Focus op feitelijke informatie en de gevolgen van wijzigingen in de situatie van de klant.
-
-6. **Gebruik korte, krachtige zinnen en paragrafen** en vermijd oppervlakkige of te korte beschrijvingen.
-
-7. **Groepeer verzekeringen onder relevante kopjes** en vermijd een "Aanvullende aanbevelingen" sectie voor kleine punten.
-
-8. **Sluit af met een beknopte, vriendelijke uitnodiging om te reageren** en vermeld altijd het telefoonnummer 0578-699760.
-
-9. **Maak geen aannames** over wanneer verzekeringen voor het laatst zijn gewijzigd en gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties.
-
-10. **Geef een korte uitleg over wijzigingen of toevoegingen** aan de verzekering, zonder aan te geven dat dit "voordelig" is.
-
-11. **Vraag bij elke aanbeveling** of de klant een berekening wil ontvangen voor premievergelijking en geef aan wat er momenteel op de polis staat als je vraagt om iets te controleren.
-
-12. **Gebruik geen afkortingen** die een verzekeringsleek niet begrijpt en zorg voor diepgaande informatie bij elk onderwerp.
-
-13. **Geef uitgebreide uitleg over verzekeringsbegrippen**, zoals het verschil tussen inventaris en goederen.
-
-14. **Vermeld bij specifieke verzekeringen** belangrijke aspecten zoals:
-    - **Bedrijfsschadeverzekering**: leg uit waarom de hersteltijd na een calamiteit langer kan duren.
-    - **Personeelswijzigingen**: bespreek de risico's van nieuw personeel.
-    - **AVB (aansprakelijkheidsverzekering)**: benadruk de hoedanigheid en de opzicht clausule, met placeholders indien nodig.
-    - **Woonhuisverzekering**: noem aspecten zoals zonnepanelen, zwembad, aanbouw, verbouwing die invloed kunnen hebben op de dekking.
-
-15. **Zorg voor duidelijke placeholders** met hoofdletters en vierkante haken, bijvoorbeeld: [AANVULLEN OF ER MOMENTEEL CLAUSULE OPZICHT IS].
-
-16. **Benadruk dat Veldhuis Advies een tussenpersoon is** en niet de verzekeraar zelf. 
-
-17. **Vermijd subjectieve oordelen** zoals "goed verzekerd" en vraag nooit de klant hoe die een dekking ervaart.
+1. Begin met een persoonlijke introductie die uitlegt waarom u contact opneemt, zonder te bedanken voor de langdurige relatie.
+2. Gebruik een informele, persoonlijke toon (je/jij), tenzij het transcript aangeeft dat formeel taalgebruik (u) nodig is.
+3. Plaats tekst onder kopjes, niet ernaast.
+4. Gebruik streepjes (-) in plaats van nummers voor opsommingen.
+5. Maak placeholders duidelijk zichtbaar met hoofdletters en vierkante haken, bijvoorbeeld: [AANVULLEN OF ER MOMENTEEL CLAUSULE OPZICHT IS].
+6. Vermijd dubbele vragen. Vraag eenmaal om informatie of veranderingen door te geven.
+7. Geef uitgebreide uitleg over verzekeringsbegrippen, zoals het verschil tussen inventaris en goederen.
+8. Zorg voor diepgaande informatie bij elk onderwerp. Vermijd oppervlakkige of te korte beschrijvingen.
+9. Groepeer verzekeringen onder relevante kopjes (Zakelijk, Particulier, etc.).
+10. Benadruk dat Veldhuis Advies een tussenpersoon is en niet de verzekeraar zelf.
+11. Sluit af met een beknopte, vriendelijke uitnodiging om te reageren.
+12. Vermeld altijd het telefoonnummer 0578-699760.
+13. Maak geen aannames over wanneer verzekeringen voor het laatst zijn gewijzigd.
+14. Gebruik geen termen als "profiteren" bij het beschrijven van verzekeringssituaties.
+15. Geef een korte uitleg over waarom bepaalde wijzigingen of toevoegingen aan de verzekering voordelig kunnen zijn.
+16. Bij het bespreken van de bedrijfsschadeverzekering, leg altijd uit waarom tegenwoordig de hersteltijd na een calamiteit langer kan duren.
+17. Gebruik een vriendelijke en open toon bij het bespreken van mogelijke personeelswijzigingen.
+18. Wanneer je spreekt over mogelijk nieuw personeel, noem ook dat dit nieuwe risico's met zich mee kan brengen.
+19. Vraag bij een AVB (aansprakelijkheidsverzekering) en rechtsbijstandsverzekering altijd of de hoedanigheid nog overeenkomt.
+20. Als je vraagt om iets te controleren, geef dan aan wat er momenteel op de polis staat.
+21. Bij een woonhuisverzekering, noem altijd aspecten die van invloed kunnen zijn op de dekking: zonnepanelen, zwembad, aanbouw, verbouwing.
+22. Geef nooit aan dat iets "goed" is verzekerd, dat is immers een subjectief oordeel.
+23. Gebruik geen afkortingen die een verzekeringsleek niet begrijpt.
+24. Noem altijd de clausules en alarmeisen, uiteraard alleen als deze informatie uit het transcript komt.
+25. Leg bij elke verzekering uit wat de gevolgen kunnen zijn van onderverzekering of onvoldoende dekking.

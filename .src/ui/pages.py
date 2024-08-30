@@ -50,19 +50,12 @@ def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
         st.write(f"Project root: {project_root}")
         
         # Construct the path to the insurance_guidelines directory
-        guidelines_dir = os.path.join(project_root, 'src', 'insurance_guidelines')
+        guidelines_dir = os.path.join(project_root, '.src', 'insurance_guidelines')
         st.write(f"Guidelines directory: {guidelines_dir}")
         
         if not os.path.exists(guidelines_dir):
             st.error(f"The directory {guidelines_dir} does not exist.")
-            # Try an alternative path
-            alternative_path = os.path.join(project_root, '.src', 'insurance_guidelines')
-            st.write(f"Trying alternative path: {alternative_path}")
-            if os.path.exists(alternative_path):
-                guidelines_dir = alternative_path
-                st.success(f"Found guidelines directory at: {guidelines_dir}")
-            else:
-                raise FileNotFoundError(f"Neither {guidelines_dir} nor {alternative_path} exist.")
+            raise FileNotFoundError(f"The directory {guidelines_dir} does not exist.")
         
         available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
         st.write(f"Available insurance types: {available_files}")

@@ -190,8 +190,8 @@ def load_guidelines() -> str:
 def load_insurance_specific_instructions(identified_insurances: List[str]) -> Dict[str, str]:
     instructions = {}
     current_file_path = os.path.abspath(__file__)
-    project_root = os.path.dirname(os.path.dirname(current_file_path))
-    guidelines_dir = os.path.join(project_root, 'src', 'insurance_guidelines')
+    project_root = os.path.dirname(current_file_path)
+    guidelines_dir = os.path.join(project_root, '.src', 'insurance_guidelines')
     
     for insurance in identified_insurances:
         file_path = os.path.join(guidelines_dir, f"{insurance}.txt")

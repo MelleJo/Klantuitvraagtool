@@ -256,7 +256,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.5,
+            temperature=0,
             max_tokens=14000
         )
 
@@ -320,7 +320,7 @@ def correction_AI(email_content: str, guidelines: str) -> str:
                 {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.5,
+            temperature=0,
             max_tokens=14000
         )
 

@@ -1,8 +1,8 @@
-Guidelines for Cyberverzekering:
+**Richtlijnen voor Cyberverzekering:**
 
-Beschrijving cyberverzekering: De cyberverzekering wordt steeds belangrijker. Hiermee is uw bedrijf verzekerd tegen de (financiële) gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen. Ook de hoogoplopende kosten voor forensisch onderzoek vallen onder de dekking. Er is dus dekking voor aansprakelijkheid, eigen schade en herstel. U krijgt bovendien ondersteuning van een team van ervaren professionals om de schade te beperken. Zij helpen u bijvoorbeeld om databases en websites te repareren, belanghebbenden te informeren en juridische kosten te beperken.
+**Beschrijving cyberverzekering:** De cyberverzekering wordt steeds belangrijker. Hiermee is uw bedrijf verzekerd tegen de (financiële) gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen. Ook de hoogoplopende kosten voor forensisch onderzoek vallen onder de dekking. Er is dus dekking voor aansprakelijkheid, eigen schade en herstel. U krijgt bovendien ondersteuning van een team van ervaren professionals om de schade te beperken. Zij helpen u bijvoorbeeld om databases en websites te repareren, belanghebbenden te informeren en juridische kosten te beperken.
 
-1. Leg uit dat een cyberverzekering beschermt tegen financiële gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen.
+1. Leg uit dat een cyberverzekering beschermt tegen de financiële gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen.
 2. Bespreek specifieke risico's voor het bedrijf van de klant, zoals:
    - Verstoring van de toeleveringsketen
    - Problemen met facturatiesystemen

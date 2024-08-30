@@ -61,7 +61,7 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
             })
     return enhanced_coverage
 
-def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]], identified_insurances: List[str]) -> str:
+def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]], identified_insurances: List[str]) -> Dict[str, str]:
     try:
         logging.info("Starting email generation wrapper")
 
@@ -80,7 +80,7 @@ def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, st
 
         email_content = generate_email(transcript, analysis_json, recommendations_json, identified_insurances)
 
-        if not email_content.strip():
+        if not email_content['initial_email'] or not email_content['corrected_email']:
             logging.error("Email generation returned empty content.")
             raise ValueError("Email generation did not return any content.")
 

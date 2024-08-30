@@ -6,6 +6,7 @@ import json
 import os
 import streamlit as st
 from openai import OpenAI
+from anthropic import Anthropic
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])

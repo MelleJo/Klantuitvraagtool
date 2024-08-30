@@ -30,21 +30,42 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+import os
+import json
+import logging
+from typing import List, Dict, Any
+from openai import OpenAI
+import streamlit as st
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
 def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
     try:
         # Get the absolute path to the current file
         current_file_path = os.path.abspath(__file__)
+        st.write(f"Current file path: {current_file_path}")
         
         # Navigate to the project root (assuming 'pages.py' is in 'src/ui/')
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
+        st.write(f"Project root: {project_root}")
         
         # Construct the path to the insurance_guidelines directory
         guidelines_dir = os.path.join(project_root, 'src', 'insurance_guidelines')
+        st.write(f"Guidelines directory: {guidelines_dir}")
         
         if not os.path.exists(guidelines_dir):
-            raise FileNotFoundError(f"The directory {guidelines_dir} does not exist.")
+            st.error(f"The directory {guidelines_dir} does not exist.")
+            # Try an alternative path
+            alternative_path = os.path.join(project_root, '.src', 'insurance_guidelines')
+            st.write(f"Trying alternative path: {alternative_path}")
+            if os.path.exists(alternative_path):
+                guidelines_dir = alternative_path
+                st.success(f"Found guidelines directory at: {guidelines_dir}")
+            else:
+                raise FileNotFoundError(f"Neither {guidelines_dir} nor {alternative_path} exist.")
         
         available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
+        st.write(f"Available insurance types: {available_files}")
         
         # Prepare the analysis content
         analysis_content = json.dumps(analysis_result, ensure_ascii=False)

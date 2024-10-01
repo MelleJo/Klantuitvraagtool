@@ -1,3 +1,5 @@
+#pages.py
+
 import streamlit as st
 import simplejson as json
 from ui.components import (
@@ -321,6 +323,18 @@ def render_client_report_step():
                 file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
                 mime="text/markdown"
             )
+
+    # Add debug info in an expander
+    with st.expander("Debug Info", expanded=False):
+        st.markdown("### 🐛 Debug Informatie")
+        st.json({
+            "transcript": st.session_state.get('transcript', ''),
+            "suggestions": st.session_state.get('suggestions', {}),
+            "selected_suggestions": st.session_state.get('selected_suggestions', []),
+            "identified_insurances": st.session_state.get('identified_insurances', []),
+            "initial_email_content": st.session_state.get('initial_email_content', ''),
+            "corrected_email_content": st.session_state.get('corrected_email_content', '')
+        })
 
     st.markdown("</div>", unsafe_allow_html=True)
 

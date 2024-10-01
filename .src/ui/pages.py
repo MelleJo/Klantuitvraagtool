@@ -182,13 +182,23 @@ def render_analysis_step():
         with col2:
             st.markdown("### ⚠️ Geïdentificeerde risico's")
             st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            identified_risks = st.session_state.get('suggestions', {}).get('coverage_gaps', [])
+            identified_risks = st.session_state.get('suggestions', {}).get('identified_risks', [])
             if identified_risks:
                 for risk in identified_risks:
                     st.write(f"• {risk}")
             else:
                 st.write("Geen specifieke risico's geïdentificeerd.")
             st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("### ❓ Vragen om te stellen")
+        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
+        questions_to_ask = st.session_state.get('suggestions', {}).get('questions_to_ask', [])
+        if questions_to_ask:
+            for question in questions_to_ask:
+                st.write(f"• {question}")
+        else:
+            st.write("Geen specifieke vragen geïdentificeerd.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -271,7 +281,7 @@ def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")
 
-    if 'initial_email_content' not in st.session_state or 'corrected_email_content' not in st.session_state:
+    if 'corrected_email_content' not in st.session_state:
         if st.button("Genereer klantrapport"):
             with st.spinner("Rapport wordt gegenereerd..."):
                 try:
@@ -290,7 +300,6 @@ def render_client_report_step():
                         identified_insurances=identified_insurances
                     )
 
-                    update_session_state('initial_email_content', email_content['initial_email'])
                     update_session_state('corrected_email_content', email_content['corrected_email'])
 
                     st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
@@ -301,30 +310,18 @@ def render_client_report_step():
                     st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
                     st.stop()
 
-    if st.session_state.get('initial_email_content') and st.session_state.get('corrected_email_content'):
-        st.markdown("### 📥 Oorspronkelijke rapportinhoud")
-        st.markdown(st.session_state.get('initial_email_content', ''), unsafe_allow_html=True)
-
+    if st.session_state.get('corrected_email_content'):
         st.markdown("### 📝 Gecorrigeerde rapportinhoud")
         st.markdown(st.session_state.get('corrected_email_content', ''), unsafe_allow_html=True)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.download_button(
-                label="Download oorspronkelijk rapport",
-                data=st.session_state.get('initial_email_content', ''),
-                file_name="Origineel_VerzekeringRapport_Klant.md",
-                mime="text/markdown"
-            )
-        with col2:
-            st.download_button(
-                label="Download gecorrigeerd rapport",
-                data=st.session_state.get('corrected_email_content', ''),
-                file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
-                mime="text/markdown"
-            )
+        st.download_button(
+            label="Download gecorrigeerd rapport",
+            data=st.session_state.get('corrected_email_content', ''),
+            file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
+            mime="text/markdown"
+        )
 
-    # Add debug info in an expander
+    # Add debug info in an expander (optional)
     with st.expander("Debug Info", expanded=False):
         st.markdown("### 🐛 Debug Informatie")
         st.json({
@@ -332,7 +329,6 @@ def render_client_report_step():
             "suggestions": st.session_state.get('suggestions', {}),
             "selected_suggestions": st.session_state.get('selected_suggestions', []),
             "identified_insurances": st.session_state.get('identified_insurances', []),
-            "initial_email_content": st.session_state.get('initial_email_content', ''),
             "corrected_email_content": st.session_state.get('corrected_email_content', '')
         })
 

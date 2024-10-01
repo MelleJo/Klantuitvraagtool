@@ -15,6 +15,63 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
+    try:
+        prompt = f"""
+        Analyze the following insurance advisor's transcript and identify:
+        1. Potential risks that the client may face based on their current coverage and business activities.
+        2. Questions that the advisor wants to ask or topics they want to discuss with the client.
+
+        Transcript:
+        {transcript}
+
+        Provide your analysis in the following format:
+        <analysis>
+        <risks>
+        - [List each identified risk on a new line]
+        </risks>
+        <questions>
+        - [List each question or topic to discuss on a new line]
+        </questions>
+        </analysis>
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an AI assistant specializing in insurance risk analysis."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=1000
+        )
+
+        content = response.choices[0].message.content.strip()
+        
+        # Parse the content
+        risks = []
+        questions = []
+        current_section = None
+        for line in content.split('\n'):
+            if '<risks>' in line:
+                current_section = 'risks'
+            elif '<questions>' in line:
+                current_section = 'questions'
+            elif line.strip().startswith('-') and current_section:
+                if current_section == 'risks':
+                    risks.append(line.strip()[1:].strip())
+                elif current_section == 'questions':
+                    questions.append(line.strip()[1:].strip())
+
+        return {
+            "identified_risks": risks,
+            "questions_to_ask": questions
+        }
+
+    except Exception as e:
+        logger.error(f"Error in identify_risks_and_questions: {str(e)}")
+        return {"error": str(e)}
+
 def load_product_descriptions():
     file_path = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
     try:
@@ -158,6 +215,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
         
+        # Existing analysis
         user_proxy.initiate_chat(
             transcript_analyst,
             message=f"""Please analyze this insurance-related transcript and identify the relevant insurance types:
@@ -173,6 +231,12 @@ In your analysis, include a list of identified insurance types at the end.""",
         logger.info("Transcript analysis completed")
         
         parsed_result = parse_analysis_result(analysis)
+        
+        # New risk and question identification
+        risks_and_questions = identify_risks_and_questions(transcript)
+        
+        # Combine results
+        parsed_result.update(risks_and_questions)
         
         return parsed_result
     except Exception as e:

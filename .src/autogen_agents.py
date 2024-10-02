@@ -373,7 +373,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         b) Organize the content into clear, well-labeled sections for each insurance type or recommendation.
 
-        c) Use the detailed explanations to provide comprehensive information about each insurance type.
+        c) Use the detailed explanations to provide comprehensive information about each insurance type, including the description from product_descriptions.json.
 
         d) Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
 
@@ -387,7 +387,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         i) Provide a summarized, easy-to-read breakdown of costs and benefits for each insurance type or recommendation.
 
-        j) End the email with clear instructions on what actions the client should take, including any deadlines.
+        j) End each section with a clear call to action, such as offering to provide more information or asking if the client wants to make changes.
 
         k) Close the email on a polite, friendly note, offering support if needed and thanking the client for their time.
 
@@ -395,12 +395,12 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         - Use dashes (-) instead of bullet points for all lists.
         - For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
-        - Mention at least once that Veldhuis Advies is an intermediary: "Als tussenpersoon helpt Veldhuis Advies je bij het vinden van de beste verzekeringen voor jouw situatie."
-        - For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
+        - For liability insurance (AVB), always discuss the "opzicht" clause and its relevance for both main and secondary activities.
         - For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
         - For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
         - Avoid double questions - ask for information or changes only once per topic.
         - Provide specific examples of how each insurance type protects the client's business or personal assets.
+        - Use "kan van belang zijn" instead of "cruciaal" when discussing importance.
 
         4. Formatting and structure:
 
@@ -412,7 +412,6 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         Present your generated email within <email> tags. Ensure that the email adheres to all the guidelines and crucial points mentioned above.
         """
-
 
         response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
@@ -439,9 +438,9 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         raise
 
 
-def correction_AI(email_content: str, guidelines: str) -> str:
+def correction_AI(email_content: str, guidelines: str, product_descriptions: Dict[str, Any], load_insurance_specific_instructions: Dict[str, str]) -> str:
     try:
-        prompt = f"""You are tasked with reviewing and correcting an email based on specific guidelines. Your goal is to ensure the email adheres to all guidelines while providing comprehensive and client-specific information. Follow these instructions carefully:
+        prompt = f"""You are tasked with reviewing and correcting an email based on specific guidelines and feedback. Your goal is to ensure the email adheres to all guidelines while providing comprehensive and client-specific information. Follow these instructions carefully:
 
         1. Review the following guidelines:
         <guidelines>
@@ -459,21 +458,30 @@ def correction_AI(email_content: str, guidelines: str) -> str:
         b) Include a detailed explanation of the difference between inventory and goods insurance.
         c) Mention that Veldhuis Advies is an intermediary.
         d) Provide detailed explanations for each insurance type and state the consequences of underinsurance or insufficient coverage.
-        e) Discuss the "opzicht" clause for liability insurance.
-        f) Explain longer recovery times for business interruption insurance.
+        e) Discuss the "opzicht" clause for liability insurance, ensuring coverage for both main activities and secondary activities.
+        f) Explain longer recovery times for business interruption insurance due to material shortages, staff shortages, and longer delivery times.
         g) Mention factors like solar panels, swimming pools, and renovations for home insurance.
         h) Avoid double questions.
         i) Format all placeholders in all caps with square brackets.
-        j) Provide specific examples for each insurance type.
+        j) Provide specific examples for each insurance type, tailored to the client's situation.
+        k) Ensure the first line is a proper greeting.
+        l) For car insurance, mention common risks like theft, fire, windshield damage, and collisions with wildlife.
+        m) Regarding inventory, mention "als je recentelijk aanpassingen hebt gedaan in je inventaris of de waarde van je voorraad is gewijzigd" instead of focusing on new equipment.
+        n) Clarify that there's no coverage for own items in someone else's home and suggest adding this to the inventory and goods insurance.
+        o) Mention the specified risk address for the inventory and goods insurance.
+        p) When discussing potential employees, focus on the risks that need attention, such as sick pay and liability.
+        q) Use "kan van belang zijn" instead of "cruciaal" when discussing importance.
+        r) For disability insurance, ask if the client has followed the news about mandatory disability insurance and if they've considered it.
+        s) Include clear call-to-actions for each topic where relevant, such as "Zou ik dit voor je uitzoeken?" or "Is er iets gewijzigd?" or "Wil je dat ik hier een offerte voor opvraag?"
 
         4. Use the following product descriptions to ensure each insurance product is well described:
         <product_descriptions>
-        {product_descriptions}
+        {json.dumps(product_descriptions, indent=2, ensure_ascii=False)}
         </product_descriptions>
 
         5. Refer to the insurance guidelines to avoid any violations:
         <insurance_guidelines>
-        {load_insurance_specific_instructions}
+        {json.dumps(load_insurance_specific_instructions, indent=2, ensure_ascii=False)}
         </insurance_guidelines>
 
         6. Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Remove or replace any generic examples with more relevant, client-specific examples.
@@ -484,10 +492,11 @@ def correction_AI(email_content: str, guidelines: str) -> str:
         c) Conclusion
 
         8. For each insurance type:
-        a) Provide a clear explanation
+        a) Provide a clear explanation using the product descriptions
         b) Include client-specific risks and examples
         c) Explain consequences of underinsurance or insufficient coverage
         d) Offer any relevant additional information (e.g., "opzicht" clause for liability insurance)
+        e) End with a clear call-to-action
 
         9. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
 
@@ -499,7 +508,8 @@ def correction_AI(email_content: str, guidelines: str) -> str:
             c) Are there any violations of the specific insurance guidelines?
             d) Have all generic examples been replaced with client-specific ones?
             e) Is the email well-structured and easy to read?
-            f) Have all the special points of attention (a-j in step 3) been addressed?
+            f) Have all the special points of attention (a-s in step 3) been addressed?
+            g) Are there clear call-to-actions for each relevant topic?
 
         12. Present your corrected email within <corrected_email> tags.
 

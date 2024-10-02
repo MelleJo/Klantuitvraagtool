@@ -2,7 +2,6 @@ import json
 import logging
 from typing import List, Dict, Any
 import os
-from services.summarization_service import generate_email_wrapper, load_product_descriptions
 import streamlit as st
 from autogen_agents import analyze_transcript, generate_email, correction_AI
 from config import (

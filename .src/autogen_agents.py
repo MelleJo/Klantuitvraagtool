@@ -445,12 +445,12 @@ def correction_AI(email_content: str, guidelines: str) -> str:
 
         1. Review the following guidelines:
         <guidelines>
-        {{GUIDELINES}}
+        {guidelines}
         </guidelines>
 
         2. Now, examine the original email content:
         <email_content>
-        {{EMAIL_CONTENT}}
+        {email_content}
         </email_content>
 
         3. Your task is to correct and improve the email content based on the guidelines. Pay special attention to the following points:
@@ -468,12 +468,12 @@ def correction_AI(email_content: str, guidelines: str) -> str:
 
         4. Use the following product descriptions to ensure each insurance product is well described:
         <product_descriptions>
-        {{PRODUCT_DESCRIPTIONS}}
+        {product_descriptions}
         </product_descriptions>
 
         5. Refer to the insurance guidelines to avoid any violations:
         <insurance_guidelines>
-        {{INSURANCE_GUIDELINES}}
+        {load_insurance_specific_instructions}
         </insurance_guidelines>
 
         6. Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Remove or replace any generic examples with more relevant, client-specific examples.

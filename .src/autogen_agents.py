@@ -341,7 +341,6 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
-        product_descriptions = load_product_descriptions()
         
         detailed_explanations = {}
         for insurance in identified_insurances:
@@ -382,12 +381,9 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         if not initial_email_content:
             raise ValueError("Email generation returned empty content.")
 
-        # Apply correction AI
-        corrected_email = correction_AI(initial_email_content, guidelines)
-
         return {
             "initial_email": initial_email_content,
-            "corrected_email": corrected_email
+            "corrected_email": initial_email_content  # We'll correct this in the wrapper function
         }
 
     except Exception as e:

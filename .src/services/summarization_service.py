@@ -64,7 +64,7 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
             })
     return enhanced_coverage
 
-def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]], identified_insurances: List[str], guidelines: str) -> Dict[str, str]:
+def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]], identified_insurances: List[str], guidelines: str, product_descriptions: Dict[str, Any]) -> Dict[str, str]:
     try:
         logging.info("Starting email generation wrapper")
 
@@ -96,7 +96,6 @@ def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, st
     except Exception as e:
         logging.error(f"Error in generate_email_wrapper: {str(e)}", exc_info=True)
         raise
-
 
 # Load product descriptions when this module is imported
 product_descriptions = load_product_descriptions()

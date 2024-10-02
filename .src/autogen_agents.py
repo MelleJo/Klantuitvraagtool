@@ -347,36 +347,72 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
             detailed_explanations[insurance] = generate_detailed_explanation(insurance, transcript, product_descriptions)
 
         prompt = f"""
-        Generate an email based on the following information:
+        You are tasked with generating a comprehensive and personalized email based on insurance information provided. Follow these instructions carefully to create an effective and tailored communication:
 
-        Transcript: {transcript}
+        1. Review the following information:
 
-        Current Coverage and Analysis: {json.dumps(enhanced_coverage_list, indent=2)}
+        <transcript>
+        {transcript}
+        </transcript>
 
-        Selected Recommendations: {json.dumps(selected_recommendations_list, indent=2)}
+        <current_coverage_and_analysis>
+        {json.dumps(enhanced_coverage_list, indent=2)}
+        </current_coverage_and_analysis>
 
-        Detailed Explanations:
+        <selected_recommendations>
+        {json.dumps(selected_recommendations_list, indent=2)}
+        </selected_recommendations>
+
+        <detailed_explanations>
         {json.dumps(detailed_explanations, indent=2)}
+        </detailed_explanations>
 
-        Use the detailed explanations to provide comprehensive information about each insurance type.
-        Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
-        Do not use generic examples unless absolutely necessary.
-        The email should be structured, personalized, and follow all the general email writing guidelines provided.
-        Focus on the identified insurance types and the selected recommendations.
-        Crucial points to include:
-        1. Use dashes (-) instead of bullet points for all lists.
-        2. For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
-        3. Mention at least once that Veldhuis Advies is an intermediary: "Als tussenpersoon helpt Veldhuis Advies je bij het vinden van de beste verzekeringen voor jouw situatie."
-        4. For each insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
-        5. For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
-        6. For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
-        7. For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
-        8. Avoid double questions - ask for information or changes only once per topic.
-        9. Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
-        10. Provide specific examples of how each insurance type protects the client's business or personal assets.
+        2. Generate an email using the provided information. The email should be structured, personalized, and adhere to the following guidelines:
 
-        The email should be comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        a) Begin with a personalized opening, addressing the client directly and introducing yourself as the advisor.
+
+        b) Organize the content into clear, well-labeled sections for each insurance type or recommendation.
+
+        c) Use the detailed explanations to provide comprehensive information about each insurance type.
+
+        d) Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
+
+        e) Focus on the identified insurance types and the selected recommendations.
+
+        f) For each insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
+
+        g) Compare current and proposed insurers or coverage options when relevant, explaining the benefits of recommended changes.
+
+        h) Avoid using overly technical terms or jargon. If technical terms are necessary, include brief explanations.
+
+        i) Provide a summarized, easy-to-read breakdown of costs and benefits for each insurance type or recommendation.
+
+        j) End the email with clear instructions on what actions the client should take, including any deadlines.
+
+        k) Close the email on a polite, friendly note, offering support if needed and thanking the client for their time.
+
+        3. Crucial points to include:
+
+        - Use dashes (-) instead of bullet points for all lists.
+        - For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
+        - Mention at least once that Veldhuis Advies is an intermediary: "Als tussenpersoon helpt Veldhuis Advies je bij het vinden van de beste verzekeringen voor jouw situatie."
+        - For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
+        - For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
+        - For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
+        - Avoid double questions - ask for information or changes only once per topic.
+        - Provide specific examples of how each insurance type protects the client's business or personal assets.
+
+        4. Formatting and structure:
+
+        - Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
+        - Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        - Use action-oriented language, directing the client toward specific actions or decisions.
+
+        5. Final output:
+
+        Present your generated email within <email> tags. Ensure that the email adheres to all the guidelines and crucial points mentioned above.
         """
+
 
         response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",

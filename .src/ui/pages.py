@@ -1,5 +1,7 @@
 #pages.py
-
+from services.summarization_service import load_product_descriptions
+from services.email_generation import generate_email_wrapper
+from utils.text_processing import load_guidelines
 import streamlit as st
 import simplejson as json
 from ui.components import (

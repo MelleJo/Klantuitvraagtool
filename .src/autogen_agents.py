@@ -405,31 +405,69 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
 def correction_AI(email_content: str, guidelines: str) -> str:
     try:
-        prompt = f"""
-        Review and correct the following email content based on these guidelines:
+        prompt = f"""You are tasked with reviewing and correcting an email based on specific guidelines. Your goal is to ensure the email adheres to all guidelines while providing comprehensive and client-specific information. Follow these instructions carefully:
 
-        Guidelines:
-        {guidelines}
+        1. Review the following guidelines:
+        <guidelines>
+        {{GUIDELINES}}
+        </guidelines>
 
-        Email Content:
-        {email_content}
+        2. Now, examine the original email content:
+        <email_content>
+        {{EMAIL_CONTENT}}
+        </email_content>
 
-        Please provide the corrected version of the email, ensuring it adheres to all guidelines. Pay special attention to:
-        1. Using dashes (-) instead of bullet points for all lists.
-        2. Including a detailed explanation of the difference between inventory and goods insurance.
-        3. Mentioning that Veldhuis Advies is an intermediary.
-        4. Providing detailed explanations for each insurance type and stating the consequences of underinsurance or insufficient coverage.
-        5. Discussing the "opzicht" clause for liability insurance.
-        6. Explaining longer recovery times for business interruption insurance.
-        7. Mentioning factors like solar panels, swimming pools, and renovations for home insurance.
-        8. Avoiding double questions.
-        9. Formatting all placeholders in all caps with square brackets.
-        10. Providing specific examples for each insurance type.
+        3. Your task is to correct and improve the email content based on the guidelines. Pay special attention to the following points:
 
-        Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Do not use generic examples unless absolutely necessary. If you find any generic examples that don't seem to relate to the client's specific situation, remove or replace them with more relevant, client-specific examples.
+        a) Use dashes (-) instead of bullet points for all lists.
+        b) Include a detailed explanation of the difference between inventory and goods insurance.
+        c) Mention that Veldhuis Advies is an intermediary.
+        d) Provide detailed explanations for each insurance type and state the consequences of underinsurance or insufficient coverage.
+        e) Discuss the "opzicht" clause for liability insurance.
+        f) Explain longer recovery times for business interruption insurance.
+        g) Mention factors like solar panels, swimming pools, and renovations for home insurance.
+        h) Avoid double questions.
+        i) Format all placeholders in all caps with square brackets.
+        j) Provide specific examples for each insurance type.
 
-        Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
-        Make sure every topic's length is according to how much the advisor talked about it in the transcript. 
+        4. Use the following product descriptions to ensure each insurance product is well described:
+        <product_descriptions>
+        {{PRODUCT_DESCRIPTIONS}}
+        </product_descriptions>
+
+        5. Refer to the insurance guidelines to avoid any violations:
+        <insurance_guidelines>
+        {{INSURANCE_GUIDELINES}}
+        </insurance_guidelines>
+
+        6. Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Remove or replace any generic examples with more relevant, client-specific examples.
+
+        7. Structure your corrected email as follows:
+        a) Introduction
+        b) Separate sections for each insurance type
+        c) Conclusion
+
+        8. For each insurance type:
+        a) Provide a clear explanation
+        b) Include client-specific risks and examples
+        c) Explain consequences of underinsurance or insufficient coverage
+        d) Offer any relevant additional information (e.g., "opzicht" clause for liability insurance)
+
+        9. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+
+        10. Make sure every topic's length is proportional to how much the advisor discussed it in the transcript.
+
+        11. After completing your corrected version, use this checklist for a final review:
+            a) Have all insurance products been adequately described using information from the product descriptions?
+            b) Are the risks mentioned relevant to the client's business?
+            c) Are there any violations of the specific insurance guidelines?
+            d) Have all generic examples been replaced with client-specific ones?
+            e) Is the email well-structured and easy to read?
+            f) Have all the special points of attention (a-j in step 3) been addressed?
+
+        12. Present your corrected email within <corrected_email> tags.
+
+        Remember, your goal is to create a comprehensive, client-specific email that adheres to all guidelines and provides valuable information about each insurance type.
         """
 
         response = client.chat.completions.create(

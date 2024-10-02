@@ -362,8 +362,20 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
         Do not use generic examples unless absolutely necessary.
         The email should be structured, personalized, and follow all the general email writing guidelines provided.
-        
-        [Rest of the prompt remains the same]
+        Focus on the identified insurance types and the selected recommendations.
+        Crucial points to include:
+        1. Use dashes (-) instead of bullet points for all lists.
+        2. For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
+        3. Mention at least once that Veldhuis Advies is an intermediary: "Als tussenpersoon helpt Veldhuis Advies je bij het vinden van de beste verzekeringen voor jouw situatie."
+        4. For each insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
+        5. For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
+        6. For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
+        7. For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
+        8. Avoid double questions - ask for information or changes only once per topic.
+        9. Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
+        10. Provide specific examples of how each insurance type protects the client's business or personal assets.
+
+        The email should be comprehensive yet easy to read, with each insurance type clearly separated and explained.
         """
 
         response = client.chat.completions.create(
@@ -372,7 +384,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0,
+            temperature=0.2,
             max_tokens=14000
         )
 
@@ -417,6 +429,7 @@ def correction_AI(email_content: str, guidelines: str) -> str:
         Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Do not use generic examples unless absolutely necessary. If you find any generic examples that don't seem to relate to the client's specific situation, remove or replace them with more relevant, client-specific examples.
 
         Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        Make sure every topic's length is according to how much the advisor talked about it in the transcript. 
         """
 
         response = client.chat.completions.create(

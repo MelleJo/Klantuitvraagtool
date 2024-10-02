@@ -452,27 +452,25 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         {email_content}
         </email_content>
 
-        3. Your task is to correct and improve the email content based on the guidelines. Pay special attention to the following points:
+        3. Your task is to correct and improve the email content based on the guidelines and the following specific instructions:
 
-        a) Use dashes (-) instead of bullet points for all lists.
-        b) Include a detailed explanation of the difference between inventory and goods insurance.
-        c) Mention that Veldhuis Advies is an intermediary.
-        d) Provide detailed explanations for each insurance type and state the consequences of underinsurance or insufficient coverage.
-        e) Discuss the "opzicht" clause for liability insurance, ensuring coverage for both main activities and secondary activities.
-        f) Explain longer recovery times for business interruption insurance due to material shortages, staff shortages, and longer delivery times.
-        g) Mention factors like solar panels, swimming pools, and renovations for home insurance.
-        h) Avoid double questions.
-        i) Format all placeholders in all caps with square brackets.
-        j) Provide specific examples for each insurance type, tailored to the client's situation.
-        k) Ensure the first line is a proper greeting.
-        l) For car insurance, mention common risks like theft, fire, windshield damage, and collisions with wildlife.
-        m) Regarding inventory, mention "als je recentelijk aanpassingen hebt gedaan in je inventaris of de waarde van je voorraad is gewijzigd" instead of focusing on new equipment.
-        n) Clarify that there's no coverage for own items in someone else's home and suggest adding this to the inventory and goods insurance.
-        o) Mention the specified risk address for the inventory and goods insurance.
-        p) When discussing potential employees, focus on the risks that need attention, such as sick pay and liability.
-        q) Use "kan van belang zijn" instead of "cruciaal" when discussing importance.
-        r) For disability insurance, ask if the client has followed the news about mandatory disability insurance and if they've considered it.
-        s) Include clear call-to-actions for each topic where relevant, such as "Zou ik dit voor je uitzoeken?" or "Is er iets gewijzigd?" or "Wil je dat ik hier een offerte voor opvraag?"
+        a) Remove any cliché opening lines like "I hope this email finds you well."
+        b) Start with a professional introduction stating your name and role.
+        c) Use dashes (-) instead of bullet points for all lists.
+        d) For each insurance type:
+           - Provide a clear explanation using the product descriptions
+           - Include client-specific risks and examples
+           - Explain consequences of underinsurance or insufficient coverage
+           - Offer relevant additional information (e.g., "opzicht" clause for liability insurance)
+           - End with a clear, personalized call-to-action focused on the client's benefit
+        e) For car insurance, mention common risks like theft, fire, windshield damage, and collisions with wildlife.
+        f) For inventory and goods insurance, explain the difference and emphasize the client's responsibility to inform about significant changes.
+        g) For business interruption insurance, explain why recovery times might be longer due to current market conditions.
+        h) For liability insurance, elaborate on why additional coverage might be necessary (e.g., for furniture during transport).
+        i) When discussing personnel and disability insurance, focus on informing about risks rather than pushing products.
+        j) Avoid mentioning that Veldhuis Advies is an intermediary. Instead, emphasize availability for discussion and changes.
+        k) Ensure all examples and risks mentioned are specifically tailored to the client's situation.
+        l) Format all placeholders in all caps with square brackets.
 
         4. Use the following product descriptions to ensure each insurance product is well described:
         <product_descriptions>
@@ -484,42 +482,33 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         {json.dumps(load_insurance_specific_instructions, indent=2, ensure_ascii=False)}
         </insurance_guidelines>
 
-        6. Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Remove or replace any generic examples with more relevant, client-specific examples.
-
-        7. Structure your corrected email as follows:
-        a) Introduction
+        6. Structure your corrected email as follows:
+        a) Professional introduction
         b) Separate sections for each insurance type
-        c) Conclusion
+        c) Brief conclusion emphasizing availability for questions and discussion
 
-        8. For each insurance type:
-        a) Provide a clear explanation using the product descriptions
-        b) Include client-specific risks and examples
-        c) Explain consequences of underinsurance or insufficient coverage
-        d) Offer any relevant additional information (e.g., "opzicht" clause for liability insurance)
-        e) End with a clear call-to-action
+        7. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
 
-        9. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        8. Make sure every topic's length is proportional to how much the advisor discussed it in the transcript.
 
-        10. Make sure every topic's length is proportional to how much the advisor discussed it in the transcript.
+        9. After completing your corrected version, use this checklist for a final review:
+           a) Is the opening professional and non-cliché?
+           b) Are all insurance products adequately described using information from the product descriptions?
+           c) Are the risks mentioned relevant and specific to the client's business?
+           d) Are there clear, personalized call-to-actions for each relevant topic?
+           e) Does the email focus on informing rather than pushing products?
+           f) Is the email well-structured and easy to read?
+           g) Does the conclusion emphasize availability for further discussion without mentioning intermediary status?
 
-        11. After completing your corrected version, use this checklist for a final review:
-            a) Have all insurance products been adequately described using information from the product descriptions?
-            b) Are the risks mentioned relevant to the client's business?
-            c) Are there any violations of the specific insurance guidelines?
-            d) Have all generic examples been replaced with client-specific ones?
-            e) Is the email well-structured and easy to read?
-            f) Have all the special points of attention (a-s in step 3) been addressed?
-            g) Are there clear call-to-actions for each relevant topic?
+        10. Present your corrected email within <corrected_email> tags.
 
-        12. Present your corrected email within <corrected_email> tags.
-
-        Remember, your goal is to create a comprehensive, client-specific email that adheres to all guidelines and provides valuable information about each insurance type.
+        Remember, your goal is to create a comprehensive, client-specific email that provides valuable information about each insurance type while maintaining a professional and caring tone.
         """
 
         response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
-                {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails, ensuring they are personalized and relevant to each specific client."},
+                {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails, ensuring they are personalized, relevant, and informative to each specific client."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0,

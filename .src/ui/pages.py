@@ -252,27 +252,6 @@ def render_recommendations_step():
             update_session_state('selected_suggestions', selected_recommendations)
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
 
-            # Identify relevant insurances
-            identified_insurances = get_available_insurances(analysis_result)
-
-            # Add insurance type checklist
-            st.subheader("Geïdentificeerde verzekeringen")
-            if identified_insurances:
-                for insurance in identified_insurances:
-                    st.checkbox(insurance.capitalize(), value=True, key=f"insurance_checkbox_{insurance}")
-            else:
-                st.info("Geen specifieke verzekeringen geïdentificeerd. Controleer de analyse of voeg handmatig toe.")
-
-            # Add dropdown to include additional insurances
-            additional_insurance = st.text_input(
-                "Voeg een extra verzekering toe (optioneel)",
-                key="additional_insurance_input"
-            )
-            if additional_insurance:
-                identified_insurances.append(additional_insurance)
-
-            update_session_state('identified_insurances', identified_insurances)
-
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4

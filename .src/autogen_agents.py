@@ -10,6 +10,8 @@ from anthropic import Anthropic
 #from .src.services.summarization_service import load_product_descriptions
 
 
+
+
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 

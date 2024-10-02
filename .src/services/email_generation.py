@@ -95,14 +95,14 @@ def generate_email_wrapper(
             raise ValueError("Email generation did not return any content.")
 
         # Load insurance-specific instructions
-        load_insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
+        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
 
         # Apply correction AI with the loaded guidelines and transcript
         corrected_email = correction_AI(
             email_content['initial_email'],
             guidelines,
             product_descriptions,
-            load_insurance_specific_instructions,
+            insurance_specific_instructions,
             transcript
         )
 

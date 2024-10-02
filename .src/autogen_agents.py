@@ -440,6 +440,40 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
 def correction_AI(email_content: str, guidelines: str, product_descriptions: Dict[str, Any], load_insurance_specific_instructions: Dict[str, str]) -> str:
     try:
+        style_guide = """
+        Style Guide and Example:
+        
+        1. Opening:
+        "Mijn naam is [UW NAAM], je verzekeringsadviseur bij Veldhuis Advies. Ik heb recent je verzekeringssituatie voor [BEDRIJFSNAAM] doorgenomen en wil graag enkele punten met je bespreken om ervoor te zorgen dat je dekking optimaal aansluit bij je huidige situatie."
+
+        2. For each insurance type:
+        a) Start with a brief overview of the current situation.
+        b) Explain potential risks or changes that might affect the coverage.
+        c) Provide a clear, action-oriented suggestion. For example:
+        "Actie: Wil je dat ik bereken wat dit je kan schelen? Zo kunnen we samen beoordelen of deze aanpassing zinvol is voor jouw situatie."
+
+        3. When discussing risks:
+        "Het is belangrijk dat deze bedragen blijven aansluiten bij de werkelijke waarde. Mocht er een aanzienlijke verandering zijn in de waarde van je inventaris of goederen, laat het ons dan weten. Zo voorkomen we dat je of te veel betaalt, of dat je onderverzekerd bent. Onderverzekering kan leiden tot onvolledige vergoeding bij schade."
+
+        4. For complex topics like personnel and disability insurance:
+        "Ik wil graag even stilstaan bij twee belangrijke aspecten van je bedrijfsvoering: personeel en je persoonlijke financiële zekerheid.
+
+        Personeel: Mocht je inmiddels personeel in dienst hebben of dit overwegen, dan brengt dit nieuwe verantwoordelijkheden en risico's met zich mee. Denk bijvoorbeeld aan de verplichting tot loondoorbetaling bij ziekte. Het is belangrijk om hier tijdig over na te denken en eventuele maatregelen te treffen.
+
+        Arbeidsongeschiktheid: Als zelfstandig ondernemer is je inkomen direct gekoppeld aan je arbeidscapaciteit. Langdurige ziekte of een ongeval kan grote financiële gevolgen hebben. Er zijn recente ontwikkelingen geweest rondom een mogelijk verplichte arbeidsongeschiktheidsverzekering voor zelfstandigen. Heb je hier al over nagedacht of vragen over?"
+
+        5. Closing:
+        "Ik hoop dat deze informatie je helpt om een goed beeld te krijgen van je huidige verzekeringssituatie en mogelijke aandachtspunten. Als je vragen hebt, iets wilt aanpassen of gewoon eens wilt sparren over je verzekeringen, neem dan gerust contact met me op. Ik sta klaar om je te helpen en adviseren.
+
+        Je kunt me bereiken op 0578-699760.
+
+        Met vriendelijke groet,
+        [UW NAAM]
+        Veldhuis Advies"
+
+        Remember to maintain this style throughout the email, focusing on informing the client about risks and options rather than pushing products.
+        """
+
         prompt = f"""You are tasked with reviewing and correcting an email based on specific guidelines and feedback. Your goal is to ensure the email adheres to all guidelines while providing comprehensive and client-specific information. Follow these instructions carefully:
 
         1. Review the following guidelines:
@@ -482,16 +516,21 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         {json.dumps(load_insurance_specific_instructions, indent=2, ensure_ascii=False)}
         </insurance_guidelines>
 
-        6. Structure your corrected email as follows:
+        6. Follow this style guide and example to maintain a consistent tone and structure:
+        <style_guide>
+        {style_guide}
+        </style_guide>
+
+        7. Structure your corrected email as follows:
         a) Professional introduction
         b) Separate sections for each insurance type
         c) Brief conclusion emphasizing availability for questions and discussion
 
-        7. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        8. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
 
-        8. Make sure every topic's length is proportional to how much the advisor discussed it in the transcript.
+        9. Make sure every topic's length is proportional to how much the advisor discussed it in the transcript.
 
-        9. After completing your corrected version, use this checklist for a final review:
+        10. After completing your corrected version, use this checklist for a final review:
            a) Is the opening professional and non-cliché?
            b) Are all insurance products adequately described using information from the product descriptions?
            c) Are the risks mentioned relevant and specific to the client's business?
@@ -499,10 +538,11 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
            e) Does the email focus on informing rather than pushing products?
            f) Is the email well-structured and easy to read?
            g) Does the conclusion emphasize availability for further discussion without mentioning intermediary status?
+           h) Does the writing style match the provided style guide and example?
 
-        10. Present your corrected email within <corrected_email> tags.
+        11. Present your corrected email within <corrected_email> tags.
 
-        Remember, your goal is to create a comprehensive, client-specific email that provides valuable information about each insurance type while maintaining a professional and caring tone.
+        Remember, your goal is to create a comprehensive, client-specific email that provides valuable information about each insurance type while maintaining a professional and caring tone, following the provided style guide.
         """
 
         response = client.chat.completions.create(

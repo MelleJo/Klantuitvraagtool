@@ -1,76 +1,263 @@
 {
-    "eigendommen": {
-      "bedrijfsgebouw": {
-        "title": "Bedrijfsgebouw",
-        "description": "De gebouwenverzekering vergoedt schade aan gebouwen. Gedekte schadeoorzaken zijn onder andere brand, ontploffing, blikseminslag en storm, inbraak en aanrijding. Het is daarbij essentieel om te voldoen aan de preventie-eisen die de verzekeraar voorschrijft."
-      },
-      "huurdersbelang": {
-        "title": "Huurdersbelang",
-        "description": "Wanneer een huurder een grote verbouwing uitvoert, waardoor het pand in waarde is gestegen, dan valt dit niet onder de bestaande dekking van de gebouwenverzekering van de eigenaar."
-      },
-      "inventaris": {
-        "title": "Inventaris",
-        "description": "De inventarisverzekering biedt dekking voor het risico van schade aan de zaken die u nodig heeft om uw werk uit te voeren, zoals de inrichting van uw bedrijf en machines. Gebruikelijk is een uitgebreide dekking, onder andere tegen de risico's van brand, storm, inbraak en diverse vormen van waterschade."
-      },
-      "goederenvoorraad": {
-        "title": "Goederenvoorraad",
-        "description": "Schade aan uw grondstoffen, halffabricaten, eindproducten of andere handelswaren? De goederenverzekering biedt hier de oplossing voor."
-      },
-      "machines": {
-        "title": "Machine(s)",
-        "description": "De machinebreukverzekering dekt de materiële beschadiging van machines en installaties door eigen gebrek en door van-buiten-komende onheilen, zoals vallen en stoten, bedieningsfouten en overspanning. De machinebreuk-bedrijfsschadeverzekering dekt de financiële gevolgen van bedrijfsstilstand door de machinebreuk."
-      }
+  "eigendommen": {
+    "bedrijfsgebouw": {
+      "title": "Bedrijfsgebouw",
+      "description": "De gebouwenverzekering vergoedt schade aan gebouwen. Gedekte schadeoorzaken zijn onder andere brand, ontploffing, blikseminslag en storm, inbraak en aanrijding. Het is daarbij essentieel om te voldoen aan de preventie-eisen die de verzekeraar voorschrijft.",
+      "key_points": [
+        "Dekt schade aan het gebouw zelf",
+        "Beschermt tegen natuurrampen, brand, en inbraak",
+        "Preventie-eisen van de verzekeraar zijn cruciaal"
+      ],
+      "common_risks": [
+        "Onderverzekering door onjuiste waardevaststelling",
+        "Niet voldoen aan preventie-eisen",
+        "Uitsluiting van bepaalde schadeoorzaken"
+      ],
+      "generic_example": "Na een zware storm raakt het dak van uw bedrijfspand beschadigd. De gebouwenverzekering dekt de kosten voor reparatie, zodat uw bedrijf snel weer operationeel kan zijn."
     },
-    "bedrijfsschade": {
-      "title": "Bedrijfsschade",
-      "description": "Komt uw bedrijf (gedeeltelijk) stil te liggen na een calamiteit? En mist u om die reden gedurende langere tijd uw omzet? Dan lopen de kosten hoog op terwijl de inkomsten uitblijven. Deze verzekering biedt de oplossing. De vaste lasten (zoals de personeelskosten) en nettowinst kunnen worden verzekerd."
+    "huurdersbelang": {
+      "title": "Huurdersbelang",
+      "description": "Wanneer een huurder een grote verbouwing uitvoert, waardoor het pand in waarde is gestegen, dan valt dit niet onder de bestaande dekking van de gebouwenverzekering van de eigenaar.",
+      "key_points": [
+        "Dekt investeringen van de huurder in het gehuurde pand",
+        "Beschermt tegen schade aan zelf aangebrachte verbeteringen",
+        "Vult de gebouwenverzekering van de eigenaar aan"
+      ],
+      "common_risks": [
+        "Onderverzekering door het niet updaten van de verzekerde waarde na verbouwingen",
+        "Onduidelijkheid over wat precies onder huurdersbelang valt",
+        "Overlap met inventarisverzekering"
+      ],
+      "generic_example": "U heeft als huurder een kostbare klimaatinstallatie laten installeren in het gehuurde pand. Bij brand raakt deze beschadigd. De huurdersbelangverzekering dekt de kosten voor reparatie of vervanging."
     },
-    "cyberverzekering": {
-      "title": "Cyberverzekering",
-      "description": "De cyberverzekering wordt steeds belangrijker. Hiermee is uw bedrijf verzekerd tegen de (financiële) gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen. Ook de hoogoplopende kosten voor forensisch onderzoek vallen onder de dekking. Er is dus dekking voor aansprakelijkheid, eigen schade en herstel. U krijgt bovendien ondersteuning van een team van ervaren professionals om de schade te beperken. Zij helpen u bijvoorbeeld om databases en websites te repareren, belanghebbenden te informeren en juridische kosten te beperken."
+    "inventaris": {
+      "title": "Inventaris",
+      "description": "De inventarisverzekering biedt dekking voor het risico van schade aan de zaken die u nodig heeft om uw werk uit te voeren, zoals de inrichting van uw bedrijf en machines. Gebruikelijk is een uitgebreide dekking, onder andere tegen de risico's van brand, storm, inbraak en diverse vormen van waterschade.",
+      "key_points": [
+        "Dekt schade aan bedrijfsinventaris en machines",
+        "Beschermt tegen risico's zoals brand, storm, inbraak en waterschade",
+        "Essentieel voor de continuïteit van uw bedrijfsvoering"
+      ],
+      "common_risks": [
+        "Onderverzekering door verouderde waardebepalingen",
+        "Uitsluiting van bepaalde kostbare apparatuur",
+        "Onvoldoende dekking voor tijdelijke locaties of thuiswerksituaties"
+      ],
+      "generic_example": "Door een gesprongen waterleiding raakt uw kantoorinventaris beschadigd. De inventarisverzekering vergoedt de kosten voor reparatie of vervanging van bureaus, computers en andere kantoorbenodigdheden."
     },
-    "motorrijtuigen": {
-      "title": "Motorrijtuigen / wagenpark",
-      "description": "Met de wagenparkverzekering kunt u zakelijke personenauto's, bestelauto's en vrachtwagens verzekeren. Ook uw aanhangwagens, opleggers en trailers kunnen meeverzekerd worden."
+    "goederenvoorraad": {
+      "title": "Goederenvoorraad",
+      "description": "Schade aan uw grondstoffen, halffabricaten, eindproducten of andere handelswaren? De goederenverzekering biedt hier de oplossing voor.",
+      "key_points": [
+        "Dekt schade aan en verlies van voorraden",
+        "Beschermt tegen risico's zoals brand, diefstal en waterschade",
+        "Cruciaal voor bedrijven met significante voorraadwaarde"
+      ],
+      "common_risks": [
+        "Seizoensgebonden schommelingen in voorraadwaarde",
+        "Onvoldoende dekking voor goederen tijdens transport",
+        "Specifieke opslageisen voor bepaalde goederen"
+      ],
+      "generic_example": "Door een technisch defect in uw koelinstallatie bederft een groot deel van uw voedselvoorraad. De goederenverzekering dekt het verlies, zodat u snel nieuwe voorraad kunt aanschaffen."
     },
-    "werkmaterieel": {
-      "title": "Werkmaterieel",
-      "description": "Werkt u met werkmaterieel, zoals mobiele kranen, tractoren, draglines, bulldozers of vorkheftrucks? U bent wettelijk verplicht uw materieel WA te verzekeren."
-    },
-    "goederentransport": {
-      "inkomend": {
-        "title": "Inkomende goederen",
-        "description": "Tijdens het transport staan de goederen bloot aan allerlei gevaren, zoals diefstal, verkeersongevallen, menselijke fouten en bederf. Aangezien het vervoer meestal door derden wordt verzorgd, kunt u geen directe invloed uitoefenen op de veiligheid van uw goederen. Vooral als uw bedrijf goederen met een grote waarde laat vervoeren, is het vaak verstandig een goederentransportverzekering af te sluiten."
-      },
-      "uitgaand": {
-        "title": "Uitgaande goederen",
-        "description": "Tijdens het transport staan de goederen bloot aan allerlei gevaren, zoals diefstal, verkeersongevallen, menselijke fouten en bederf. Als uw bedrijf goederen vervoert, is het verstandig een goederentransportverzekering af te sluiten."
-      }
-    },
-    "aansprakelijkheid": {
-      "bedrijfsaansprakelijkheid": {
-        "title": "Bedrijfsaansprakelijkheid",
-        "description": "De bedrijfsaansprakelijkheidsverzekering (AVB) dekt schade die aan personen of zaken is toegebracht. Dat kan schade zijn die door een in het bedrijf werkzame persoon aan derden wordt toegebracht, maar ook schade die werknemers elkaar onderling toebrengen (zoals letsel) en schade van werknemers opgelopen tijdens de werkzaamheden. Schade ontstaan met of door een motorrijtuig is uitgesloten van de dekking van een bedrijfsaansprakelijkheidsverzekering."
-      },
-      "bestuurdersaansprakelijkheid": {
-        "title": "Bestuurdersaansprakelijkheid",
-        "description": "Bestuurders kunnen hoofdelijk aansprakelijk gesteld worden tot in hun privévermogen. De bestuurdersaansprakelijkheidsverzekering dekt de persoonlijke aansprakelijkheid van bestuurders, toezichthouders of commissarissen voor vermeende of gebleken fouten. Het gaat om aanspraken van onder andere de aandeelhouders, de werknemers, de concurrenten en overheidsinstellingen."
-      },
-      "werkgeversaansprakelijkheid": {
-        "title": "Werkgeversaansprakelijkheid verkeersdeelnemers (Wegas)",
-        "description": "Wanneer een werknemer betrokken raakt bij een ongeluk tijdens het werk, kunt u aangesproken worden voor de letselschade maar ook voor de materiële schade. De bedrijfsaansprakelijkheidsverzekering of een motorrijtuigverzekering biedt hiervoor niet altijd voldoende dekking. Een Wegasverzekering (werkgeversaansprakelijkheidsverzekering voor verkeersdeelnemers) biedt daarvoor een aanvullende dekking. Het ongeval kan plaatsvinden op de werkvloer of op locatie, maar ook tijdens verkeersdeelname. Ook woon-werkverkeer of andere werkgerelateerde activiteiten, bijvoorbeeld een bedrijfsuitje, workshop of zakenreis kunnen worden meeverzekerd."
-      }
-    },
-    "milieuschade": {
-      "title": "Milieuschade",
-      "description": "Als er door uw bedrijf schade aan het milieu wordt veroorzaakt, kan dat grote financiële gevolgen hebben voor uw bedrijf. Wanneer bijvoorbeeld brand ontstaat en bodemverontreiniging optreedt, wordt dit niet gedekt op een brandverzekering of aansprakelijkheidsverzekering. De opruimings- en saneringskosten zijn dan voor eigen rekening. Die kosten kunnen fors oplopen. Een oplossing hiervoor is de milieuschadeverzekering."
-    },
-    "ziekteverzuim": {
-      "title": "Ziekteverzuim",
-      "description": "Kan uw medewerker door ziekte niet werken? Dan moet u wettelijk tenminste 70% van zijn loon doorbetalen in de eerste twee ziektejaren. De loondoorbetalingsperiode en re-integratieverplichtingen voor uw bedrijf zijn vastgelegd in de Wet verbetering poortwachter. Met een ziekteverzuimverzekering krijgt u een vergoeding voor de kosten van loondoorbetaling. Daarnaast is er binnen deze verzekering veel aandacht voor preventie en re-integratie."
-    },
-    "pensioen": {
-      "title": "Pensioen",
-      "description": "In principe bent u als werkgever niet verplicht een collectieve pensioenregeling aan uw medewerkers aan te bieden, tenzij dit in uw branche en/of op grond van een cao verplicht gesteld is. In dat geval moet u uw werknemers verplicht aanmelden bij het BPF (bedrijfstakpensioenfonds). Bijna 80% van de werknemers in Nederland is aangemeld bij een bedrijfstakpensioenfonds. Het is dus belangrijk, zeker bij twijfel, zorgvuldig te (laten) onderzoeken of uw bedrijf ook verplicht deel moet nemen aan een BPF. Is er geen verplicht gestelde regeling, dan kunnen werkgever en werknemers samen een collectieve pensioenregeling overeenkomen. U bent daarbij volledig vrij in hoe de regeling er inhoudelijk uit moet zien. Steeds meer werknemers waarderen een pensioenregeling als secundaire arbeidsvoorwaarde. Met een goede pensioenregeling toont u zich ook een betrokken werkgever."
+    "machines": {
+      "title": "Machine(s)",
+      "description": "De machinebreukverzekering dekt de materiële beschadiging van machines en installaties door eigen gebrek en door van-buiten-komende onheilen, zoals vallen en stoten, bedieningsfouten en overspanning. De machinebreuk-bedrijfsschadeverzekering dekt de financiële gevolgen van bedrijfsstilstand door de machinebreuk.",
+      "key_points": [
+        "Dekt schade aan machines door eigen gebrek of externe oorzaken",
+        "Kan uitgebreid worden met bedrijfsschadedekking",
+        "Essentieel voor bedrijven die sterk afhankelijk zijn van specifieke machines"
+      ],
+      "common_risks": [
+        "Uitsluitingen voor normale slijtage of gebrekkig onderhoud",
+        "Onvoldoende dekking voor nieuw aangeschafte machines",
+        "Onderschatting van de gevolgschade bij machinebreuk"
+      ],
+      "generic_example": "Een cruciale productiemachine in uw fabriek valt uit door een technisch defect. De machinebreukverzekering dekt niet alleen de reparatiekosten, maar ook de omzetderving tijdens de stilstand als u een bedrijfsschadedekking heeft."
     }
+  },
+  "bedrijfsschade": {
+    "title": "Bedrijfsschade",
+    "description": "Komt uw bedrijf (gedeeltelijk) stil te liggen na een calamiteit? En mist u om die reden gedurende langere tijd uw omzet? Dan lopen de kosten hoog op terwijl de inkomsten uitblijven. Deze verzekering biedt de oplossing. De vaste lasten (zoals de personeelskosten) en nettowinst kunnen worden verzekerd.",
+    "key_points": [
+      "Dekt financiële gevolgen van bedrijfsstilstand na een calamiteit",
+      "Vergoedt vaste lasten en gederfde nettowinst",
+      "Uitkeringstermijn is cruciaal en kan variëren"
+    ],
+    "common_risks": [
+      "Te korte uitkeringstermijn gekozen",
+      "Onderverzekering door verouderde omzetcijfers",
+      "Onvoldoende rekening gehouden met groei of seizoenspatronen"
+    ],
+    "generic_example": "Na een grote brand in uw bedrijfspand kunt u 6 maanden niet opereren. De bedrijfsschadeverzekering vergoedt uw vaste lasten en de misgelopen nettowinst, zodat u uw bedrijf kunt voortzetten na herstel."
+  },
+  "cyberverzekering": {
+    "title": "Cyberverzekering",
+    "description": "De cyberverzekering wordt steeds belangrijker. Hiermee is uw bedrijf verzekerd tegen de (financiële) gevolgen van hacking, systeeminbraak, verloren data, gegevensdiefstal en cyberaanvallen. Ook de hoogoplopende kosten voor forensisch onderzoek vallen onder de dekking. Er is dus dekking voor aansprakelijkheid, eigen schade en herstel. U krijgt bovendien ondersteuning van een team van ervaren professionals om de schade te beperken. Zij helpen u bijvoorbeeld om databases en websites te repareren, belanghebbenden te informeren en juridische kosten te beperken.",
+    "key_points": [
+      "Dekt financiële gevolgen van cyberincidenten",
+      "Biedt ondersteuning bij crisismanagement en herstel",
+      "Dekt aansprakelijkheid voor datalekken"
+    ],
+    "common_risks": [
+      "Onvoldoende beveiliging van IT-systemen",
+      "Menselijke fouten die leiden tot datalekken",
+      "Onderschatting van de impact van een cyberincident"
+    ],
+    "generic_example": "Uw bedrijf wordt getroffen door ransomware, waardoor alle systemen vergrendeld zijn. De cyberverzekering dekt niet alleen de kosten voor het herstellen van uw systemen en data, maar biedt ook hulp bij het informeren van klanten en het minimaliseren van reputatieschade."
+  },
+  "motorrijtuigen": {
+    "title": "Motorrijtuigen / wagenpark",
+    "description": "Met de wagenparkverzekering kunt u zakelijke personenauto's, bestelauto's en vrachtwagens verzekeren. Ook uw aanhangwagens, opleggers en trailers kunnen meeverzekerd worden.",
+    "key_points": [
+      "Dekt verschillende soorten bedrijfsvoertuigen",
+      "Opties voor WA, beperkt casco of allrisk dekking",
+      "Kan uitgebreid worden met rechtsbijstand en schade inzittenden"
+    ],
+    "common_risks": [
+      "Onderverzekering door verouderde voertuigwaardes",
+      "Onvoldoende dekking voor speciale uitrustingen of belettering",
+      "Niet melden van nieuwe chauffeurs of gebruikswijzigingen"
+    ],
+    "generic_example": "Een van uw bedrijfsbusjes raakt betrokken bij een ongeval. De wagenparkverzekering dekt niet alleen de schade aan het eigen voertuig (bij allrisk), maar ook de aansprakelijkheid voor schade aan derden."
+  },
+  "werkmaterieel": {
+    "title": "Werkmaterieel",
+    "description": "Werkt u met werkmaterieel, zoals mobiele kranen, tractoren, draglines, bulldozers of vorkheftrucks? U bent wettelijk verplicht uw materieel WA te verzekeren.",
+    "key_points": [
+      "Wettelijk verplichte WA-dekking voor werkmaterieel",
+      "Optioneel uit te breiden met cascodekking",
+      "Dekt schade veroorzaakt door en aan het werkmaterieel"
+    ],
+    "common_risks": [
+      "Onderverzekering door verouderde waardebepalingen",
+      "Onvoldoende dekking voor gehuurde of geleased materieel",
+      "Uitsluiting van schade tijdens bepaalde werkzaamheden"
+    ],
+    "generic_example": "Uw vorkheftruck beschadigt per ongeluk een dure machine van een klant tijdens het lossen. De WA-verzekering voor werkmaterieel dekt de schade aan de machine van de klant."
+  },
+  "goederentransport": {
+    "inkomend": {
+      "title": "Inkomende goederen",
+      "description": "Tijdens het transport staan de goederen bloot aan allerlei gevaren, zoals diefstal, verkeersongevallen, menselijke fouten en bederf. Aangezien het vervoer meestal door derden wordt verzorgd, kunt u geen directe invloed uitoefenen op de veiligheid van uw goederen. Vooral als uw bedrijf goederen met een grote waarde laat vervoeren, is het vaak verstandig een goederentransportverzekering af te sluiten.",
+      "key_points": [
+        "Dekt schade aan inkomende goederen tijdens transport",
+        "Beschermt tegen risico's zoals diefstal, ongevallen en bederf",
+        "Belangrijk voor bedrijven die waardevolle goederen laten aanleveren"
+      ],
+      "common_risks": [
+        "Onduidelijkheid over het moment van risico-overgang",
+        "Onvoldoende dekking voor speciale transporten (koelwagens, gevaarlijke stoffen)",
+        "Uitsluiting van bepaalde landen of transportroutes"
+      ],
+      "generic_example": "Een lading dure elektronica voor uw winkel raakt beschadigd tijdens het transport van de fabrikant naar uw magazijn. De goederentransportverzekering voor inkomende goederen dekt de schade, zodat u geen financieel verlies lijdt."
+    },
+    "uitgaand": {
+      "title": "Uitgaande goederen",
+      "description": "Tijdens het transport staan de goederen bloot aan allerlei gevaren, zoals diefstal, verkeersongevallen, menselijke fouten en bederf. Als uw bedrijf goederen vervoert, is het verstandig een goederentransportverzekering af te sluiten.",
+      "key_points": [
+        "Dekt schade aan uitgaande goederen tijdens transport",
+        "Beschermt tegen risico's zoals diefstal, ongevallen en bederf",
+        "Essentieel voor bedrijven die zelf goederen verzenden"
+      ],
+      "common_risks": [
+        "Onderverzekering door fluctuaties in verzendvolumes",
+        "Onvoldoende dekking voor internationaal transport",
+        "Uitsluitingen voor bepaalde type goederen of verpakkingen"
+      ],
+      "generic_example": "U verzendt een partij maatwerk meubilair naar een klant. Tijdens het transport raakt de vrachtwagen betrokken bij een ongeval en het meubilair wordt beschadigd. De goederentransportverzekering voor uitgaande goederen dekt de kosten voor reparatie of vervanging."
+    }
+  },
+  "aansprakelijkheid": {
+    "bedrijfsaansprakelijkheid": {
+      "title": "Bedrijfsaansprakelijkheid",
+      "description": "De bedrijfsaansprakelijkheidsverzekering (AVB) dekt schade die aan personen of zaken is toegebracht. Dat kan schade zijn die door een in het bedrijf werkzame persoon aan derden wordt toegebracht, maar ook schade die werknemers elkaar onderling toebrengen (zoals letsel) en schade van werknemers opgelopen tijdens de werkzaamheden. Schade ontstaan met of door een motorrijtuig is uitgesloten van de dekking van een bedrijfsaansprakelijkheidsverzekering.",
+      "key_points": [
+        "Dekt schade toegebracht aan derden",
+        "Dekt onderlinge schade tussen werknemers",
+        "Sluit schade door motorvoertuigen uit"
+      ],
+      "common_risks": [
+        "Onjuiste bedrijfsomschrijving op de polis",
+        "Onvoldoende dekking voor specifieke bedrijfsactiviteiten",
+        "Geen dekking voor opzicht (tijdelijk beheer van andermans eigendommen)"
+      ],
+      "generic_example": "Een medewerker van uw bedrijf beschadigt per ongeluk kostbare apparatuur bij een klant tijdens werkzaamheden. De AVB dekt de kosten voor reparatie of vervanging van deze apparatuur."
+    },
+    "bestuurdersaansprakelijkheid": {
+      "title": "Bestuurdersaansprakelijkheid",
+      "description": "Bestuurders kunnen hoofdelijk aansprakelijk gesteld worden tot in hun privévermogen. De bestuurdersaansprakelijkheidsverzekering dekt de persoonlijke aansprakelijkheid van bestuurders, toezichthouders of commissarissen voor vermeende of gebleken fouten. Het gaat om aanspraken van onder andere de aandeelhouders, de werknemers, de concurrenten en overheidsinstellingen.",
+      "key_points": [
+        "Beschermt het privévermogen van bestuurders",
+        "Dekt claims van diverse belanghebbenden",
+        "Biedt juridische bijstand bij aansprakelijkstellingen"
+      ],
+      "common_risks": [
+        "Onvoldoende dekking voor juridische kosten",
+        "Uitsluiting van bepaalde bestuurshandelingen",
+        "Niet tijdig melden van potentiële claims"
+      ],
+      "generic_example": "Een aandeelhouder stelt u als bestuurder persoonlijk aansprakelijk voor financiële schade door een vermeende verkeerde beslissing. De bestuurdersaansprakelijkheidsverzekering dekt de juridische kosten en eventuele schadevergoeding."
+    },
+    "werkgeversaansprakelijkheid": {
+      "title": "Werkgeversaansprakelijkheid verkeersdeelnemers (Wegas)",
+      "description": "Wanneer een werknemer betrokken raakt bij een ongeluk tijdens het werk, kunt u aangesproken worden voor de letselschade maar ook voor de materiële schade. De bedrijfsaansprakelijkheidsverzekering of een motorrijtuigverzekering biedt hiervoor niet altijd voldoende dekking. Een Wegasverzekering (werkgeversaansprakelijkheidsverzekering voor verkeersdeelnemers) biedt daarvoor een aanvullende dekking. Het ongeval kan plaatsvinden op de werkvloer of op locatie, maar ook tijdens verkeersdeelname. Ook woon-werkverkeer of andere werkgerelateerde activiteiten, bijvoorbeeld een bedrijfsuitje, workshop of zakenreis kunnen worden meeverzekerd.",
+      "key_points": [
+        "Dekt aansprakelijkheid voor schade aan werknemers in het verkeer",
+        "Vult hiaten in de AVB en motorrijtuigverzekering",
+        "Kan uitgebreid worden naar woon-werkverkeer en zakenreizen"
+      ],
+      "common_risks": [
+        "Onduidelijkheid over dekking bij gebruik van privévoertuigen",
+        "Onvoldoende dekking voor buitenlandse zakenreizen",
+        "Niet melden van veranderingen in bedrijfsactiviteiten of personeelsbestand"
+      ],
+      "generic_example": "Een werknemer raakt gewond bij een auto-ongeluk tijdens een klantbezoek met zijn eigen auto. De Wegasverzekering dekt de letselschade en eventuele materiële schade die niet door andere verzekeringen wordt vergoed."
+    }
+  },
+  "milieuschade": {
+    "title": "Milieuschade",
+    "description": "Als er door uw bedrijf schade aan het milieu wordt veroorzaakt, kan dat grote financiële gevolgen hebben voor uw bedrijf. Wanneer bijvoorbeeld brand ontstaat en bodemverontreiniging optreedt, wordt dit niet gedekt op een brandverzekering of aansprakelijkheidsverzekering. De opruimings- en saneringskosten zijn dan voor eigen rekening. Die kosten kunnen fors oplopen. Een oplossing hiervoor is de milieuschadeverzekering.",
+    "key_points": [
+      "Dekt kosten voor opruiming en sanering bij milieuschade",
+      "Vult hiaten in brand- en aansprakelijkheidsverzekeringen",
+      "Belangrijk voor bedrijven met milieurisico's"
+    ],
+    "common_risks": [
+      "Onderschatting van potentiële saneringskosten",
+      "Onvoldoende dekking voor geleidelijke milieuschade",
+      "Uitsluiting van bepaalde stoffen of activiteiten"
+    ],
+    "generic_example": "Bij een brand in uw bedrijf lekt er olie in de bodem. De milieuschadeverzekering dekt de kosten voor het saneren van de verontreinigde grond, wat niet onder uw brandverzekering valt."
+  },
+  "ziekteverzuim": {
+    "title": "Ziekteverzuim",
+    "description": "Kan uw medewerker door ziekte niet werken? Dan moet u wettelijk tenminste 70% van zijn loon doorbetalen in de eerste twee ziektejaren. De loondoorbetalingsperiode en re-integratieverplichtingen voor uw bedrijf zijn vastgelegd in de Wet verbetering poortwachter. Met een ziekteverzuimverzekering krijgt u een vergoeding voor de kosten van loondoorbetaling. Daarnaast is er binnen deze verzekering veel aandacht voor preventie en re-integratie.",
+    "key_points": [
+      "Vergoedt (deels) de loondoorbetaling bij ziekte van werknemers",
+      "Biedt ondersteuning bij re-integratie en preventie",
+      "Helpt bij het naleven van wettelijke verplichtingen"
+    ],
+    "common_risks": [
+      "Onderschatting van de financiële impact van langdurig ziekteverzuim",
+      "Onvoldoende aandacht voor preventie en vroege interventie",
+      "Niet voldoen aan re-integratieverplichtingen"
+    ],
+    "generic_example": "Een van uw werknemers valt langdurig uit door een burn-out. De ziekteverzuimverzekering vergoedt een deel van het doorbetaalde loon en biedt professionele ondersteuning bij de re-integratie van de werknemer."
+  },
+  "pensioen": {
+    "title": "Pensioen",
+    "description": "In principe bent u als werkgever niet verplicht een collectieve pensioenregeling aan uw medewerkers aan te bieden, tenzij dit in uw branche en/of op grond van een cao verplicht gesteld is. In dat geval moet u uw werknemers verplicht aanmelden bij het BPF (bedrijfstakpensioenfonds). Bijna 80% van de werknemers in Nederland is aangemeld bij een bedrijfstakpensioenfonds. Het is dus belangrijk, zeker bij twijfel, zorgvuldig te (laten) onderzoeken of uw bedrijf ook verplicht deel moet nemen aan een BPF. Is er geen verplicht gestelde regeling, dan kunnen werkgever en werknemers samen een collectieve pensioenregeling overeenkomen. U bent daarbij volledig vrij in hoe de regeling er inhoudelijk uit moet zien. Steeds meer werknemers waarderen een pensioenregeling als secundaire arbeidsvoorwaarde. Met een goede pensioenregeling toont u zich ook een betrokken werkgever.",
+    "key_points": [
+      "Kan verplicht zijn via cao of bedrijfstak",
+      "Vrijwillige regeling mogelijk als secundaire arbeidsvoorwaarde",
+      "Flexibiliteit in opzet bij niet-verplichte regelingen"
+    ],
+    "common_risks": [
+      "Niet voldoen aan verplichte deelname in bedrijfstakpensioenfonds",
+      "Onduidelijkheid over kosten en risico's van pensioenregeling",
+      "Onvoldoende communicatie naar werknemers over pensioenopbouw"
+    ],
+    "generic_example": "U biedt uw werknemers een collectieve pensioenregeling aan waarbij zij maandelijks een percentage van hun salaris inleggen, wat u als werkgever aanvult. Dit helpt bij het aantrekken en behouden van talent en zorgt voor financiële zekerheid voor uw werknemers na hun pensionering."
   }
+}

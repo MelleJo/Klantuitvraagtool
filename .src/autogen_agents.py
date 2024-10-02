@@ -7,6 +7,8 @@ import os
 import streamlit as st
 from openai import OpenAI
 from anthropic import Anthropic
+from summarization_service import load_product_descriptions
+
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -71,6 +73,48 @@ def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
     except Exception as e:
         logger.error(f"Error in identify_risks_and_questions: {str(e)}")
         return {"error": str(e)}
+
+def generate_detailed_explanation(insurance_type: str, client_info: str, product_descriptions: Dict[str, Any]) -> str:
+    insurance_info = get_insurance_info(insurance_type, product_descriptions)
+    
+    if not insurance_info:
+        return f"Geen gedetailleerde informatie beschikbaar voor {insurance_type}."
+
+    prompt = f"""
+    Gegeven de volgende informatie over {insurance_type}:
+
+    Titel: {insurance_info.get('title', 'Niet gespecificeerd')}
+    Beschrijving: {insurance_info.get('description', 'Geen beschrijving beschikbaar')}
+    Belangrijke punten: {', '.join(insurance_info.get('key_points', ['Niet gespecificeerd']))}
+    Veelvoorkomende risico's: {', '.join(insurance_info.get('common_risks', ['Niet gespecificeerd']))}
+
+    En de volgende informatie over de klant:
+
+    {client_info}
+
+    Genereer een gedetailleerde uitleg over deze verzekering, specifiek toegespitst op de situatie van de klant. 
+    Includeer:
+    1. Een korte introductie van de verzekering
+    2. Waarom deze verzekering belangrijk is voor deze specifieke klant
+    3. Twee tot drie op maat gemaakte voorbeelden die relevant zijn voor de klant's situatie. Deze voorbeelden MOETEN gebaseerd zijn op de informatie in de klant-transcript en NIET op de generieke voorbeelden.
+    4. Drie tot vier risico's of aandachtspunten specifiek voor deze klant, gebaseerd op de informatie in de transcript. Gebruik de "common_risks" alleen als inspiratie, niet als directe bron.
+    5. Een afsluitende zin of vraag om de klant aan te moedigen hier meer over na te denken
+
+    Zorg dat de uitleg persoonlijk, informatief en overtuigend is, zonder pusherig over te komen. Gebruik ALLEEN informatie uit de klant-transcript voor specifieke details en voorbeelden.
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringen, specifiek gebaseerd op de situatie van de klant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        max_tokens=800
+    )
+
+    return response.choices[0].message.content.strip()
+
 
 def load_product_descriptions():
     file_path = os.path.join(os.path.dirname(__file__), '..', '.src', 'product_descriptions.json')
@@ -273,8 +317,10 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
         product_descriptions = load_product_descriptions()
-        guidelines = load_guidelines()
-        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
+        
+        detailed_explanations = {}
+        for insurance in identified_insurances:
+            detailed_explanations[insurance] = generate_detailed_explanation(insurance, transcript, product_descriptions)
 
         prompt = f"""
         Generate an email based on the following information:
@@ -285,39 +331,21 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         Selected Recommendations: {json.dumps(selected_recommendations_list, indent=2)}
 
-        Use the following specific instructions for each identified insurance type:
+        Detailed Explanations:
+        {json.dumps(detailed_explanations, indent=2)}
 
-        {json.dumps(insurance_specific_instructions, indent=2)}
-
-        Product Descriptions:
-        {json.dumps(product_descriptions, indent=2)}
-
-        General Guidelines:
-        {guidelines}
-
-        Ensure that you address each identified insurance type using its specific instructions.
+        Use the detailed explanations to provide comprehensive information about each insurance type.
+        Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
+        Do not use generic examples unless absolutely necessary.
         The email should be structured, personalized, and follow all the general email writing guidelines provided.
-        Focus on the identified insurance types and the selected recommendations.
         
-        Crucial points to include:
-        1. Use dashes (-) instead of bullet points for all lists.
-        2. For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
-        3. Mention at least once that Veldhuis Advies is an intermediary: "Als tussenpersoon helpt Veldhuis Advies je bij het vinden van de beste verzekeringen voor jouw situatie."
-        4. For each insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
-        5. For liability insurance (AVB), always discuss the "opzicht" clause and its relevance.
-        6. For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
-        7. For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
-        8. Avoid double questions - ask for information or changes only once per topic.
-        9. Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
-        10. Provide specific examples of how each insurance type protects the client's business or personal assets.
-
-        The email should be comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        [Rest of the prompt remains the same]
         """
 
         response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
-                {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies."},
+                {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0,
@@ -332,10 +360,6 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         # Apply correction AI
         corrected_email = correction_AI(initial_email_content, guidelines)
 
-        logging.info("Email generated and corrected successfully")
-        logging.debug(f"Initial email content: {initial_email_content[:500]}...")
-        logging.debug(f"Corrected email content: {corrected_email[:500]}...")
-
         return {
             "initial_email": initial_email_content,
             "corrected_email": corrected_email
@@ -343,12 +367,6 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
     except Exception as e:
         logging.error(f"Error in generate_email: {str(e)}")
-        logging.error(f"Error type: {type(e)}")
-        logging.error(f"Error args: {e.args}")
-        logging.error(f"Transcript: {transcript}")
-        logging.error(f"Enhanced coverage: {enhanced_coverage}")
-        logging.error(f"Selected recommendations: {selected_recommendations}")
-        logging.error(f"Identified insurances: {identified_insurances}")
         raise
 
 
@@ -375,13 +393,15 @@ def correction_AI(email_content: str, guidelines: str) -> str:
         9. Formatting all placeholders in all caps with square brackets.
         10. Providing specific examples for each insurance type.
 
+        Most importantly, ensure that all examples and risks mentioned are specifically tailored to the client's situation. Do not use generic examples unless absolutely necessary. If you find any generic examples that don't seem to relate to the client's specific situation, remove or replace them with more relevant, client-specific examples.
+
         Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
         """
 
         response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
-                {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails."},
+                {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails, ensuring they are personalized and relevant to each specific client."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0,

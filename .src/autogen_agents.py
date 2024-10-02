@@ -337,7 +337,7 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> Di
     
     return instructions
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str]) -> Dict[str, str]:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any]) -> Dict[str, str]:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)

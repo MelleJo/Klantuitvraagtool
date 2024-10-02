@@ -77,7 +77,7 @@ def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, st
             logging.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        email_content = generate_email(transcript, analysis_json, recommendations_json, identified_insurances)
+        email_content = generate_email(transcript, analysis_json, recommendations_json, identified_insurances, product_descriptions)
 
         if not email_content['initial_email'] or not email_content['corrected_email']:
             logging.error("Email generation returned empty content.")

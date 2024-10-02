@@ -7,7 +7,7 @@ import os
 import streamlit as st
 from openai import OpenAI
 from anthropic import Anthropic
-from .src.services.summarization_service import load_product_descriptions
+#from .src.services.summarization_service import load_product_descriptions
 
 
 os.environ["AUTOGEN_USE_DOCKER"] = "0"

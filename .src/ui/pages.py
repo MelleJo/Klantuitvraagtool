@@ -221,8 +221,11 @@ def render_recommendations_step():
         st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
     else:
         analysis_result = st.session_state.get('suggestions', {})
-        # Use 'advisor_questions' instead of 'recommendations'
-        recommendations = analysis_result.get('advisor_questions', [])
+        
+        # Combine advisor questions and AI risks as recommendations
+        advisor_questions = analysis_result.get('advisor_questions', [])
+        ai_risks = analysis_result.get('ai_risks', [])
+        recommendations = [{"title": q, "description": q} for q in advisor_questions] + [{"title": r, "description": r} for r in ai_risks]
         
         if not recommendations:
             st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
@@ -231,23 +234,12 @@ def render_recommendations_step():
 
             selected_recommendations = []
             for i, rec in enumerate(recommendations):
-                if st.checkbox(rec.get('title', f"Aanbeveling {i+1}"), key=f"rec_checkbox_{i}"):
+                if st.checkbox(rec['title'], key=f"rec_checkbox_{i}"):
                     selected_recommendations.append(rec)
 
-                with st.expander(f"Details voor {rec.get('title', f'Aanbeveling {i+1}')}", expanded=False):
+                with st.expander(f"Details voor {rec['title']}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                    if 'description' in rec:
-                        st.markdown(f'<p class="recommendation-title">Beschrijving:</p>', unsafe_allow_html=True)
-                        st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
-                    if 'rechtvaardiging' in rec:
-                        st.markdown(f'<p class="recommendation-title">Rechtvaardiging:</p>', unsafe_allow_html=True)
-                        st.markdown(f'<p class="recommendation-content">{rec["rechtvaardiging"]}</p>', unsafe_allow_html=True)
-                    if 'specific_risks' in rec and rec['specific_risks']:
-                        st.markdown('<p class="recommendation-title">Specifieke risico\'s:</p>', unsafe_allow_html=True)
-                        st.markdown('<ul class="recommendation-list">', unsafe_allow_html=True)
-                        for risk in rec['specific_risks']:
-                            st.markdown(f'<li>{risk}</li>', unsafe_allow_html=True)
-                        st.markdown('</ul>', unsafe_allow_html=True)
+                    st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 
             update_session_state('selected_suggestions', selected_recommendations)

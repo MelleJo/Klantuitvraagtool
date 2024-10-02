@@ -447,20 +447,17 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         "Mijn naam is [UW NAAM], je verzekeringsadviseur bij Veldhuis Advies. Ik heb recent je verzekeringssituatie voor [BEDRIJFSNAAM] doorgenomen en wil graag enkele punten met je bespreken om ervoor te zorgen dat je dekking optimaal aansluit bij je huidige situatie."
 
         2. For each insurance type:
-        a) Start with a brief overview of the current situation.
-        b) Explain potential risks or changes that might affect the coverage.
-        c) Provide a clear, action-oriented suggestion. For example:
-        "Actie: Wil je dat ik bereken wat dit je kan schelen? Zo kunnen we samen beoordelen of deze aanpassing zinvol is voor jouw situatie."
+        a) Start with the comprehensive description from product_descriptions.json.
+        b) Follow with a brief overview of the current situation.
+        c) Explain potential risks or changes that might affect the coverage.
+        d) Provide a clear, action-oriented suggestion within the paragraph. For example:
+        "Gezien de leeftijd van het voertuig kan het financieel voordelig zijn om over te stappen naar een beperkt casco dekking. Wil je dat ik bereken wat dit je kan schelen? Zo kunnen we samen beoordelen of deze aanpassing zinvol is voor jouw situatie."
 
         3. When discussing risks:
         "Het is belangrijk dat deze bedragen blijven aansluiten bij de werkelijke waarde. Mocht er een aanzienlijke verandering zijn in de waarde van je inventaris of goederen, laat het ons dan weten. Zo voorkomen we dat je of te veel betaalt, of dat je onderverzekerd bent. Onderverzekering kan leiden tot onvolledige vergoeding bij schade."
 
         4. For complex topics like personnel and disability insurance:
-        "Ik wil graag even stilstaan bij twee belangrijke aspecten van je bedrijfsvoering: personeel en je persoonlijke financiële zekerheid.
-
-        Personeel: Mocht je inmiddels personeel in dienst hebben of dit overwegen, dan brengt dit nieuwe verantwoordelijkheden en risico's met zich mee. Denk bijvoorbeeld aan de verplichting tot loondoorbetaling bij ziekte. Het is belangrijk om hier tijdig over na te denken en eventuele maatregelen te treffen.
-
-        Arbeidsongeschiktheid: Als zelfstandig ondernemer is je inkomen direct gekoppeld aan je arbeidscapaciteit. Langdurige ziekte of een ongeval kan grote financiële gevolgen hebben. Er zijn recente ontwikkelingen geweest rondom een mogelijk verplichte arbeidsongeschiktheidsverzekering voor zelfstandigen. Heb je hier al over nagedacht of vragen over?"
+        "Als zelfstandig ondernemer is je inkomen direct gekoppeld aan je arbeidscapaciteit. Langdurige ziekte of een ongeval kan grote financiële gevolgen hebben. Er zijn recente ontwikkelingen geweest rondom een mogelijk verplichte arbeidsongeschiktheidsverzekering voor zelfstandigen. Wil je een keer sparren over de risico's en mogelijkheden?"
 
         5. Closing:
         "Ik hoop dat deze informatie je helpt om een goed beeld te krijgen van je huidige verzekeringssituatie en mogelijke aandachtspunten. Als je vragen hebt, iets wilt aanpassen of gewoon eens wilt sparren over je verzekeringen, neem dan gerust contact met me op. Ik sta klaar om je te helpen en adviseren.
@@ -471,7 +468,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         [UW NAAM]
         Veldhuis Advies"
 
-        Remember to maintain this style throughout the email, focusing on informing the client about risks and options rather than pushing products.
+        Remember to maintain this style throughout the email, focusing on informing the client about risks and options rather than pushing products. Integrate action-oriented suggestions within paragraphs instead of separate "Actie" items.
         """
 
         prompt = f"""You are tasked with reviewing and correcting an email based on specific guidelines and feedback. Your goal is to ensure the email adheres to all guidelines while providing comprehensive and client-specific information. Follow these instructions carefully:
@@ -492,16 +489,17 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         b) Start with a professional introduction stating your name and role.
         c) Use dashes (-) instead of bullet points for all lists.
         d) For each insurance type:
-           - Provide a clear explanation using the product descriptions
+           - Start with the comprehensive description from product_descriptions.json
+           - Provide a clear explanation of the current situation
            - Include client-specific risks and examples
            - Explain consequences of underinsurance or insufficient coverage
-           - Offer relevant additional information (e.g., "opzicht" clause for liability insurance)
-           - End with a clear, personalized call-to-action focused on the client's benefit
+           - Offer relevant additional information
+           - Include a clear, personalized call-to-action within the paragraph, not as a separate "Actie" item
         e) For car insurance, mention common risks like theft, fire, windshield damage, and collisions with wildlife.
-        f) For inventory and goods insurance, explain the difference and emphasize the client's responsibility to inform about significant changes.
+        f) For inventory and goods insurance ("Inventaris- en Goederenverzekering"), explain the difference and emphasize the client's responsibility to inform about significant changes. Remove any redundant call-to-actions.
         g) For business interruption insurance, explain why recovery times might be longer due to current market conditions.
-        h) For liability insurance, elaborate on why additional coverage might be necessary (e.g., for furniture during transport).
-        i) When discussing personnel and disability insurance, focus on informing about risks rather than pushing products.
+        h) For liability insurance, ensure correct interpretation of the "opzicht" clause. The client's own furniture used in styling homes is not covered under this clause.
+        i) When discussing personnel and disability insurance, focus on informing about risks rather than pushing products. Offer to discuss risks and possibilities.
         j) Avoid mentioning that Veldhuis Advies is an intermediary. Instead, emphasize availability for discussion and changes.
         k) Ensure all examples and risks mentioned are specifically tailored to the client's situation.
         l) Format all placeholders in all caps with square brackets.
@@ -523,7 +521,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
 
         7. Structure your corrected email as follows:
         a) Professional introduction
-        b) Separate sections for each insurance type
+        b) Separate sections for each insurance type, starting with the comprehensive description from product_descriptions.json
         c) Brief conclusion emphasizing availability for questions and discussion
 
         8. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
@@ -534,11 +532,13 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
            a) Is the opening professional and non-cliché?
            b) Are all insurance products adequately described using information from the product descriptions?
            c) Are the risks mentioned relevant and specific to the client's business?
-           d) Are there clear, personalized call-to-actions for each relevant topic?
+           d) Are there clear, personalized call-to-actions within each paragraph?
            e) Does the email focus on informing rather than pushing products?
            f) Is the email well-structured and easy to read?
            g) Does the conclusion emphasize availability for further discussion without mentioning intermediary status?
            h) Does the writing style match the provided style guide and example?
+           i) Is the "opzicht" clause correctly explained for the liability insurance?
+           j) Are there no separate "Actie" items, with suggestions integrated into paragraphs instead?
 
         11. Present your corrected email within <corrected_email> tags.
 

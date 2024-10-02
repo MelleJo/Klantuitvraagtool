@@ -14,7 +14,6 @@ logging.basicConfig(filename=LOG_FILE, level=getattr(logging, LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 
-
 def load_product_descriptions() -> Dict[str, Any]:
     try:
         with open(PRODUCT_DESCRIPTIONS_FILE, 'r', encoding='utf-8') as file:

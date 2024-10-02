@@ -17,6 +17,17 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def get_insurance_info(insurance_type: str, product_descriptions: Dict[str, Any]) -> Dict[str, Any]:
+    for category, products in product_descriptions.items():
+        if isinstance(products, dict):
+            if insurance_type in products:
+                return products[insurance_type]
+            for product, details in products.items():
+                if insurance_type.lower() in product.lower():
+                    return details
+    return {}  # Return an empty dict if no matching insurance is found
+
+
 def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
     try:
         prompt = f"""

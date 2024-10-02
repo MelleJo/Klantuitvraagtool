@@ -24,6 +24,8 @@ import html
 import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 from utils.text_processing import load_guidelines  # Add this import at the top of the file
+from summarization_service import load_product_descriptions, generate_email_wrapper
+
 
 import logging
 from typing import List, Dict, Any
@@ -263,8 +265,9 @@ def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")
 
-    # Load guidelines at the beginning of the function
+    # Load guidelines and product descriptions
     guidelines = load_guidelines()
+    product_descriptions = load_product_descriptions()
 
     if 'corrected_email_content' not in st.session_state:
         if st.button("Genereer klantrapport"):
@@ -283,7 +286,8 @@ def render_client_report_step():
                         enhanced_coverage=enhanced_coverage,
                         selected_recommendations=selected_suggestions,
                         identified_insurances=identified_insurances,
-                        guidelines=guidelines  # Pass the loaded guidelines here
+                        guidelines=guidelines,
+                        product_descriptions=product_descriptions
                     )
 
                     update_session_state('corrected_email_content', email_content['corrected_email'])

@@ -447,7 +447,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         "Mijn naam is [UW NAAM], je verzekeringsadviseur bij Veldhuis Advies. Ik heb recent je verzekeringssituatie doorgenomen en wil graag enkele punten met je bespreken om ervoor te zorgen dat je dekking optimaal aansluit bij je huidige situatie."
 
         2. For each insurance type:
-        a)         a) Start with the comprehensive description from product_descriptions.json (not needed with the autoverzekering) -> make sure to couple the description with an example to the client's business and situation.
+        a) Start with the comprehensive description from product_descriptions.json (not needed with the autoverzekering) -> make sure to couple the description with an example to the client's business and situation.
         b) Describe the current situation based on the transcript.
         c) Explain potential risks or changes that might affect the coverage.
         d) Provide a clear, action-oriented suggestion within the paragraph. For example:

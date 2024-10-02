@@ -283,7 +283,7 @@ def render_client_report_step():
                     update_session_state('corrected_email_content', email_content['corrected_email'])
 
                     st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
-                    st_rerun()
+                    st.experimental_rerun()
 
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")

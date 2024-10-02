@@ -221,7 +221,8 @@ def render_recommendations_step():
         st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
     else:
         analysis_result = st.session_state.get('suggestions', {})
-        recommendations = analysis_result.get('recommendations', [])
+        # Use 'advisor_questions' instead of 'recommendations'
+        recommendations = analysis_result.get('advisor_questions', [])
         
         if not recommendations:
             st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")

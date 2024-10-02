@@ -25,6 +25,7 @@ import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 from utils.text_processing import load_guidelines  # Add this import at the top of the file
 #from summarization_service import load_product_descriptions, generate_email_wrapper
+from services.summarization_service import load_product_descriptions, generate_email_wrapper
 
 
 import logging

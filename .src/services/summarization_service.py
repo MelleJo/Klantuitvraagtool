@@ -16,18 +16,22 @@ logger = logging.getLogger(__name__)
 
 def load_product_descriptions() -> Dict[str, Any]:
     try:
-        with open(PRODUCT_DESCRIPTIONS_FILE, 'r', encoding='utf-8') as file:
+        current_file_path = os.path.abspath(__file__)
+        project_root = os.path.dirname(os.path.dirname(current_file_path))
+        product_descriptions_file = os.path.join(project_root, '.src', 'product_descriptions.json')
+        
+        with open(product_descriptions_file, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        logger.info(f"Successfully loaded product descriptions from {PRODUCT_DESCRIPTIONS_FILE}")
+        logging.info(f"Successfully loaded product descriptions from {product_descriptions_file}")
         return data
     except FileNotFoundError:
-        logger.error(f"The file '{PRODUCT_DESCRIPTIONS_FILE}' was not found.")
+        logging.error(f"The file 'product_descriptions.json' was not found.")
         return {}
     except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON in '{PRODUCT_DESCRIPTIONS_FILE}': {str(e)}")
+        logging.error(f"Error decoding JSON in 'product_descriptions.json': {str(e)}")
         return {}
     except Exception as e:
-        logger.error(f"Unexpected error while loading '{PRODUCT_DESCRIPTIONS_FILE}': {str(e)}")
+        logging.error(f"Unexpected error while loading 'product_descriptions.json': {str(e)}")
         return {}
 
 def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:

@@ -2,7 +2,6 @@
 from services.summarization_service import load_product_descriptions
 from services.email_generation import generate_email_wrapper
 from utils.text_processing import load_guidelines
-from services.email_generation import generate_email_wrapper
 from utils.text_processing import load_guidelines
 import streamlit as st
 import simplejson as json
@@ -20,7 +19,7 @@ from ui.components import (
 )
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
-from services.summarization_service import analyze_transcript, generate_email_wrapper
+from services.summarization_service import analyze_transcript
 from services.email_service import send_feedback_email
 from autogen_agents import correction_AI
 import os
@@ -30,7 +29,7 @@ from services.summarization_service import generate_email_wrapper, load_product_
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 from utils.text_processing import load_guidelines  # Add this import at the top of the file
 #from summarization_service import load_product_descriptions, generate_email_wrapper
-from services.summarization_service import load_product_descriptions, generate_email_wrapper
+from services.summarization_service import load_product_descriptions
 
 
 import logging

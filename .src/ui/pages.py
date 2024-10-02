@@ -23,6 +23,8 @@ import os
 import html
 import time
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
+from utils.text_processing import load_guidelines  # Add this import at the top of the file
+
 import logging
 from typing import List, Dict, Any
 from openai import OpenAI
@@ -261,6 +263,9 @@ def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")
 
+    # Load guidelines at the beginning of the function
+    guidelines = load_guidelines()
+
     if 'corrected_email_content' not in st.session_state:
         if st.button("Genereer klantrapport"):
             with st.spinner("Rapport wordt gegenereerd..."):
@@ -268,7 +273,7 @@ def render_client_report_step():
                     transcript = st.session_state.get('transcript', '')
                     suggestions = st.session_state.get('suggestions', {})
                     selected_suggestions = st.session_state.get('selected_suggestions', [])
-                    identified_insurances = st.session_state.get('identified_insurances', [])
+                    identified_insurances = get_available_insurances(suggestions)
 
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
@@ -277,13 +282,14 @@ def render_client_report_step():
                         transcript=transcript,
                         enhanced_coverage=enhanced_coverage,
                         selected_recommendations=selected_suggestions,
-                        identified_insurances=identified_insurances
+                        identified_insurances=identified_insurances,
+                        guidelines=guidelines  # Pass the loaded guidelines here
                     )
 
                     update_session_state('corrected_email_content', email_content['corrected_email'])
 
                     st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
-                    st.rerun()
+                    st_rerun()
 
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")
@@ -308,7 +314,7 @@ def render_client_report_step():
             "transcript": st.session_state.get('transcript', ''),
             "suggestions": st.session_state.get('suggestions', {}),
             "selected_suggestions": st.session_state.get('selected_suggestions', []),
-            "identified_insurances": st.session_state.get('identified_insurances', []),
+            "identified_insurances": get_available_insurances(st.session_state.get('suggestions', {})),
             "corrected_email_content": st.session_state.get('corrected_email_content', '')
         })
 

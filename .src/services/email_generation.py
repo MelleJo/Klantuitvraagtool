@@ -4,6 +4,63 @@ import json
 from typing import List, Dict, Any
 from autogen_agents import generate_email, correction_AI
 
+def load_insurance_specific_instructions(identified_insurances: List[str]) -> str:
+    """
+    Load specific instructions for the identified insurances from guideline files.
+    
+    Args:
+    identified_insurances (List[str]): List of identified insurance types.
+    
+    Returns:
+    str: A string containing specific instructions for the identified insurances.
+    """
+    insurance_file_mapping = {
+        "auto": "autoverzekering.txt",
+        "liability": "particuliere_aansprakelijkheid.txt",
+        "property": "gebouwen.txt",
+        "contents": "inboedel_prive.txt",
+        "business_contents": "inboedel_inventaris_goederen.txt",
+        "business_liability": "avb.txt",
+        "business_interruption": "bedrijfsschade.txt",
+        "cyber": "cyber.txt",
+        "travel": "reis_prive.txt",
+        "business_travel": "reis_zakelijk.txt",
+        "legal": "rechtsbijstand.txt",
+        "health": "zorgverzekering_prive.txt",
+        "pension": "pensioen_aov.txt",
+        "transport": "transportverzekering.txt",
+        "home": "woonhuis.txt"
+    }
+
+    instructions = "Here are specific instructions for the identified insurance types:\n\n"
+
+    for insurance in identified_insurances:
+        if insurance.lower() in insurance_file_mapping:
+            file_name = insurance_file_mapping[insurance.lower()]
+            try:
+                file_content = read_file(f".src/insurance_guidelines/{file_name}")
+                instructions += f"Instructions for {insurance} insurance:\n{file_content}\n\n"
+            except Exception as e:
+                logging.error(f"Error reading guideline file for {insurance}: {str(e)}")
+                instructions += f"Unable to load specific instructions for {insurance} insurance.\n\n"
+        else:
+            instructions += f"No specific guideline file found for {insurance} insurance.\n\n"
+
+    return instructions
+
+def read_file(file_path: str) -> str:
+    """
+    Read the contents of a file.
+    
+    Args:
+    file_path (str): Path to the file to be read.
+    
+    Returns:
+    str: Contents of the file.
+    """
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
+
 def generate_email_wrapper(
     transcript: str,
     enhanced_coverage: List[Dict[str, str]],

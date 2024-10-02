@@ -167,38 +167,46 @@ def render_analysis_step():
                 st.stop()
 
     if st.session_state.get('analysis_complete', False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### 📊 Huidige dekking")
-            st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            current_coverage = st.session_state.get('suggestions', {}).get('current_coverage', [])
-            if current_coverage:
-                for coverage in current_coverage:
-                    st.write(f"• {coverage}")
-            else:
-                st.write("Geen huidige dekking geïdentificeerd.")
-            st.markdown("</div>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
         
-        with col2:
-            st.markdown("### ⚠️ Geïdentificeerde risico's")
-            st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-            identified_risks = st.session_state.get('suggestions', {}).get('identified_risks', [])
-            if identified_risks:
-                for risk in identified_risks:
-                    st.write(f"• {risk}")
-            else:
-                st.write("Geen specifieke risico's geïdentificeerd.")
-            st.markdown("</div>", unsafe_allow_html=True)
+        with col1:
+            st.markdown("""
+            <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; height: 100%;'>
+                <h3 style='color: #1E40AF;'>📊 Huidige dekking</h3>
+                <ul style='list-style-type: none; padding-left: 0;'>
+            """, unsafe_allow_html=True)
+            
+            current_coverage = st.session_state.get('suggestions', {}).get('current_coverage', [])
+            for coverage in current_coverage:
+                st.markdown(f"<li>• {coverage}</li>", unsafe_allow_html=True)
+            
+            st.markdown("</ul></div>", unsafe_allow_html=True)
 
-        st.markdown("### ❓ Vragen om te stellen")
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        questions_to_ask = st.session_state.get('suggestions', {}).get('questions_to_ask', [])
-        if questions_to_ask:
-            for question in questions_to_ask:
-                st.write(f"• {question}")
-        else:
-            st.write("Geen specifieke vragen geïdentificeerd.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            <div style='background-color: #e6f0ff; padding: 20px; border-radius: 10px; height: 100%;'>
+                <h3 style='color: #1E40AF;'>❓ Vragen/opmerkingen adviseur</h3>
+                <ul style='list-style-type: none; padding-left: 0;'>
+            """, unsafe_allow_html=True)
+            
+            advisor_questions = st.session_state.get('suggestions', {}).get('advisor_questions', [])
+            for question in advisor_questions:
+                st.markdown(f"<li>• {question}</li>", unsafe_allow_html=True)
+            
+            st.markdown("</ul></div>", unsafe_allow_html=True)
+
+        with col3:
+            st.markdown("""
+            <div style='background-color: #fff0f0; padding: 20px; border-radius: 10px; height: 100%;'>
+                <h3 style='color: #1E40AF;'>⚠️ AI aanvullende risico's</h3>
+                <ul style='list-style-type: none; padding-left: 0;'>
+            """, unsafe_allow_html=True)
+            
+            ai_risks = st.session_state.get('suggestions', {}).get('ai_risks', [])
+            for risk in ai_risks:
+                st.markdown(f"<li>• {risk}</li>", unsafe_allow_html=True)
+            
+            st.markdown("</ul></div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 

@@ -207,6 +207,8 @@ quality_control = autogen.AssistantAgent(
 def parse_analysis_result(content: str) -> Dict[str, Any]:
     result = {
         'current_coverage': [],
+        'advisor_questions': [],
+        'ai_risks': [],
         'coverage_gaps': [],
         'recommendations': [],
         'additional_comments': []
@@ -217,8 +219,12 @@ def parse_analysis_result(content: str) -> Dict[str, Any]:
 
     for line in content.split('\n'):
         line = line.strip()
-        if line.startswith('<bestaande_dekking>'):
+        if line.startswith('<huidige_dekking>') or line.startswith('<bestaande_dekking>'):
             current_section = 'current_coverage'
+        elif line.startswith('<adviseur_vragen>'):
+            current_section = 'advisor_questions'
+        elif line.startswith('<ai_risicos>'):
+            current_section = 'ai_risks'
         elif line.startswith('<dekkingshiaten>'):
             current_section = 'coverage_gaps'
         elif line.startswith('<verzekeringsaanbevelingen>'):
@@ -259,28 +265,47 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
     try:
         logger.info("Starting transcript analysis")
         
-        # Existing analysis
-        user_proxy.initiate_chat(
-            transcript_analyst,
-            message=f"""Please analyze this insurance-related transcript and identify the relevant insurance types:
+        prompt = f"""
+        Analyseer het volgende verzekeringstranscript en identificeer:
+        1. De huidige dekking van de klant
+        2. Vragen en opmerkingen die de adviseur heeft gemaakt
+        3. Aanvullende risico's en aandachtspunten die de AI heeft geïdentificeerd, maar de adviseur niet expliciet heeft genoemd
 
-{transcript}
+        Transcript:
+        {transcript}
 
-In your analysis, include a list of identified insurance types at the end.""",
-            summary_method="last_msg",
-            max_turns=1
+        Geef je analyse in het volgende format:
+        <analyse>
+        <huidige_dekking>
+        - [Lijst van huidige verzekeringen, één per regel]
+        </huidige_dekking>
+
+        <adviseur_vragen>
+        - [Lijst van vragen en opmerkingen van de adviseur, één per regel]
+        </adviseur_vragen>
+
+        <ai_risicos>
+        - [Lijst van aanvullende risico's en aandachtspunten geïdentificeerd door de AI, één per regel]
+        </ai_risicos>
+        </analyse>
+
+        Zorg ervoor dat alle informatie in het Nederlands is.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "system", "content": "Je bent een AI-assistent gespecialiseerd in het analyseren van verzekeringstranscripten."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=1000
         )
-        
-        analysis = transcript_analyst.last_message()["content"]
+
+        analysis = response.choices[0].message.content.strip()
         logger.info("Transcript analysis completed")
         
         parsed_result = parse_analysis_result(analysis)
-        
-        # New risk and question identification
-        risks_and_questions = identify_risks_and_questions(transcript)
-        
-        # Combine results
-        parsed_result.update(risks_and_questions)
         
         return parsed_result
     except Exception as e:

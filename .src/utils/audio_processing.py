@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-def split_audio(file_path, max_duration_ms=30000):
+def split_audio(file_path, max_duration_ms=60000):
     audio = AudioSegment.from_file(file_path)
     chunks = []
     for i in range(0, len(audio), max_duration_ms):

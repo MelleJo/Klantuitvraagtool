@@ -25,7 +25,6 @@ from autogen_agents import correction_AI
 import os
 import html
 import time
-from services.summarization_service import generate_email_wrapper, load_product_descriptions
 from utils.session_state import update_session_state, move_to_step, clear_analysis_results
 from utils.text_processing import load_guidelines  # Add this import at the top of the file
 #from summarization_service import load_product_descriptions, generate_email_wrapper
@@ -38,7 +37,7 @@ from openai import OpenAI
 import streamlit as st
 import logging
 from utils.session_state import update_session_state
-from services.summarization_service import generate_email_wrapper
+
 from autogen_agents import correction_AI
 from utils.text_processing import load_guidelines
 
@@ -262,7 +261,8 @@ def render_recommendations_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
     
-from services.summarization_service import generate_email_wrapper
+
+
 
 from utils.text_processing import load_guidelines  # Add this import at the top of the file
 

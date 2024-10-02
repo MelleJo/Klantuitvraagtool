@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict, Any
 import os
-
+from services.summarization_service import generate_email_wrapper, load_product_descriptions
 import streamlit as st
 from autogen_agents import analyze_transcript, generate_email, correction_AI
 from config import (
@@ -64,7 +64,14 @@ def couple_coverage_with_descriptions(current_coverage: List[str], product_descr
             })
     return enhanced_coverage
 
-def generate_email_wrapper(transcript: str, enhanced_coverage: List[Dict[str, str]], selected_recommendations: List[Dict[str, Any]], identified_insurances: List[str], guidelines: str, product_descriptions: Dict[str, Any]) -> Dict[str, str]:
+def generate_email_wrapper(
+    transcript: str,
+    enhanced_coverage: List[Dict[str, str]],
+    selected_recommendations: List[Dict[str, Any]],
+    identified_insurances: List[str],
+    guidelines: str,
+    product_descriptions: Dict[str, Any]
+) -> Dict[str, str]:
     try:
         logging.info("Starting email generation wrapper")
 

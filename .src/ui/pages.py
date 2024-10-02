@@ -1,11 +1,23 @@
-#pages.py
-from services.summarization_service import load_product_descriptions
-from services.email_generation import generate_email_wrapper
-from utils.text_processing import load_guidelines
-from utils.text_processing import load_guidelines
+# pages.py
+import os
+import time
+import html
+import logging
+from typing import List, Dict, Any
+
 import streamlit as st
 import json
-#import simplejson as json
+from openai import OpenAI
+
+from services.summarization_service import load_product_descriptions, analyze_transcript
+from services.email_generation import generate_email_wrapper
+from services.email_service import send_feedback_email
+
+from utils.text_processing import load_guidelines
+from utils.audio_processing import transcribe_audio, process_audio_input
+from utils.file_processing import process_uploaded_file
+from utils.session_state import update_session_state, move_to_step, clear_analysis_results
+
 from ui.components import (
     display_input_method_selector,
     display_text_input,
@@ -18,43 +30,15 @@ from ui.components import (
     display_warning,
     display_metric   
 )
-from utils.audio_processing import transcribe_audio, process_audio_input
-from utils.file_processing import process_uploaded_file
-from services.summarization_service import analyze_transcript
-from services.email_service import send_feedback_email
-from autogen_agents import correction_AI
-import os
-import html
-import time
-from utils.session_state import update_session_state, move_to_step, clear_analysis_results
-from utils.text_processing import load_guidelines  # Add this import at the top of the file
-#from summarization_service import load_product_descriptions, generate_email_wrapper
-from services.summarization_service import load_product_descriptions
-
-
-import logging
-from typing import List, Dict, Any
-from openai import OpenAI
-import streamlit as st
-import logging
-from utils.session_state import update_session_state
 
 from autogen_agents import correction_AI
-from utils.text_processing import load_guidelines
 
+# Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
+# Configure logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-import os
-import json
-import logging
-from typing import List, Dict, Any
-from openai import OpenAI
-import streamlit as st
-
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
     try:

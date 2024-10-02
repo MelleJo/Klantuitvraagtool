@@ -15,16 +15,26 @@ logger = logging.getLogger(__name__)
 
 def load_product_descriptions() -> Dict[str, Any]:
     try:
-        current_file_path = os.path.abspath(__file__)
-        project_root = os.path.dirname(os.path.dirname(current_file_path))
-        product_descriptions_file = os.path.join(project_root, '.src', 'product_descriptions.json')
+        # Get the directory of the current script
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         
-        with open(product_descriptions_file, 'r', encoding='utf-8') as file:
+        # Construct the path to the JSON file
+        json_path = os.path.join(current_dir, '..', 'product_descriptions.json')
+        
+        # Print debugging information
+        print(f"Current working directory: {os.getcwd()}")
+        print(f"Attempting to load file from: {json_path}")
+        
+        # Check if the file exists
+        if not os.path.exists(json_path):
+            raise FileNotFoundError(f"The file does not exist at {json_path}")
+        
+        with open(json_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-        logging.info(f"Successfully loaded product descriptions from {product_descriptions_file}")
+        logging.info(f"Successfully loaded product descriptions from {json_path}")
         return data
-    except FileNotFoundError:
-        logging.error(f"The file 'product_descriptions.json' was not found.")
+    except FileNotFoundError as e:
+        logging.error(f"FileNotFoundError: {str(e)}")
         return {}
     except json.JSONDecodeError as e:
         logging.error(f"Error decoding JSON in 'product_descriptions.json': {str(e)}")
@@ -32,7 +42,6 @@ def load_product_descriptions() -> Dict[str, Any]:
     except Exception as e:
         logging.error(f"Unexpected error while loading 'product_descriptions.json': {str(e)}")
         return {}
-
 def get_product_description(product_name: str, product_descriptions: Dict[str, Any]) -> str:
     for category, products in product_descriptions.items():
         if isinstance(products, dict) and product_name.lower() in products:

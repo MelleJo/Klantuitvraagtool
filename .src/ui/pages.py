@@ -278,6 +278,9 @@ def render_client_report_step():
     guidelines = load_guidelines()
     product_descriptions = load_product_descriptions()
 
+    # Initialize identified_insurances outside the if block
+    identified_insurances = []
+
     if 'corrected_email_content' not in st.session_state:
         if st.button("Genereer klantrapport"):
             with st.spinner("Rapport wordt gegenereerd..."):
@@ -307,6 +310,7 @@ def render_client_report_step():
                     )
 
                     update_session_state('corrected_email_content', email_content['corrected_email'])
+                    update_session_state('identified_insurances', identified_insurances)
 
                     st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
                     st.rerun()
@@ -334,7 +338,7 @@ def render_client_report_step():
             "transcript": st.session_state.get('transcript', '')[:100] + "...",  # Truncated for brevity
             "suggestions": st.session_state.get('suggestions', {}),
             "selected_suggestions": st.session_state.get('selected_suggestions', []),
-            "identified_insurances": identified_insurances,
+            "identified_insurances": st.session_state.get('identified_insurances', identified_insurances),
             "corrected_email_content": st.session_state.get('corrected_email_content', '')[:100] + "..."  # Truncated for brevity
         })
 

@@ -27,8 +27,7 @@ def recording_checklist():
         for item in checklist_items:
             st.checkbox(item, key=f"checklist_{item}")
 
-        st.markdown("---")
-        st.markdown("**Tip:** Stel open vragen en luister aandachtig naar de antwoorden van de klant.")
+        
 
 def add_checklist_css():
     st.markdown("""

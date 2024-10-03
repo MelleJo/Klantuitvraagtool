@@ -10,7 +10,7 @@ from ui.pages import (
 from utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
 from ui.components import ImprovedUIStyled
 from ui.checklist import add_checklist_css
-
+import traceback
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')

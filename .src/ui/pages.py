@@ -251,7 +251,8 @@ def render_recommendations_step():
 
                 with st.expander(f"Details voor {rec['title']}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                    st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
+                    detailed_description = generate_detailed_description(rec, analysis_result)
+                    st.markdown(f'<p class="recommendation-content">{detailed_description}</p>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 
             # Update session state with selected recommendations
@@ -268,6 +269,51 @@ def render_recommendations_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
     
+def generate_detailed_description(recommendation, analysis_result):
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    
+    # Load product descriptions
+    product_descriptions = load_product_descriptions()
+    
+    prompt = f"""
+    Genereer een gedetailleerde beschrijving voor de volgende aanbeveling:
+
+    Aanbeveling: {recommendation['title']}
+    Type: {"Adviseur vraag" if recommendation['type'] == 'advisor' else 'AI-geïdentificeerd risico'}
+
+    Houd rekening met de volgende richtlijnen:
+    1. Geef een uitgebreide uitleg over waarom deze aanbeveling belangrijk is voor de klant.
+    2. Beschrijf welke verzekering(en) relevant zijn voor deze aanbeveling.
+    3. Leg uit wat de mogelijke gevolgen kunnen zijn als er geen actie wordt ondernomen.
+    4. Geef concrete voorbeelden die relevant zijn voor de situatie van de klant.
+    5. Vermijd het gebruik van technisch jargon en leg alles in duidelijke taal uit.
+    6. Gebruik geen afkortingen die onbekend zijn voor een verzekeringsleek.
+    7. Maak geen aannames over de huidige situatie van de klant.
+    8. Focus op het informeren van de klant over risico's en opties, niet op het pushen van producten.
+    9. Indien van toepassing, leg het verschil uit tussen inventaris (inrichting, machines) en goederen (handelswaren).
+    10. Voor aansprakelijkheidsverzekeringen, bespreek altijd de 'opzicht' clausule en de relevantie ervan.
+    11. Bij bedrijfsschadeverzekeringen, leg uit waarom hersteltijden tegenwoordig langer kunnen zijn.
+
+    Huidige analyse van de klant:
+    {json.dumps(analysis_result, ensure_ascii=False, indent=2)}
+
+    Productbeschrijvingen:
+    {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+
+    Geef een gedetailleerde beschrijving in het Nederlands, rekening houdend met bovenstaande richtlijnen.
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringsaanbevelingen."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        max_tokens=500
+    )
+
+    return response.choices[0].message.content.strip()
 
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)

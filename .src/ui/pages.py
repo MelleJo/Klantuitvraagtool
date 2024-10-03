@@ -4,6 +4,7 @@ import time
 import html
 import logging
 from typing import List, Dict, Any
+from ui.checklist import recording_checklist
 
 import streamlit as st
 import json
@@ -104,14 +105,18 @@ def render_input_step(config):
                     st.success("Audio succesvol verwerkt en getranscribeerd!")
 
     elif input_method == "Neem audio op":
-        audio_file_path = process_audio_input(input_method)
-        if audio_file_path:
-            with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
-                transcript = transcribe_audio(audio_file_path)
-                update_session_state('transcript', transcript)
-                update_session_state('input_processed', True)
-                update_session_state('transcription_complete', True)
-            st.success("Audio succesvol opgenomen en getranscribeerd!")
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            audio_file_path = process_audio_input(input_method)
+            if audio_file_path:
+                with st.spinner("Audio wordt verwerkt en getranscribeerd..."):
+                    transcript = transcribe_audio(audio_file_path)
+                    update_session_state('transcript', transcript)
+                    update_session_state('input_processed', True)
+                    update_session_state('transcription_complete', True)
+                st.success("Audio succesvol opgenomen en getranscribeerd!")
+        with col2:
+            recording_checklist()
 
     elif input_method == "Upload tekstbestand":
         uploaded_file = st.file_uploader("Upload een bestand:", type=['txt', 'docx', 'pdf'])

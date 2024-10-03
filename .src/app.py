@@ -16,7 +16,7 @@ from ui.pages import (
 )
 from utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
 from ui.components import ImprovedUIStyled
-
+from ui.checklist import add_checklist_css
 import logging
 
 # Ensure logging is properly configured
@@ -92,6 +92,7 @@ def render_progress_bar(active_step: int) -> None:
                 st.markdown(f"<p style='color:var(--text-color);text-align:center;'>{i}. {step}</p>", unsafe_allow_html=True)
 
 def main() -> None:
+    add_checklist_css()
     """Main function to run the Streamlit app."""
     try:
         # Initialize session state at the very beginning

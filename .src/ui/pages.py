@@ -218,7 +218,7 @@ def render_recommendations_step():
         # Combine advisor questions and AI risks as recommendations
         advisor_questions = analysis_result.get('advisor_questions', [])
         ai_risks = analysis_result.get('ai_risks', [])
-        recommendations = [{"title": q, "description": q} for q in advisor_questions] + [{"title": r, "description": r} for r in ai_risks]
+        recommendations = [{"title": q, "description": q, "type": "advisor"} for q in advisor_questions] + [{"title": r, "description": r, "type": "ai"} for r in ai_risks]
         
         if not recommendations:
             st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
@@ -235,12 +235,15 @@ def render_recommendations_step():
                     st.markdown(f'<p class="recommendation-content">{rec["description"]}</p>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 
+            # Update session state with selected recommendations
             update_session_state('selected_suggestions', selected_recommendations)
+            
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
 
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4
+                    st.rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 

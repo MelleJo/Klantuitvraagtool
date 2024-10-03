@@ -4,9 +4,6 @@ import json
 from typing import List, Dict, Any
 from autogen_agents import generate_email, correction_AI
 
-
-
-
 def load_insurance_specific_instructions(identified_insurances: List[str]) -> str:
     """
     Load specific instructions for the identified insurances from guideline files.

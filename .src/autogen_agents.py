@@ -7,11 +7,6 @@ import os
 import streamlit as st
 from openai import OpenAI
 from anthropic import Anthropic
-#from .src.services.summarization_service import load_product_descriptions
-
-
-
-
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -27,7 +22,7 @@ def get_insurance_info(insurance_type: str, product_descriptions: Dict[str, Any]
             for product, details in products.items():
                 if insurance_type.lower() in product.lower():
                     return details
-    return {}  # Return an empty dict if no matching insurance is found
+    return {}  
 
 
 def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
@@ -373,21 +368,21 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         a) Begin with a personalized opening, addressing the client directly and introducing yourself as the advisor.
 
-        b) Organize the content into clear, well-labeled sections for each insurance type or recommendation.
+        b) Organize the content into clear, well-labeled sections for each insurance type or recommendation, but only include information about the selected recommendations and identified insurances.
 
-        c) Use the detailed explanations to provide comprehensive information about each insurance type, including the description from product_descriptions.json.
+        c) Use the detailed explanations to provide comprehensive information about each selected insurance type, including the description from product_descriptions.json.
 
         d) Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
 
-        e) Focus on the identified insurance types and the selected recommendations.
+        e) Focus solely on the identified insurance types and the selected recommendations. Do not include information about insurance types or recommendations that were not selected.
 
-        f) For each insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
+        f) For each selected insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
 
         g) Compare current and proposed insurers or coverage options when relevant, explaining the benefits of recommended changes.
 
         h) Avoid using overly technical terms or jargon. If technical terms are necessary, include brief explanations.
 
-        i) Provide a summarized, easy-to-read breakdown of costs and benefits for each insurance type or recommendation.
+        i) Provide a summarized, easy-to-read breakdown of costs and benefits for each selected insurance type or recommendation.
 
         j) End each section with a clear call to action, such as offering to provide more information or asking if the client wants to make changes.
 
@@ -396,23 +391,23 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         3. Crucial points to include:
 
         - Use dashes (-) instead of bullet points for all lists.
-        - For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
-        - For liability insurance (AVB), always discuss the "opzicht" clause and its relevance for both main and secondary activities.
-        - For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
-        - For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
+        - For inventory and goods insurance (if selected), always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
+        - For liability insurance (AVB) (if selected), always discuss the "opzicht" clause and its relevance for both main and secondary activities.
+        - For business interruption insurance (if selected), always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
+        - For home insurance (if selected), always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
         - Avoid double questions - ask for information or changes only once per topic.
-        - Provide specific examples of how each insurance type protects the client's business or personal assets.
+        - Provide specific examples of how each selected insurance type protects the client's business or personal assets.
         - Use "kan van belang zijn" instead of "cruciaal" when discussing importance.
 
         4. Formatting and structure:
 
         - Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
-        - Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        - Ensure the email is comprehensive yet easy to read, with each selected insurance type clearly separated and explained.
         - Use action-oriented language, directing the client toward specific actions or decisions.
 
         5. Final output:
 
-        Present your generated email within <email> tags. Ensure that the email adheres to all the guidelines and crucial points mentioned above.
+        Present your generated email within <email> tags. Ensure that the email adheres to all the guidelines and crucial points mentioned above, while strictly focusing on the selected recommendations and identified insurances.
         """
 
         response = client.chat.completions.create(

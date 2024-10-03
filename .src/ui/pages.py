@@ -280,7 +280,14 @@ def render_client_report_step():
                     transcript = st.session_state.get('transcript', '')
                     suggestions = st.session_state.get('suggestions', {})
                     selected_suggestions = st.session_state.get('selected_suggestions', [])
-                    identified_insurances = get_available_insurances(suggestions)
+                    
+                    # Filter identified insurances based on selected suggestions
+                    all_insurances = get_available_insurances(suggestions)
+                    selected_titles = [suggestion['title'] for suggestion in selected_suggestions]
+                    identified_insurances = [
+                        insurance for insurance in all_insurances 
+                        if any(title.lower() in insurance.lower() for title in selected_titles)
+                    ]
 
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
@@ -319,11 +326,11 @@ def render_client_report_step():
     with st.expander("Debug Info", expanded=False):
         st.markdown("### 🐛 Debug Informatie")
         st.json({
-            "transcript": st.session_state.get('transcript', ''),
+            "transcript": st.session_state.get('transcript', '')[:100] + "...",  # Truncated for brevity
             "suggestions": st.session_state.get('suggestions', {}),
             "selected_suggestions": st.session_state.get('selected_suggestions', []),
-            "identified_insurances": get_available_insurances(st.session_state.get('suggestions', {})),
-            "corrected_email_content": st.session_state.get('corrected_email_content', '')
+            "identified_insurances": identified_insurances,
+            "corrected_email_content": st.session_state.get('corrected_email_content', '')[:100] + "..."  # Truncated for brevity
         })
 
     st.markdown("</div>", unsafe_allow_html=True)

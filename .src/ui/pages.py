@@ -225,9 +225,24 @@ def render_recommendations_step():
         else:
             st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
 
+            # Initialize session state for selected recommendations if not exists
+            if 'selected_recommendations' not in st.session_state:
+                st.session_state.selected_recommendations = [False] * len(recommendations)
+
+            # Add "Select All" button
+            if st.button("Selecteer Alles"):
+                st.session_state.selected_recommendations = [True] * len(recommendations)
+                st.rerun()
+
             selected_recommendations = []
             for i, rec in enumerate(recommendations):
-                if st.checkbox(rec['title'], key=f"rec_checkbox_{i}"):
+                is_selected = st.checkbox(
+                    rec['title'], 
+                    key=f"rec_checkbox_{i}",
+                    value=st.session_state.selected_recommendations[i]
+                )
+                st.session_state.selected_recommendations[i] = is_selected
+                if is_selected:
                     selected_recommendations.append(rec)
 
                 with st.expander(f"Details voor {rec['title']}", expanded=False):

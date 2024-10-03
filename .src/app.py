@@ -1,11 +1,4 @@
-#app.py
-
 import streamlit as st
-from typing import Dict, Any
-import traceback
-import sys
-from pathlib import Path
-# Import from the .src folder directly
 from ui.pages import (
     render_input_step,
     render_analysis_step,
@@ -17,16 +10,12 @@ from ui.pages import (
 from utils.session_state import initialize_session_state, update_session_state, move_to_step, clear_analysis_results
 from ui.components import ImprovedUIStyled
 from ui.checklist import add_checklist_css
+
 import logging
 
-# Ensure logging is properly configured
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-
-# Rest of your app.py code remains the same
-
-# Set the page configuration at the beginning
 st.set_page_config(
     page_title="Klantuitvraagtool",
     page_icon="",
@@ -34,7 +23,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Define a color scheme
 COLOR_THEME = {
     "primary": "#1E40AF",
     "secondary": "#3B82F6",
@@ -43,8 +31,7 @@ COLOR_THEME = {
     "accent": "#10B981"
 }
 
-def load_config() -> Dict[str, Any]:
-    """Load and return the application configuration."""
+def load_config():
     return {
         "INPUT_METHODS": ["Voer tekst in of plak tekst", "Upload tekstbestand", "Upload audiobestand", "Neem audio op"],
     }
@@ -54,7 +41,6 @@ def on_previous_click():
 
 def on_next_click():
     if st.session_state.active_step == 1:
-        # Check if there's a valid transcript before proceeding
         if st.session_state.get('transcript', '').strip():
             move_to_step(st.session_state.active_step + 1)
         else:
@@ -63,7 +49,6 @@ def on_next_click():
         move_to_step(st.session_state.active_step + 1)
 
 def render_navigation():
-    """Display navigation buttons."""
     col1, col2, col3 = st.columns([1, 3, 1])
     
     with col1:
@@ -74,8 +59,7 @@ def render_navigation():
         if st.session_state.active_step < 4:
             st.button("Volgende ➡️", key="next_button", on_click=on_next_click, use_container_width=True)
 
-def render_progress_bar(active_step: int) -> None:
-    """Display the progress bar for the current step."""
+def render_progress_bar(active_step: int):
     steps = ["Gegevens invoeren", "Analyseren", "Aanbevelingen", "Klantrapport"]
     
     progress = (active_step - 1) / (len(steps) - 1)
@@ -91,15 +75,11 @@ def render_progress_bar(active_step: int) -> None:
             else:
                 st.markdown(f"<p style='color:var(--text-color);text-align:center;'>{i}. {step}</p>", unsafe_allow_html=True)
 
-def main() -> None:
-    add_checklist_css()
-    """Main function to run the Streamlit app."""
+def main():
     try:
-        # Initialize session state at the very beginning
         initialize_session_state()
-        
-        # Apply the improved UI styling
         ImprovedUIStyled()
+        add_checklist_css()
         
         st.markdown(f"""
         <h1 style='text-align: center; color: var(--secondary-color); margin-bottom: 2rem;'>
@@ -126,7 +106,6 @@ def main() -> None:
         elif st.session_state.active_step == 4:
             render_client_report_step()
 
-        
         render_navigation()
 
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -143,7 +122,7 @@ def main() -> None:
         st.error("Stacktrace:")
         st.code(traceback.format_exc())
         st.error("Vernieuw de pagina en probeer het opnieuw. Als het probleem aanhoudt, neem dan contact op met de ondersteuning.")
-        st.exception(e)
+        logger.exception("Unexpected error occurred")
 
 if __name__ == "__main__":
     main()

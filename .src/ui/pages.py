@@ -13,7 +13,6 @@ from openai import OpenAI
 from services.summarization_service import load_product_descriptions, analyze_transcript
 from services.email_generation import generate_email_wrapper
 from services.email_service import send_feedback_email
-
 from utils.text_processing import load_guidelines
 from utils.audio_processing import transcribe_audio, process_audio_input
 from utils.file_processing import process_uploaded_file
@@ -105,7 +104,7 @@ def render_input_step(config):
                     st.success("Audio succesvol verwerkt en getranscribeerd!")
 
     elif input_method == "Neem audio op":
-        col1, col2 = st.columns([2, 1])
+        col1, col2 = st.columns([3, 2])
         with col1:
             audio_file_path = process_audio_input(input_method)
             if audio_file_path:

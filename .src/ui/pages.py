@@ -250,10 +250,6 @@ def render_recommendations_step():
     st.markdown("</div>", unsafe_allow_html=True)
     
 
-
-
-from utils.text_processing import load_guidelines  # Add this import at the top of the file
-
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📄 Klantrapport")

@@ -1,6 +1,7 @@
 # pages.py
 import os
 import time
+import math
 import html
 import logging
 from typing import List, Dict, Any
@@ -233,12 +234,26 @@ def render_recommendations_step():
             if 'selected_recommendations' not in st.session_state:
                 st.session_state.selected_recommendations = [False] * len(recommendations)
 
+            # Initialize session state for detailed descriptions if not exists
+            if 'detailed_descriptions' not in st.session_state:
+                st.session_state.detailed_descriptions = {}
+
             # Add "Select All" button
             if st.button("Selecteer Alles"):
                 st.session_state.selected_recommendations = [True] * len(recommendations)
                 st.rerun()
 
             selected_recommendations = []
+            
+            # Estimate total generation time
+            total_recommendations = len(recommendations)
+            estimated_time_per_recommendation = 5  # seconds
+            total_estimated_time = total_recommendations * estimated_time_per_recommendation
+
+            progress_bar = st.progress(0)
+            time_remaining = st.empty()
+            percentage_complete = st.empty()
+
             for i, rec in enumerate(recommendations):
                 is_selected = st.checkbox(
                     rec['title'], 
@@ -251,7 +266,24 @@ def render_recommendations_step():
 
                 with st.expander(f"Details voor {rec['title']}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                    detailed_description = generate_detailed_description(rec, analysis_result)
+                    
+                    # Check if detailed description exists in session state
+                    if rec['title'] not in st.session_state.detailed_descriptions:
+                        with st.spinner(f"Genereren van gedetailleerde beschrijving voor '{rec['title']}'..."):
+                            start_time = time.time()
+                            detailed_description = generate_detailed_description(rec, analysis_result)
+                            st.session_state.detailed_descriptions[rec['title']] = detailed_description
+                            generation_time = time.time() - start_time
+
+                            # Update progress
+                            progress = (i + 1) / total_recommendations
+                            progress_bar.progress(progress)
+                            remaining_time = math.ceil((total_recommendations - (i + 1)) * generation_time)
+                            time_remaining.text(f"Geschatte resterende tijd: {remaining_time} seconden")
+                            percentage_complete.text(f"Voortgang: {progress*100:.1f}%")
+                    else:
+                        detailed_description = st.session_state.detailed_descriptions[rec['title']]
+
                     st.markdown(f'<p class="recommendation-content">{detailed_description}</p>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 

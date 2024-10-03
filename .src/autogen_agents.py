@@ -22,7 +22,7 @@ def get_insurance_info(insurance_type: str, product_descriptions: Dict[str, Any]
             for product, details in products.items():
                 if insurance_type.lower() in product.lower():
                     return details
-    return {}  
+    return {} 
 
 
 def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
@@ -82,7 +82,7 @@ def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
         logger.error(f"Error in identify_risks_and_questions: {str(e)}")
         return {"error": str(e)}
 
-def generate_detailed_explanation(insurance_type: str, client_info: str, product_descriptions: Dict[str, Any]) -> str:
+def generate_detailed_explanation(insurance_type: str, transcript: str, product_descriptions: Dict[str, Any]) -> str:
     insurance_info = get_insurance_info(insurance_type, product_descriptions)
     
     if not insurance_info:
@@ -98,7 +98,7 @@ def generate_detailed_explanation(insurance_type: str, client_info: str, product
 
     En de volgende informatie over de klant:
 
-    {client_info}
+    {transcript}
 
     Genereer een gedetailleerde uitleg over deze verzekering, specifiek toegespitst op de situatie van de klant. 
     Includeer:
@@ -334,10 +334,11 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> Di
     
     return instructions
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any]) -> Dict[str, str]:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str) -> Dict[str, str]:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
+        detailed_descriptions_dict = json.loads(detailed_descriptions)
         
         detailed_explanations = {}
         for insurance in identified_insurances:
@@ -363,6 +364,10 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         <detailed_explanations>
         {json.dumps(detailed_explanations, indent=2)}
         </detailed_explanations>
+
+        <detailed_descriptions>
+        {json.dumps(detailed_descriptions_dict, indent=2)}
+        </detailed_descriptions>
 
         2. Generate an email using the provided information. The email should be structured, personalized, and adhere to the following guidelines:
 
@@ -434,8 +439,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         logging.error(f"Error in generate_email: {str(e)}")
         raise
 
-
-def correction_AI(email_content: str, guidelines: str, product_descriptions: Dict[str, Any], load_insurance_specific_instructions: Dict[str, str], transcript: str) -> str:
+def correction_AI(email_content: str, guidelines: str, product_descriptions: Dict[str, Any], insurance_specific_instructions: Dict[str, str], transcript: str, detailed_descriptions: str) -> str:
     try:
         style_guide = """
         Style Guide and Example:
@@ -485,7 +489,12 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         {transcript}
         </transcript>
 
-        4. Your task is to correct and improve the email content based on the guidelines and the following specific instructions:
+        4. Take into account the detailed descriptions of recommendations:
+        <detailed_descriptions>
+        {detailed_descriptions}
+        </detailed_descriptions>
+
+        5. Your task is to correct and improve the email content based on the guidelines and the following specific instructions:
 
         a) Start with a professional introduction stating your name and role.
         b) Group insurances by type: business insurances first, then personal insurances.
@@ -502,30 +511,30 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         g) Provide more detailed explanations of potential risks for each insurance type.
         h) Format all placeholders in all caps with square brackets.
 
-        5. Use the following product descriptions to ensure each insurance product is well described:
+        6. Use the following product descriptions to ensure each insurance product is well described:
         <product_descriptions>
         {json.dumps(product_descriptions, indent=2, ensure_ascii=False)}
         </product_descriptions>
 
-        6. Refer to the insurance guidelines to avoid any violations:
+        7. Refer to the insurance-specific guidelines to avoid any violations:
         <insurance_guidelines>
-        {json.dumps(load_insurance_specific_instructions, indent=2, ensure_ascii=False)}
+        {json.dumps(insurance_specific_instructions, indent=2, ensure_ascii=False)}
         </insurance_guidelines>
 
-        7. Follow this style guide and example to maintain a consistent tone and structure:
+        8. Follow this style guide and example to maintain a consistent tone and structure:
         <style_guide>
         {style_guide}
         </style_guide>
 
-        8. Structure your corrected email as follows:
+        9. Structure your corrected email as follows:
         a) Professional introduction
         b) Business insurances
         c) Personal insurances
         d) Brief conclusion emphasizing availability for questions and discussion
 
-        9. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
+        10. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
 
-        10. After completing your corrected version, use this checklist for a final review:
+        11. After completing your corrected version, use this checklist for a final review:
            a) Is the opening professional and personalized?
            b) Are all insurance products adequately described using information from the product descriptions?
            c) Are the risks mentioned relevant and specific to the client's business and personal situation?
@@ -537,7 +546,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
            i) Are all technical terms explained and abbreviations avoided?
            j) Are all insurances mentioned in the transcript addressed in the email?
 
-        11. Present your corrected email within <corrected_email> tags.
+        12. Present your corrected email within <corrected_email> tags.
 
         Remember, your goal is to create a comprehensive, client-specific email that provides valuable information about each insurance type while maintaining a professional and caring tone, following the provided style guide and accurately reflecting the information from the transcript.
         """

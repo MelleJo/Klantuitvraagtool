@@ -3,6 +3,7 @@ import logging
 import json
 from typing import List, Dict, Any
 from autogen_agents import generate_email, correction_AI
+import streamlit as st
 
 def load_insurance_specific_instructions(identified_insurances: List[str]) -> str:
     """
@@ -85,7 +86,11 @@ def generate_email_wrapper(
             logging.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        email_content = generate_email(transcript, analysis_json, recommendations_json, identified_insurances, product_descriptions)
+        # Include detailed descriptions in the email generation process
+        detailed_descriptions = st.session_state.get('detailed_descriptions', {})
+        detailed_descriptions_json = json.dumps(detailed_descriptions, ensure_ascii=False)
+
+        email_content = generate_email(transcript, analysis_json, recommendations_json, identified_insurances, product_descriptions, detailed_descriptions_json)
 
         if not email_content['initial_email'] or not email_content['corrected_email']:
             logging.error("Email generation returned empty content.")
@@ -100,7 +105,8 @@ def generate_email_wrapper(
             guidelines,
             product_descriptions,
             insurance_specific_instructions,
-            transcript
+            transcript,
+            detailed_descriptions_json
         )
 
         email_content['corrected_email'] = corrected_email

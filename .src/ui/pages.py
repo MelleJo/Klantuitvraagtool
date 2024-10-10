@@ -243,7 +243,7 @@ def render_recommendations_step():
             # Add "Select All" button
             if st.button("Selecteer Alles"):
                 st.session_state.selected_recommendations = [True] * len(recommendations)
-                st.rerun()
+                st.experimental_rerun()
 
             selected_recommendations = []
             
@@ -265,7 +265,10 @@ def render_recommendations_step():
                             detailed_description = generate_detailed_explanation(rec['title'], st.session_state.get('transcript', ''), load_product_descriptions())
                             st.session_state.detailed_descriptions[rec['title']] = detailed_description
                     
-                    st.markdown(f'<p class="recommendation-content">{st.session_state.detailed_descriptions[rec["title"]]}</p>', unsafe_allow_html=True)
+                    if st.session_state.detailed_descriptions.get(rec['title']):
+                        st.markdown(f'<p class="recommendation-content">{st.session_state.detailed_descriptions[rec["title"]]}</p>', unsafe_allow_html=True)
+                    else:
+                        st.warning(f"Gedetailleerde beschrijving voor '{rec['title']}' is niet beschikbaar.")
                     
                     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -277,7 +280,7 @@ def render_recommendations_step():
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 
@@ -376,7 +379,7 @@ def render_client_report_step():
                     st.session_state['identified_insurances'] = identified_insurances
 
                     st.success("Klantrapport succesvol gegenereerd!")
-                    st.rerun()
+                    st.experimental_rerun()
 
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")
@@ -393,17 +396,6 @@ def render_client_report_step():
             file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
             mime="text/markdown"
         )
-
-    # Add debug info in an expander (optional)
-    with st.expander("Debug Info", expanded=False):
-        st.markdown("### 🐛 Debug Informatie")
-        st.json({
-            "transcript": st.session_state.get('transcript', '')[:100] + "...",  # Truncated for brevity
-            "suggestions": st.session_state.get('suggestions', {}),
-            "selected_suggestions": st.session_state.get('selected_suggestions', []),
-            "identified_insurances": identified_insurances,
-            "corrected_email_content": st.session_state.get('corrected_email_content', '')[:100] + "..."  # Truncated for brevity
-        })
 
     st.markdown("</div>", unsafe_allow_html=True)
 

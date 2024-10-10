@@ -64,12 +64,12 @@ def read_file(file_path: str) -> str:
 
 def generate_email_wrapper(
     transcript: str,
-    enhanced_coverage: List[Dict[str, str]],
-    selected_recommendations: List[Dict[str, Any]],
+    enhanced_coverage: str,
+    selected_recommendations: str,
     identified_insurances: List[str],
     guidelines: str,
     product_descriptions: Dict[str, Any]
-) -> Dict[str, str]:
+) -> Generator[str, None, None]:
     try:
         logging.info("Starting email generation wrapper")
 
@@ -93,7 +93,7 @@ def generate_email_wrapper(
         # Load insurance-specific instructions
         insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
 
-        email_content = generate_email(
+        for chunk in generate_email(
             transcript, 
             analysis_json, 
             recommendations_json, 
@@ -101,25 +101,8 @@ def generate_email_wrapper(
             product_descriptions, 
             detailed_descriptions_json,
             insurance_specific_instructions
-        )
-
-        if not email_content['initial_email'] or not email_content['corrected_email']:
-            logging.error("Email generation returned empty content.")
-            raise ValueError("Email generation did not return any content.")
-
-        # Apply correction AI with the loaded guidelines and transcript
-        corrected_email = correction_AI(
-            email_content['initial_email'],
-            guidelines,
-            product_descriptions,
-            insurance_specific_instructions,
-            transcript,
-            detailed_descriptions_json
-        )
-
-        email_content['corrected_email'] = corrected_email
-
-        return email_content
+        ):
+            yield chunk
 
     except Exception as e:
         logging.error(f"Error in generate_email_wrapper: {str(e)}", exc_info=True)

@@ -1,7 +1,7 @@
 # email_generation.py
 import logging
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Generator
 from autogen_agents import generate_email, correction_AI
 import streamlit as st
 

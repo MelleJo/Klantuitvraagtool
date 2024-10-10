@@ -1,5 +1,5 @@
 import autogen
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Generator
 import streamlit as st
 import logging
 import json
@@ -331,7 +331,7 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> Di
     
     return instructions
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str, insurance_specific_instructions: Dict[str, str]) -> Dict[str, str]:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str, insurance_specific_instructions: Dict[str, str]) -> Generator[str, None, None]:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)

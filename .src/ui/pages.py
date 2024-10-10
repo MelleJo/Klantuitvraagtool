@@ -226,7 +226,6 @@ def render_recommendations_step():
     else:
         analysis_result = st.session_state.get('suggestions', {})
         
-        # Combine advisor questions and AI risks as recommendations
         advisor_questions = analysis_result.get('advisor_questions', [])
         ai_risks = analysis_result.get('ai_risks', [])
         recommendations = [{"title": q, "description": q, "type": "advisor"} for q in advisor_questions] + [{"title": r, "description": r, "type": "ai"} for r in ai_risks]
@@ -236,14 +235,12 @@ def render_recommendations_step():
         else:
             st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
 
-            # Initialize session state for selected recommendations if not exists
             if 'selected_recommendations' not in st.session_state:
                 st.session_state.selected_recommendations = [False] * len(recommendations)
 
-            # Add "Select All" button
             if st.button("Selecteer Alles"):
                 st.session_state.selected_recommendations = [True] * len(recommendations)
-                st.rerun()
+                st.experimental_rerun()
 
             selected_recommendations = []
             
@@ -260,19 +257,27 @@ def render_recommendations_step():
                 with st.expander(f"Details voor {rec['title']}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
                     
-                    if rec['title'] not in st.session_state.detailed_descriptions:
+                    if rec['title'] not in st.session_state.get('detailed_descriptions', {}):
                         with st.spinner(f"Genereren van gedetailleerde beschrijving voor '{rec['title']}'..."):
-                            detailed_description = generate_detailed_explanation(rec['title'], st.session_state.get('transcript', ''), load_product_descriptions())
-                            st.session_state.detailed_descriptions[rec['title']] = detailed_description
-                    
-                    if st.session_state.detailed_descriptions.get(rec['title']):
-                        st.markdown(f'<p class="recommendation-content">{st.session_state.detailed_descriptions[rec["title"]]}</p>', unsafe_allow_html=True)
+                            try:
+                                detailed_description = generate_detailed_explanation(
+                                    rec['title'],
+                                    st.session_state.get('transcript', ''),
+                                    load_product_descriptions()
+                                )
+                                if 'detailed_descriptions' not in st.session_state:
+                                    st.session_state.detailed_descriptions = {}
+                                st.session_state.detailed_descriptions[rec['title']] = detailed_description
+                            except Exception as e:
+                                st.error(f"Error generating description: {str(e)}")
+                                detailed_description = "Er is een fout opgetreden bij het genereren van de beschrijving."
                     else:
-                        st.warning(f"Gedetailleerde beschrijving voor '{rec['title']}' is niet beschikbaar.")
+                        detailed_description = st.session_state.detailed_descriptions[rec['title']]
+                    
+                    st.markdown(f'<p class="recommendation-content">{detailed_description}</p>', unsafe_allow_html=True)
                     
                     st.markdown('</div>', unsafe_allow_html=True)
 
-            # Update session state with selected recommendations
             update_session_state('selected_suggestions', selected_recommendations)
             
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
@@ -280,7 +285,7 @@ def render_recommendations_step():
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 

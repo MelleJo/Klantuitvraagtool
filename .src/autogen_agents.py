@@ -81,45 +81,47 @@ def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
         logger.error(f"Error in identify_risks_and_questions: {str(e)}")
         return {"error": str(e)}
 
-def generate_detailed_explanation(insurance_type: str, transcript: str, product_descriptions: Dict[str, Any]) -> str:
-    insurance_info = get_insurance_info(insurance_type, product_descriptions)
-    
-    if not insurance_info:
-        return f"Geen gedetailleerde informatie beschikbaar voor {insurance_type}."
+def generate_detailed_explanation(recommendation: str, transcript: str, product_descriptions: Dict[str, Any]) -> str:
+    try:
+        prompt = f"""
+        Genereer een gedetailleerde beschrijving voor de volgende aanbeveling:
 
-    prompt = f"""
-    Gegeven de volgende informatie over {insurance_type}:
+        Aanbeveling: {recommendation}
 
-    Titel: {insurance_info.get('title', 'Niet gespecificeerd')}
-    Beschrijving: {insurance_info.get('description', 'Geen beschrijving beschikbaar')}
-    Belangrijke punten: {', '.join(insurance_info.get('key_points', ['Niet gespecificeerd']))}
-    Veelvoorkomende risico's: {', '.join(insurance_info.get('common_risks', ['Niet gespecificeerd']))}
+        Houd rekening met de volgende richtlijnen:
+        1. Geef een uitgebreide uitleg over waarom deze aanbeveling belangrijk is voor de klant.
+        2. Beschrijf welke verzekering(en) relevant zijn voor deze aanbeveling.
+        3. Leg uit wat de mogelijke gevolgen kunnen zijn als er geen actie wordt ondernomen.
+        4. Geef concrete voorbeelden die relevant zijn voor de situatie van de klant.
+        5. Vermijd het gebruik van technisch jargon en leg alles in duidelijke taal uit.
+        6. Gebruik geen afkortingen die onbekend zijn voor een verzekeringsleek.
+        7. Maak geen aannames over de huidige situatie van de klant.
+        8. Focus op het informeren van de klant over risico's en opties, niet op het pushen van producten.
 
-    En de volgende informatie over de klant:
+        Transcript van het gesprek met de klant:
+        {transcript}
 
-    {transcript}
+        Productbeschrijvingen:
+        {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
 
-    Genereer een gedetailleerde uitleg over deze verzekering, specifiek toegespitst op de situatie van de klant. 
-    Includeer:
-    1. Een korte introductie van de verzekering
-    2. Waarom deze verzekering belangrijk is voor deze specifieke klant
-    3. Twee tot drie op maat gemaakte voorbeelden die relevant zijn voor de klant's situatie. Deze voorbeelden MOETEN gebaseerd zijn op de informatie in de klant-transcript en NIET op de generieke voorbeelden.
-    4. Drie tot vier risico's of aandachtspunten specifiek voor deze klant, gebaseerd op de informatie in de transcript. Gebruik de "common_risks" alleen als inspiratie, niet als directe bron.
-    5. Een afsluitende zin of vraag om de klant aan te moedigen hier meer over na te denken
+        Geef een gedetailleerde beschrijving in het Nederlands, rekening houdend met bovenstaande richtlijnen.
+        """
 
-    Zorg dat de uitleg persoonlijk, informatief en overtuigend is, zonder pusherig over te komen. Gebruik ALLEEN informatie uit de klant-transcript voor specifieke details en voorbeelden.
-    """
+        response = client.chat.completions.create(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringsaanbevelingen."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=500
+        )
 
-    response = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
-        messages=[
-            {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringen, specifiek gebaseerd op de situatie van de klant."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2
-    )
+        return response.choices[0].message.content.strip()
 
-    return response.choices[0].message.content.strip()
+    except Exception as e:
+        logging.error(f"Error in generate_detailed_explanation: {str(e)}")
+        raise
 
 
 def load_product_descriptions():

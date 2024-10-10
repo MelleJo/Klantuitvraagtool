@@ -341,6 +341,20 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         for insurance in identified_insurances:
             detailed_explanations[insurance] = generate_detailed_explanation(insurance, transcript, product_descriptions, insurance_specific_instructions.get(insurance, ""))
 
+        M
+no, I mean in the code smartass
+
+
+I apologize for the misunderstanding. You're absolutely right, and I should have focused on the code. Let's address these issues in the code that generates the email content. Here are the suggested changes to the relevant functions in the autogen_agents.py file:
+
+Update the generate_email() function to include more specific checks and information:
+python
+
+Copy
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str, insurance_specific_instructions: Dict[str, str]) -> Dict[str, str]:
+    try:
+        # ... (existing code)
+
         prompt = f"""
         You are tasked with generating a comprehensive and personalized email based on insurance information provided. Follow these instructions carefully to create an effective and tailored communication:
 
@@ -386,25 +400,27 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         3. Crucial points to include:
 
         - Use dashes (-) instead of bullet points for all lists.
-        - For inventory and goods insurance (if selected), always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
-        - For liability insurance (AVB) (if selected), always discuss the "opzicht" clause and its relevance for both main and secondary activities.
-        - For business interruption insurance (if selected), always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
-        - For home insurance (if selected), always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
+        - For inventory and goods insurance, always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
+        - For liability insurance (AVB), always discuss the "opzicht" clause and its relevance for both main and secondary activities. Only mention coverage for items under temporary care if the "opzicht" clause is explicitly mentioned in the transcript.
+        - For business interruption insurance, always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
+        - For home insurance, always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
         - Avoid double questions - ask for information or changes only once per topic.
         - Provide specific examples of how each selected insurance type protects the client's business or personal assets.
         - Use "kan van belang zijn" instead of "cruciaal" when discussing importance.
 
-        4. Formatting and structure:
+        4. Additional important points:
+
+        - Mention all specific clauses noted in the transcript (e.g., fire extinguishers, outdoor storage, electrical installation).
+        - Address any potential need for insurance during furniture transport if mentioned in the transcript.
+        - Inquire about possible changes in staffing and mention potential need for employee-related insurances.
+        - Discuss cyber risks and the client's online presence if mentioned in the transcript.
+        - For personal insurances, provide specific advice or questions, especially regarding disability insurance if mentioned.
+
+        5. Formatting and structure:
 
         - Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
         - Ensure the email is comprehensive yet easy to read, with each selected insurance type clearly separated and explained.
         - Use action-oriented language, directing the client toward specific actions or decisions.
-
-        5. Insurance-specific instructions:
-
-        For each insurance type, strictly adhere to the following specific instructions:
-        
-        {json.dumps(insurance_specific_instructions, indent=2)}
 
         6. Final output:
 
@@ -417,8 +433,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            max_tokens=14000
+            temperature=0.2
         )
 
         initial_email_content = response.choices[0].message.content.strip()
@@ -541,8 +556,14 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
            h) Does the writing style match the provided style guide and example?
            i) Are all technical terms explained and abbreviations avoided?
            j) Are all insurances mentioned in the transcript addressed in the email?
+           k) Is the difference between inventory and goods clearly explained?
+           l) Are all specific clauses mentioned in the transcript (e.g., fire extinguishers, outdoor storage, electrical installation) addressed?
+           m) Is the "opzicht" clause for liability insurance correctly explained and only mentioned if explicitly stated in the transcript?
+           n) Are potential needs for transport insurance, staff-related insurances, and cyber risk coverage addressed if mentioned in the transcript?
+           o) Are personal insurance needs, especially disability insurance, adequately addressed?
 
-        12. Present your corrected email within <corrected_email> tags.
+
+         12. Present your corrected email within <corrected_email> tags.
 
         Remember, your goal is to create a comprehensive, client-specific email that provides valuable information about each insurance type while maintaining a professional and caring tone, following the provided style guide and accurately reflecting the information from the transcript.
         """
@@ -553,8 +574,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
                 {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails, ensuring they are personalized, relevant, and informative to each specific client."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0,
-            max_tokens=14000
+            temperature=0
         )
 
         corrected_email = response.choices[0].message.content.strip()

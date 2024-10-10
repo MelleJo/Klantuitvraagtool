@@ -292,7 +292,7 @@ def render_recommendations_step():
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
 
             if selected_recommendations:
-                if st.button("Genereer klantrapport"):
+                if st.button("Genereer e-mail"):
                     st.session_state.active_step = 4
                     st.rerun()
             else:
@@ -357,7 +357,7 @@ def render_client_report_step():
     identified_insurances = st.session_state.get('identified_insurances', [])
 
     if 'corrected_email_content' not in st.session_state:
-        if st.button("Genereer klantrapport"):
+        if st.button("Genereer e-mail"):
             with st.spinner("Rapport wordt gegenereerd..."):
                 try:
                     transcript = st.session_state.get('transcript', '')

@@ -34,7 +34,7 @@ from ui.components import (
     display_metric   
 )
 
-from autogen_agents import correction_AI
+from autogen_agents import correction_AI, generate_detailed_explanation
 
 @lru_cache(maxsize=100)
 def generate_cached_description(recommendation_title, transcript, product_descriptions_json):
@@ -350,7 +350,10 @@ def render_client_report_step():
     identified_insurances = st.session_state.get('identified_insurances', [])
 
     if 'corrected_email_content' not in st.session_state:
-        if st.button("Genereer e-mail"):
+        if st.button("Genereer klantrapport"):
+            email_placeholder = st.empty()
+            email_content = ""
+            
             with st.spinner("Rapport wordt gegenereerd..."):
                 try:
                     transcript = st.session_state.get('transcript', '')
@@ -368,20 +371,22 @@ def render_client_report_step():
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
 
-                    email_content = generate_email_wrapper(
+                    for chunk in generate_email_wrapper(
                         transcript=transcript,
-                        enhanced_coverage=enhanced_coverage,
-                        selected_recommendations=selected_suggestions,
+                        enhanced_coverage=json.dumps(enhanced_coverage),
+                        selected_recommendations=json.dumps(selected_suggestions),
                         identified_insurances=identified_insurances,
                         guidelines=guidelines,
                         product_descriptions=product_descriptions
-                    )
+                    ):
+                        email_content += chunk
+                        email_placeholder.markdown(email_content + "▌", unsafe_allow_html=True)
 
-                    st.session_state['corrected_email_content'] = email_content['corrected_email']
+                    st.session_state['corrected_email_content'] = email_content
                     st.session_state['identified_insurances'] = identified_insurances
 
-                    st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
-                    st.rerun()
+                    st.success("Klantrapport succesvol gegenereerd!")
+                    st.experimental_rerun()
 
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")

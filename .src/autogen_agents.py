@@ -413,24 +413,24 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Present your generated email within <email> tags. Ensure that the email adheres to all the guidelines, crucial points, and insurance-specific instructions mentioned above, while strictly focusing on the selected recommendations and identified insurances.
         """
 
-        response = client.chat.completions.create(
+        stream = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2
+            temperature=0.2,
+            stream=True
         )
 
-        initial_email_content = response.choices[0].message.content.strip()
-        
-        if not initial_email_content:
-            raise ValueError("Email generation returned empty content.")
+        full_response = ""
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                yield content
+                full_response += content
 
-        return {
-            "initial_email": initial_email_content,
-            "corrected_email": initial_email_content  # We'll correct this in the wrapper function
-        }
+        return {"initial_email": full_response, "corrected_email": full_response}
 
     except Exception as e:
         logging.error(f"Error in generate_email: {str(e)}")

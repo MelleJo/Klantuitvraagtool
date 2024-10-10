@@ -90,14 +90,22 @@ def generate_email_wrapper(
         detailed_descriptions = st.session_state.get('detailed_descriptions', {})
         detailed_descriptions_json = json.dumps(detailed_descriptions, ensure_ascii=False)
 
-        email_content = generate_email(transcript, analysis_json, recommendations_json, identified_insurances, product_descriptions, detailed_descriptions_json)
+        # Load insurance-specific instructions
+        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
+
+        email_content = generate_email(
+            transcript, 
+            analysis_json, 
+            recommendations_json, 
+            identified_insurances, 
+            product_descriptions, 
+            detailed_descriptions_json,
+            insurance_specific_instructions
+        )
 
         if not email_content['initial_email'] or not email_content['corrected_email']:
             logging.error("Email generation returned empty content.")
             raise ValueError("Email generation did not return any content.")
-
-        # Load insurance-specific instructions
-        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
 
         # Apply correction AI with the loaded guidelines and transcript
         corrected_email = correction_AI(

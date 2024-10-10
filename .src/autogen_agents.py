@@ -341,20 +341,6 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         for insurance in identified_insurances:
             detailed_explanations[insurance] = generate_detailed_explanation(insurance, transcript, product_descriptions, insurance_specific_instructions.get(insurance, ""))
 
-        M
-no, I mean in the code smartass
-
-
-I apologize for the misunderstanding. You're absolutely right, and I should have focused on the code. Let's address these issues in the code that generates the email content. Here are the suggested changes to the relevant functions in the autogen_agents.py file:
-
-Update the generate_email() function to include more specific checks and information:
-python
-
-Copy
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str, insurance_specific_instructions: Dict[str, str]) -> Dict[str, str]:
-    try:
-        # ... (existing code)
-
         prompt = f"""
         You are tasked with generating a comprehensive and personalized email based on insurance information provided. Follow these instructions carefully to create an effective and tailored communication:
 

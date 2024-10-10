@@ -243,7 +243,7 @@ def render_recommendations_step():
             # Add "Select All" button
             if st.button("Selecteer Alles"):
                 st.session_state.selected_recommendations = [True] * len(recommendations)
-                st.experimental_rerun()
+                st.rerun()
 
             selected_recommendations = []
             
@@ -280,7 +280,7 @@ def render_recommendations_step():
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 
@@ -379,7 +379,7 @@ def render_client_report_step():
                     st.session_state['identified_insurances'] = identified_insurances
 
                     st.success("Klantrapport succesvol gegenereerd!")
-                    st.experimental_rerun()
+                    st.rerun()
 
                 except Exception as e:
                     logger.error(f"Error in render_client_report_step: {str(e)}")

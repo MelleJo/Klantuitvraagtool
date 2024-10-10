@@ -1,5 +1,5 @@
 import autogen
-from typing import Dict, Any, List, Generator
+from typing import Dict, Any, List
 import streamlit as st
 import logging
 import json
@@ -81,51 +81,45 @@ def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
         logger.error(f"Error in identify_risks_and_questions: {str(e)}")
         return {"error": str(e)}
 
-def generate_detailed_explanation(recommendation: Dict[str, Any], transcript: str, product_descriptions: Dict[str, Any]) -> str:
-    try:
-        prompt = f"""
-        Genereer een gedetailleerde beschrijving voor de volgende aanbeveling:
+def generate_detailed_explanation(insurance_type: str, transcript: str, product_descriptions: Dict[str, Any]) -> str:
+    insurance_info = get_insurance_info(insurance_type, product_descriptions)
+    
+    if not insurance_info:
+        return f"Geen gedetailleerde informatie beschikbaar voor {insurance_type}."
 
-        Aanbeveling titel: {recommendation['title']}
-        Aanbeveling beschrijving: {recommendation['description']}
-        Type aanbeveling: {recommendation['type']}
+    prompt = f"""
+    Gegeven de volgende informatie over {insurance_type}:
 
-        Houd rekening met de volgende richtlijnen:
-        1. Gebruik de informatie uit de aanbeveling beschrijving als basis voor je uitleg.
-        2. Geef een uitgebreide uitleg over waarom deze aanbeveling belangrijk is voor de klant.
-        3. Beschrijf welke verzekering(en) relevant zijn voor deze aanbeveling.
-        4. Leg uit wat de mogelijke gevolgen kunnen zijn als er geen actie wordt ondernomen.
-        5. Geef concrete voorbeelden die relevant zijn voor de situatie van de klant, gebruik hiervoor de voorbeelden uit de aanbeveling indien aanwezig.
-        6. Vermijd het gebruik van technisch jargon en leg alles in duidelijke taal uit.
-        7. Gebruik geen afkortingen die onbekend zijn voor een verzekeringsleek.
-        8. Maak geen aannames over de huidige situatie van de klant.
-        9. Focus op het informeren van de klant over risico's en opties, niet op het pushen van producten.
-        10. Als de aanbeveling specifieke clausules of voorwaarden noemt, leg deze uit en benadruk het belang ervan.
+    Titel: {insurance_info.get('title', 'Niet gespecificeerd')}
+    Beschrijving: {insurance_info.get('description', 'Geen beschrijving beschikbaar')}
+    Belangrijke punten: {', '.join(insurance_info.get('key_points', ['Niet gespecificeerd']))}
+    Veelvoorkomende risico's: {', '.join(insurance_info.get('common_risks', ['Niet gespecificeerd']))}
 
-        Transcript van het gesprek met de klant:
-        {transcript}
+    En de volgende informatie over de klant:
 
-        Productbeschrijvingen:
-        {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
+    {transcript}
 
-        Geef een gedetailleerde beschrijving in het Nederlands, rekening houdend met bovenstaande richtlijnen en de specifieke inhoud van de aanbeveling.
-        """
+    Genereer een gedetailleerde uitleg over deze verzekering, specifiek toegespitst op de situatie van de klant. 
+    Includeer:
+    1. Een korte introductie van de verzekering
+    2. Waarom deze verzekering belangrijk is voor deze specifieke klant
+    3. Twee tot drie op maat gemaakte voorbeelden die relevant zijn voor de klant's situatie. Deze voorbeelden MOETEN gebaseerd zijn op de informatie in de klant-transcript en NIET op de generieke voorbeelden.
+    4. Drie tot vier risico's of aandachtspunten specifiek voor deze klant, gebaseerd op de informatie in de transcript. Gebruik de "common_risks" alleen als inspiratie, niet als directe bron.
+    5. Een afsluitende zin of vraag om de klant aan te moedigen hier meer over na te denken
 
-        response = client.chat.completions.create(
-            model="gpt-4o-2024-08-06",
-            messages=[
-                {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringsaanbevelingen."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2,
-            max_tokens=500
-        )
+    Zorg dat de uitleg persoonlijk, informatief en overtuigend is, zonder pusherig over te komen. Gebruik ALLEEN informatie uit de klant-transcript voor specifieke details en voorbeelden.
+    """
 
-        return response.choices[0].message.content.strip()
+    response = client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringen, specifiek gebaseerd op de situatie van de klant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2
+    )
 
-    except Exception as e:
-        logging.error(f"Error in generate_detailed_explanation: {str(e)}")
-        raise
+    return response.choices[0].message.content.strip()
 
 
 def load_product_descriptions():
@@ -337,7 +331,7 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> Di
     
     return instructions
 
-def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str, insurance_specific_instructions: Dict[str, str]) -> Generator[str, None, None]:
+def generate_email(transcript: str, enhanced_coverage: str, selected_recommendations: str, identified_insurances: List[str], product_descriptions: Dict[str, Any], detailed_descriptions: str, insurance_specific_instructions: Dict[str, str]) -> Dict[str, str]:
     try:
         enhanced_coverage_list = json.loads(enhanced_coverage)
         selected_recommendations_list = json.loads(selected_recommendations)
@@ -419,24 +413,24 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
         Present your generated email within <email> tags. Ensure that the email adheres to all the guidelines, crucial points, and insurance-specific instructions mentioned above, while strictly focusing on the selected recommendations and identified insurances.
         """
 
-        stream = client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            stream=True
+            temperature=0.2
         )
 
-        full_response = ""
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                content = chunk.choices[0].delta.content
-                yield content
-                full_response += content
+        initial_email_content = response.choices[0].message.content.strip()
+        
+        if not initial_email_content:
+            raise ValueError("Email generation returned empty content.")
 
-        return {"initial_email": full_response, "corrected_email": full_response}
+        return {
+            "initial_email": initial_email_content,
+            "corrected_email": initial_email_content  # We'll correct this in the wrapper function
+        }
 
     except Exception as e:
         logging.error(f"Error in generate_email: {str(e)}")

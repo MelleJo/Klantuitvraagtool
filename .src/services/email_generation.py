@@ -1,7 +1,7 @@
 # email_generation.py
 import logging
 import json
-from typing import List, Dict, Any, Generator
+from typing import List, Dict, Any
 from autogen_agents import generate_email, correction_AI
 import streamlit as st
 
@@ -64,12 +64,12 @@ def read_file(file_path: str) -> str:
 
 def generate_email_wrapper(
     transcript: str,
-    enhanced_coverage: str,
-    selected_recommendations: str,
+    enhanced_coverage: List[Dict[str, str]],
+    selected_recommendations: List[Dict[str, Any]],
     identified_insurances: List[str],
     guidelines: str,
     product_descriptions: Dict[str, Any]
-) -> Generator[str, None, None]:
+) -> Dict[str, str]:
     try:
         logging.info("Starting email generation wrapper")
 
@@ -93,7 +93,7 @@ def generate_email_wrapper(
         # Load insurance-specific instructions
         insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
 
-        for chunk in generate_email(
+        email_content = generate_email(
             transcript, 
             analysis_json, 
             recommendations_json, 
@@ -101,8 +101,25 @@ def generate_email_wrapper(
             product_descriptions, 
             detailed_descriptions_json,
             insurance_specific_instructions
-        ):
-            yield chunk
+        )
+
+        if not email_content['initial_email'] or not email_content['corrected_email']:
+            logging.error("Email generation returned empty content.")
+            raise ValueError("Email generation did not return any content.")
+
+        # Apply correction AI with the loaded guidelines and transcript
+        corrected_email = correction_AI(
+            email_content['initial_email'],
+            guidelines,
+            product_descriptions,
+            insurance_specific_instructions,
+            transcript,
+            detailed_descriptions_json
+        )
+
+        email_content['corrected_email'] = corrected_email
+
+        return email_content
 
     except Exception as e:
         logging.error(f"Error in generate_email_wrapper: {str(e)}", exc_info=True)

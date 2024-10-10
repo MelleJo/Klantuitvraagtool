@@ -20,7 +20,6 @@ def initialize_session_state() -> None:
         'transcription_complete': False,
         'active_step': 1,
         'last_input_hash': None,
-        'detailed_descriptions': {},
     }
     
     for key, default_value in default_values.items():

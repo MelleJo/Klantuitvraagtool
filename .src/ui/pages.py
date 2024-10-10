@@ -3,8 +3,6 @@ import os
 import time
 import math
 import html
-import concurrent.futures
-from functools import lru_cache
 import logging
 from typing import List, Dict, Any
 from ui.checklist import recording_checklist
@@ -34,12 +32,7 @@ from ui.components import (
     display_metric   
 )
 
-from autogen_agents import correction_AI, generate_detailed_explanation
-
-@lru_cache(maxsize=100)
-def generate_cached_description(recommendation_title, transcript, product_descriptions_json):
-    product_descriptions = json.loads(product_descriptions_json)
-    return generate_detailed_explanation(recommendation_title, transcript, product_descriptions)
+from autogen_agents import correction_AI
 
 # Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -226,6 +219,7 @@ def render_recommendations_step():
     else:
         analysis_result = st.session_state.get('suggestions', {})
         
+        # Combine advisor questions and AI risks as recommendations
         advisor_questions = analysis_result.get('advisor_questions', [])
         ai_risks = analysis_result.get('ai_risks', [])
         recommendations = [{"title": q, "description": q, "type": "advisor"} for q in advisor_questions] + [{"title": r, "description": r, "type": "ai"} for r in ai_risks]
@@ -235,15 +229,30 @@ def render_recommendations_step():
         else:
             st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
 
+            # Initialize session state for selected recommendations if not exists
             if 'selected_recommendations' not in st.session_state:
                 st.session_state.selected_recommendations = [False] * len(recommendations)
 
+            # Initialize session state for detailed descriptions if not exists
+            if 'detailed_descriptions' not in st.session_state:
+                st.session_state.detailed_descriptions = {}
+
+            # Add "Select All" button
             if st.button("Selecteer Alles"):
                 st.session_state.selected_recommendations = [True] * len(recommendations)
                 st.rerun()
 
             selected_recommendations = []
             
+            # Estimate total generation time
+            total_recommendations = len(recommendations)
+            estimated_time_per_recommendation = 5  # seconds
+            total_estimated_time = total_recommendations * estimated_time_per_recommendation
+
+            progress_bar = st.progress(0)
+            time_remaining = st.empty()
+            percentage_complete = st.empty()
+
             for i, rec in enumerate(recommendations):
                 is_selected = st.checkbox(
                     rec['title'], 
@@ -257,33 +266,33 @@ def render_recommendations_step():
                 with st.expander(f"Details voor {rec['title']}", expanded=False):
                     st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
                     
-                    if rec['title'] not in st.session_state.get('detailed_descriptions', {}):
+                    # Check if detailed description exists in session state
+                    if rec['title'] not in st.session_state.detailed_descriptions:
                         with st.spinner(f"Genereren van gedetailleerde beschrijving voor '{rec['title']}'..."):
-                            try:
-                                detailed_description = generate_detailed_explanation(
-                                    rec,  # Pass the entire recommendation dictionary
-                                    st.session_state.get('transcript', ''),
-                                    load_product_descriptions()
-                                )
-                                if 'detailed_descriptions' not in st.session_state:
-                                    st.session_state.detailed_descriptions = {}
-                                st.session_state.detailed_descriptions[rec['title']] = detailed_description
-                            except Exception as e:
-                                st.error(f"Error generating description: {str(e)}")
-                                detailed_description = "Er is een fout opgetreden bij het genereren van de beschrijving."
+                            start_time = time.time()
+                            detailed_description = generate_detailed_description(rec, analysis_result)
+                            st.session_state.detailed_descriptions[rec['title']] = detailed_description
+                            generation_time = time.time() - start_time
+
+                            # Update progress
+                            progress = (i + 1) / total_recommendations
+                            progress_bar.progress(progress)
+                            remaining_time = math.ceil((total_recommendations - (i + 1)) * generation_time)
+                            time_remaining.text(f"Geschatte resterende tijd: {remaining_time} seconden")
+                            percentage_complete.text(f"Voortgang: {progress*100:.1f}%")
                     else:
                         detailed_description = st.session_state.detailed_descriptions[rec['title']]
-                    
+
                     st.markdown(f'<p class="recommendation-content">{detailed_description}</p>', unsafe_allow_html=True)
-                    
                     st.markdown('</div>', unsafe_allow_html=True)
 
+            # Update session state with selected recommendations
             update_session_state('selected_suggestions', selected_recommendations)
             
             st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
 
             if selected_recommendations:
-                if st.button("Genereer klantrapport"):
+                if st.button("Genereer e-mail"):
                     st.session_state.active_step = 4
                     st.rerun()
             else:
@@ -348,10 +357,7 @@ def render_client_report_step():
     identified_insurances = st.session_state.get('identified_insurances', [])
 
     if 'corrected_email_content' not in st.session_state:
-        if st.button("Genereer klantrapport"):
-            email_placeholder = st.empty()
-            email_content = ""
-            
+        if st.button("Genereer e-mail"):
             with st.spinner("Rapport wordt gegenereerd..."):
                 try:
                     transcript = st.session_state.get('transcript', '')
@@ -369,21 +375,19 @@ def render_client_report_step():
                     current_coverage = suggestions.get('current_coverage', [])
                     enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
 
-                    for chunk in generate_email_wrapper(
+                    email_content = generate_email_wrapper(
                         transcript=transcript,
-                        enhanced_coverage=json.dumps(enhanced_coverage),
-                        selected_recommendations=json.dumps(selected_suggestions),
+                        enhanced_coverage=enhanced_coverage,
+                        selected_recommendations=selected_suggestions,
                         identified_insurances=identified_insurances,
                         guidelines=guidelines,
                         product_descriptions=product_descriptions
-                    ):
-                        email_content += chunk
-                        email_placeholder.markdown(email_content + "▌", unsafe_allow_html=True)
+                    )
 
-                    st.session_state['corrected_email_content'] = email_content
+                    st.session_state['corrected_email_content'] = email_content['corrected_email']
                     st.session_state['identified_insurances'] = identified_insurances
 
-                    st.success("Klantrapport succesvol gegenereerd!")
+                    st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
                     st.rerun()
 
                 except Exception as e:
@@ -401,6 +405,17 @@ def render_client_report_step():
             file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
             mime="text/markdown"
         )
+
+    # Add debug info in an expander (optional)
+    with st.expander("Debug Info", expanded=False):
+        st.markdown("### 🐛 Debug Informatie")
+        st.json({
+            "transcript": st.session_state.get('transcript', '')[:100] + "...",  # Truncated for brevity
+            "suggestions": st.session_state.get('suggestions', {}),
+            "selected_suggestions": st.session_state.get('selected_suggestions', []),
+            "identified_insurances": identified_insurances,
+            "corrected_email_content": st.session_state.get('corrected_email_content', '')[:100] + "..."  # Truncated for brevity
+        })
 
     st.markdown("</div>", unsafe_allow_html=True)
 

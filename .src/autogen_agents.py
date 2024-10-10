@@ -371,44 +371,15 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         2. Generate an email using the provided information. The email should be structured, personalized, and adhere to the following guidelines:
 
-        a) Begin with a personalized opening, addressing the client directly and introducing yourself as the advisor.
-
-        b) Organize the content into clear, well-labeled sections for each insurance type or recommendation, but only include information about the selected recommendations and identified insurances.
-
-        c) Use the detailed explanations to provide comprehensive information about each selected insurance type, including the description from product_descriptions.json.
-
-        d) Ensure that all examples and risks mentioned are specifically tailored to the client's situation as described in the transcript.
-
-        e) Focus solely on the identified insurance types and the selected recommendations. Do not include information about insurance types or recommendations that were not selected.
-
-        f) For each selected insurance type, provide a detailed explanation and clearly state the consequences of underinsurance or insufficient coverage.
-
-        g) Compare current and proposed insurers or coverage options when relevant, explaining the benefits of recommended changes.
-
-        h) Avoid using overly technical terms or jargon. If technical terms are necessary, include brief explanations.
-
-        i) Provide a summarized, easy-to-read breakdown of costs and benefits for each selected insurance type or recommendation.
-
-        j) End each section with a clear call to action, such as offering to provide more information or asking if the client wants to make changes.
-
-        k) Close the email on a polite, friendly note, offering support if needed and thanking the client for their time.
+        [Guidelines are listed here]
 
         3. Crucial points to include:
 
-        - Use dashes (-) instead of bullet points for all lists.
-        - For inventory and goods insurance (if selected), always explain the difference: "Inventaris omvat zaken zoals de inrichting van je bedrijf en machines, terwijl goederen betrekking hebben op handelswaren."
-        - For liability insurance (AVB) (if selected), always discuss the "opzicht" clause and its relevance for both main and secondary activities.
-        - For business interruption insurance (if selected), always explain why recovery times might be longer nowadays due to material shortages, staff shortages, and longer delivery times.
-        - For home insurance (if selected), always mention factors like solar panels, swimming pools, and renovations that can affect coverage.
-        - Avoid double questions - ask for information or changes only once per topic.
-        - Provide specific examples of how each selected insurance type protects the client's business or personal assets.
-        - Use "kan van belang zijn" instead of "cruciaal" when discussing importance.
+        [Crucial points are listed here]
 
         4. Formatting and structure:
 
-        - Format all placeholders in all caps with square brackets, e.g., [KLANTNAAM].
-        - Ensure the email is comprehensive yet easy to read, with each selected insurance type clearly separated and explained.
-        - Use action-oriented language, directing the client toward specific actions or decisions.
+        [Formatting instructions are listed here]
 
         5. Final output:
 
@@ -442,34 +413,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 def correction_AI(email_content: str, guidelines: str, product_descriptions: Dict[str, Any], insurance_specific_instructions: Dict[str, str], transcript: str, detailed_descriptions: str) -> str:
     try:
         style_guide = """
-        Style Guide and Example:
-        
-        1. Opening:
-        "Mijn naam is [UW NAAM], je verzekeringsadviseur bij Veldhuis Advies. Ik heb recent je verzekeringssituatie doorgenomen en wil graag enkele punten met je bespreken om ervoor te zorgen dat je dekking optimaal aansluit bij je huidige situatie."
-
-        2. For each insurance type:
-        a) Start with the comprehensive description from product_descriptions.json (not needed with the autoverzekering) -> make sure to couple the description with an example to the client's business and situation.
-        b) Describe the current situation based on the transcript.
-        c) Explain potential risks or changes that might affect the coverage.
-        d) Provide a clear, action-oriented suggestion within the paragraph. For example:
-        "Gezien de leeftijd van je boot, kan de dagwaarde aanzienlijk zijn. Wil je dat ik help bij het bepalen van de huidige waarde? Zo kunnen we samen beoordelen of de huidige dekking nog passend is."
-
-        3. When discussing risks:
-        "Het is belangrijk dat de verzekerde bedragen blijven aansluiten bij de werkelijke waarde. Mocht er een aanzienlijke verandering zijn, laat het ons dan weten. Zo voorkomen we dat je onderverzekerd bent, wat kan leiden tot onvolledige vergoeding bij schade."
-
-        4. For complex topics:
-        "Als ondernemer met personeel heb je te maken met specifieke risico's, zoals loondoorbetaling bij ziekte. Je huidige verzekering dekt 100% in het eerste jaar en 70% in het tweede jaar, na tien werkdagen. Wil je de details van deze dekking nog eens doornemen om te zien of deze nog optimaal aansluit bij je situatie?"
-
-        5. Closing:
-        "Ik hoop dat deze informatie je helpt om een goed beeld te krijgen van je huidige verzekeringssituatie en mogelijke aandachtspunten. Als je vragen hebt of wilt sparren over je verzekeringen, neem dan gerust contact met me op. Ik sta klaar om je te helpen en adviseren.
-
-        Je kunt me bereiken op 0578-699760.
-
-        Met vriendelijke groet,
-        [UW NAAM]
-        Veldhuis Advies"
-
-        Remember to maintain this style throughout the email, focusing on informing the client about risks and options rather than pushing products. Integrate action-oriented suggestions within paragraphs instead of separate items.
+        [Style guide content]
         """
 
         prompt = f"""You are tasked with reviewing and correcting an email based on specific guidelines, feedback, and a transcript of a conversation with the client. Your goal is to ensure the email adheres to all guidelines while providing comprehensive and client-specific information. Follow these instructions carefully:
@@ -496,20 +440,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
 
         5. Your task is to correct and improve the email content based on the guidelines and the following specific instructions:
 
-        a) Start with a professional introduction stating your name and role.
-        b) Group insurances by type: business insurances first, then personal insurances.
-        c) For each insurance type:
-           - Start with the comprehensive description from product_descriptions.json
-           - Provide a clear explanation of the current situation based on the transcript
-           - Include client-specific risks and examples
-           - Explain consequences of underinsurance or insufficient coverage
-           - Offer relevant additional information
-           - Include a clear, personalized call-to-action within the paragraph
-        d) Avoid abbreviations and explain any technical terms used.
-        e) Ensure all relevant details are included for each insurance type.
-        f) Increase personalization by referring specifically to the client's situation as described in the transcript.
-        g) Provide more detailed explanations of potential risks for each insurance type.
-        h) Format all placeholders in all caps with square brackets.
+        [Specific instructions are listed here]
 
         6. Use the following product descriptions to ensure each insurance product is well described:
         <product_descriptions>
@@ -526,25 +457,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
         {style_guide}
         </style_guide>
 
-        9. Structure your corrected email as follows:
-        a) Professional introduction
-        b) Business insurances
-        c) Personal insurances
-        d) Brief conclusion emphasizing availability for questions and discussion
-
-        10. Ensure the email is comprehensive yet easy to read, with each insurance type clearly separated and explained.
-
-        11. After completing your corrected version, use this checklist for a final review:
-           a) Is the opening professional and personalized?
-           b) Are all insurance products adequately described using information from the product descriptions?
-           c) Are the risks mentioned relevant and specific to the client's business and personal situation?
-           d) Are there clear, personalized call-to-actions within each paragraph?
-           e) Does the email focus on informing rather than pushing products?
-           f) Is the email well-structured and easy to read?
-           g) Does the conclusion emphasize availability for further discussion?
-           h) Does the writing style match the provided style guide and example?
-           i) Are all technical terms explained and abbreviations avoided?
-           j) Are all insurances mentioned in the transcript addressed in the email?
+        [Additional instructions are listed here]
 
         12. Present your corrected email within <corrected_email> tags.
 
@@ -558,7 +471,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
                 {"role": "user", "content": prompt}
             ],
             temperature=0,
-            max_tokens=14000
+            max_tokens=128000
         )
 
         corrected_email = response.choices[0].message.content.strip()

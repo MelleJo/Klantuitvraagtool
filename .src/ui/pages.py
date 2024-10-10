@@ -223,73 +223,63 @@ def render_recommendations_step():
 
     if 'suggestions' not in st.session_state or not st.session_state.get('suggestions'):
         st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
-        return
-
-    analysis_result = st.session_state.get('suggestions', {})
-    
-    # Combine advisor questions and AI risks as recommendations
-    advisor_questions = analysis_result.get('advisor_questions', [])
-    ai_risks = analysis_result.get('ai_risks', [])
-    recommendations = [{"title": q, "description": q, "type": "advisor"} for q in advisor_questions] + [{"title": r, "description": r, "type": "ai"} for r in ai_risks]
-    
-    if not recommendations:
-        st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
-        return
-
-    st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
-
-    # Initialize session state for selected recommendations if not exists
-    if 'selected_recommendations' not in st.session_state:
-        st.session_state.selected_recommendations = [False] * len(recommendations)
-
-    # Add "Select All" button
-    if st.button("Selecteer Alles"):
-        st.session_state.selected_recommendations = [True] * len(recommendations)
-        st.rerun()
-
-    selected_recommendations = []
-    
-    # Prepare data for parallel processing
-    transcript = st.session_state.get('transcript', '')
-    product_descriptions_json = json.dumps(load_product_descriptions())
-
-    # Use ThreadPoolExecutor for parallel processing
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_to_rec = {executor.submit(generate_cached_description, rec['title'], transcript, product_descriptions_json): rec for rec in recommendations}
-        
-        for i, (future, rec) in enumerate(future_to_rec.items()):
-            is_selected = st.checkbox(
-                rec['title'], 
-                key=f"rec_checkbox_{i}",
-                value=st.session_state.selected_recommendations[i]
-            )
-            st.session_state.selected_recommendations[i] = is_selected
-            if is_selected:
-                selected_recommendations.append(rec)
-
-            with st.expander(f"Details voor {rec['title']}", expanded=False):
-                st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
-                
-                try:
-                    detailed_description = future.result()
-                    st.session_state.detailed_descriptions[rec['title']] = detailed_description
-                    st.markdown(f'<p class="recommendation-content">{detailed_description}</p>', unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Error generating description for {rec['title']}: {str(e)}")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-
-    # Update session state with selected recommendations
-    update_session_state('selected_suggestions', selected_recommendations)
-    
-    st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
-
-    if selected_recommendations:
-        if st.button("Genereer klantrapport"):
-            st.session_state.active_step = 4
-            st.rerun()
     else:
-        st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
+        analysis_result = st.session_state.get('suggestions', {})
+        
+        # Combine advisor questions and AI risks as recommendations
+        advisor_questions = analysis_result.get('advisor_questions', [])
+        ai_risks = analysis_result.get('ai_risks', [])
+        recommendations = [{"title": q, "description": q, "type": "advisor"} for q in advisor_questions] + [{"title": r, "description": r, "type": "ai"} for r in ai_risks]
+        
+        if not recommendations:
+            st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
+        else:
+            st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
+
+            # Initialize session state for selected recommendations if not exists
+            if 'selected_recommendations' not in st.session_state:
+                st.session_state.selected_recommendations = [False] * len(recommendations)
+
+            # Add "Select All" button
+            if st.button("Selecteer Alles"):
+                st.session_state.selected_recommendations = [True] * len(recommendations)
+                st.experimental_rerun()
+
+            selected_recommendations = []
+            
+            for i, rec in enumerate(recommendations):
+                is_selected = st.checkbox(
+                    rec['title'], 
+                    key=f"rec_checkbox_{i}",
+                    value=st.session_state.selected_recommendations[i]
+                )
+                st.session_state.selected_recommendations[i] = is_selected
+                if is_selected:
+                    selected_recommendations.append(rec)
+
+                with st.expander(f"Details voor {rec['title']}", expanded=False):
+                    st.markdown('<div class="recommendation-card">', unsafe_allow_html=True)
+                    
+                    if rec['title'] not in st.session_state.detailed_descriptions:
+                        with st.spinner(f"Genereren van gedetailleerde beschrijving voor '{rec['title']}'..."):
+                            detailed_description = generate_detailed_explanation(rec['title'], st.session_state.get('transcript', ''), load_product_descriptions())
+                            st.session_state.detailed_descriptions[rec['title']] = detailed_description
+                    
+                    st.markdown(f'<p class="recommendation-content">{st.session_state.detailed_descriptions[rec["title"]]}</p>', unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+            # Update session state with selected recommendations
+            update_session_state('selected_suggestions', selected_recommendations)
+            
+            st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
+
+            if selected_recommendations:
+                if st.button("Genereer klantrapport"):
+                    st.session_state.active_step = 4
+                    st.experimental_rerun()
+            else:
+                st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 
     st.markdown("</div>", unsafe_allow_html=True)
     

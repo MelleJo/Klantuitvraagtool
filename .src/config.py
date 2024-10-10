@@ -27,4 +27,4 @@ PRODUCT_DESCRIPTIONS_FILE = os.path.join(PROJECT_ROOT, '.src', 'product_descript
 INSURANCE_ADVISOR_PROMPT_FILE = os.path.join(PROJECT_ROOT, 'prompts', 'insurance_advisor_prompt.txt')
 
 # Other configurations
-MAX_TOKENS = 10000
+#MAX_TOKENS = 10000

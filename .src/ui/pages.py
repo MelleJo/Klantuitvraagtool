@@ -72,8 +72,7 @@ def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
                 {"role": "system", "content": "You are an AI assistant that identifies relevant insurance types from an analysis."},
                 {"role": "user", "content": f"Given the following analysis result, identify the relevant insurance types from this list: {', '.join(available_files)}. Respond with only the relevant insurance types, separated by commas.\n\nAnalysis:\n{analysis_content}"}
             ],
-            temperature=0.2,
-            max_tokens=100
+            temperature=0.2
         )
         
         identified_insurances = [ins.strip() for ins in response.choices[0].message.content.split(',')]
@@ -341,8 +340,7 @@ def generate_detailed_description(recommendation, analysis_result):
             {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringsaanbevelingen."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.2,
-        max_tokens=500
+        temperature=0.2
     )
 
     return response.choices[0].message.content.strip()

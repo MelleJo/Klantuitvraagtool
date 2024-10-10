@@ -52,8 +52,7 @@ def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
                 {"role": "system", "content": "You are an AI assistant specializing in insurance risk analysis."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            max_tokens=1000
+            temperature=0.2
         )
 
         content = response.choices[0].message.content.strip()
@@ -117,8 +116,7 @@ def generate_detailed_explanation(insurance_type: str, transcript: str, product_
             {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringen, specifiek gebaseerd op de situatie van de klant."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.2,
-        max_tokens=800
+        temperature=0.2
     )
 
     return response.choices[0].message.content.strip()
@@ -295,8 +293,7 @@ def analyze_transcript(transcript: str) -> Dict[str, Any]:
                 {"role": "system", "content": "Je bent een AI-assistent gespecialiseerd in het analyseren van verzekeringstranscripten."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            max_tokens=1000
+            temperature=0.2
         )
 
         analysis = response.choices[0].message.content.strip()
@@ -392,8 +389,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            max_tokens=14000
+            temperature=0.2
         )
 
         initial_email_content = response.choices[0].message.content.strip()
@@ -470,8 +466,7 @@ def correction_AI(email_content: str, guidelines: str, product_descriptions: Dic
                 {"role": "system", "content": "You are an AI assistant that specializes in correcting and improving insurance advice emails, ensuring they are personalized, relevant, and informative to each specific client."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0,
-            max_tokens=128000
+            temperature=0
         )
 
         corrected_email = response.choices[0].message.content.strip()

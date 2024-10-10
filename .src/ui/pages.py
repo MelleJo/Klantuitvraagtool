@@ -240,7 +240,7 @@ def render_recommendations_step():
 
             if st.button("Selecteer Alles"):
                 st.session_state.selected_recommendations = [True] * len(recommendations)
-                st.experimental_rerun()
+                st.rerun()
 
             selected_recommendations = []
             
@@ -285,7 +285,7 @@ def render_recommendations_step():
             if selected_recommendations:
                 if st.button("Genereer klantrapport"):
                     st.session_state.active_step = 4
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 

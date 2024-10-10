@@ -81,22 +81,26 @@ def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
         logger.error(f"Error in identify_risks_and_questions: {str(e)}")
         return {"error": str(e)}
 
-def generate_detailed_explanation(recommendation: str, transcript: str, product_descriptions: Dict[str, Any]) -> str:
+def generate_detailed_explanation(recommendation: Dict[str, Any], transcript: str, product_descriptions: Dict[str, Any]) -> str:
     try:
         prompt = f"""
         Genereer een gedetailleerde beschrijving voor de volgende aanbeveling:
 
-        Aanbeveling: {recommendation}
+        Aanbeveling titel: {recommendation['title']}
+        Aanbeveling beschrijving: {recommendation['description']}
+        Type aanbeveling: {recommendation['type']}
 
         Houd rekening met de volgende richtlijnen:
-        1. Geef een uitgebreide uitleg over waarom deze aanbeveling belangrijk is voor de klant.
-        2. Beschrijf welke verzekering(en) relevant zijn voor deze aanbeveling.
-        3. Leg uit wat de mogelijke gevolgen kunnen zijn als er geen actie wordt ondernomen.
-        4. Geef concrete voorbeelden die relevant zijn voor de situatie van de klant.
-        5. Vermijd het gebruik van technisch jargon en leg alles in duidelijke taal uit.
-        6. Gebruik geen afkortingen die onbekend zijn voor een verzekeringsleek.
-        7. Maak geen aannames over de huidige situatie van de klant.
-        8. Focus op het informeren van de klant over risico's en opties, niet op het pushen van producten.
+        1. Gebruik de informatie uit de aanbeveling beschrijving als basis voor je uitleg.
+        2. Geef een uitgebreide uitleg over waarom deze aanbeveling belangrijk is voor de klant.
+        3. Beschrijf welke verzekering(en) relevant zijn voor deze aanbeveling.
+        4. Leg uit wat de mogelijke gevolgen kunnen zijn als er geen actie wordt ondernomen.
+        5. Geef concrete voorbeelden die relevant zijn voor de situatie van de klant, gebruik hiervoor de voorbeelden uit de aanbeveling indien aanwezig.
+        6. Vermijd het gebruik van technisch jargon en leg alles in duidelijke taal uit.
+        7. Gebruik geen afkortingen die onbekend zijn voor een verzekeringsleek.
+        8. Maak geen aannames over de huidige situatie van de klant.
+        9. Focus op het informeren van de klant over risico's en opties, niet op het pushen van producten.
+        10. Als de aanbeveling specifieke clausules of voorwaarden noemt, leg deze uit en benadruk het belang ervan.
 
         Transcript van het gesprek met de klant:
         {transcript}
@@ -104,7 +108,7 @@ def generate_detailed_explanation(recommendation: str, transcript: str, product_
         Productbeschrijvingen:
         {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
 
-        Geef een gedetailleerde beschrijving in het Nederlands, rekening houdend met bovenstaande richtlijnen.
+        Geef een gedetailleerde beschrijving in het Nederlands, rekening houdend met bovenstaande richtlijnen en de specifieke inhoud van de aanbeveling.
         """
 
         response = client.chat.completions.create(

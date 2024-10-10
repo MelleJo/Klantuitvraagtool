@@ -261,7 +261,7 @@ def render_recommendations_step():
                         with st.spinner(f"Genereren van gedetailleerde beschrijving voor '{rec['title']}'..."):
                             try:
                                 detailed_description = generate_detailed_explanation(
-                                    rec['title'],
+                                    rec,  # Pass the entire recommendation dictionary
                                     st.session_state.get('transcript', ''),
                                     load_product_descriptions()
                                 )

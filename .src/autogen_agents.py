@@ -343,7 +343,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
 
         prompt = f"""
         You are tasked with generating a comprehensive and personalized email based on insurance information provided. Follow these instructions carefully to create an effective and tailored communication:
-
+        Do not use bullet points. 
         1. Review the following information:
 
         <transcript>

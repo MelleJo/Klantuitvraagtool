@@ -111,7 +111,7 @@ def generate_detailed_explanation(insurance_type: str, transcript: str, product_
     """
 
     response = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringen, specifiek gebaseerd op de situatie van de klant."},
             {"role": "user", "content": prompt}

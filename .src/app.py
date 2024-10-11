@@ -63,7 +63,7 @@ def render_progress_bar(active_step: int):
     steps = ["Gegevens invoeren", "Analyseren", "Aanbevelingen", "Klantrapport"]
     
     progress = (active_step - 1) / (len(steps) - 1)
-    st.progress(progress, "Progress")
+    st.progress(progress, "Voortgang")
     
     cols = st.columns(len(steps))
     for i, step in enumerate(steps, 1):

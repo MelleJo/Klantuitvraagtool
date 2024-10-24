@@ -24,8 +24,8 @@ def get_insurance_info(insurance_type: str, product_descriptions: Dict[str, Any]
                     return details
     return {} 
 
-
 def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
+    try:
     try:
         prompt = f"""
         Analyze the following insurance advisor's transcript and identify:

@@ -4,9 +4,9 @@ import streamlit as st
 import logging
 import json
 import os
-import streamlit as st
 from openai import OpenAI
 from anthropic import Anthropic
+
 os.environ["AUTOGEN_USE_DOCKER"] = "0"
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
@@ -25,7 +25,6 @@ def get_insurance_info(insurance_type: str, product_descriptions: Dict[str, Any]
     return {} 
 
 def identify_risks_and_questions(transcript: str) -> Dict[str, List[str]]:
-    try:
     try:
         prompt = f"""
         Analyze the following insurance advisor's transcript and identify:
@@ -420,7 +419,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            streaming=true
+            streaming=True
         )
 
         initial_email_content = response.choices[0].message.content.strip()

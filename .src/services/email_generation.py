@@ -1,4 +1,3 @@
-# email_generation.py
 import logging
 import json
 from typing import List, Dict, Any
@@ -8,12 +7,6 @@ import streamlit as st
 def load_insurance_specific_instructions(identified_insurances: List[str]) -> str:
     """
     Load specific instructions for the identified insurances from guideline files.
-    
-    Args:
-    identified_insurances (List[str]): List of identified insurance types.
-    
-    Returns:
-    str: A string containing specific instructions for the identified insurances.
     """
     insurance_file_mapping = {
         "auto": "autoverzekering.txt",
@@ -47,20 +40,30 @@ def load_insurance_specific_instructions(identified_insurances: List[str]) -> st
         else:
             instructions += f"No specific guideline file found for {insurance} insurance.\n\n"
 
+    # Add the required closing message instruction
+    instructions += "\nIMPORTANT: Always end the email with a personalized version of this message:\n"
+    instructions += "'Wij nemen binnenkort contact met je op om dit te bespreken. Als je voor die tijd vragen hebt, "
+    instructions += "kun je natuurlijk altijd contact met me opnemen.\n\n"
+    instructions += "Met vriendelijke groet,\n[NAAM ADVISEUR]\nVeldhuis Advies\nTel: 0578-699760'\n"
+
     return instructions
 
 def read_file(file_path: str) -> str:
     """
     Read the contents of a file.
-    
-    Args:
-    file_path (str): Path to the file to be read.
-    
-    Returns:
-    str: Contents of the file.
     """
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
+
+def filter_recommendations_by_selection(
+    recommendations: List[Dict[str, Any]], 
+    selected_recommendations: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """
+    Filter recommendations to only include selected ones.
+    """
+    selected_titles = {rec['title'] for rec in selected_recommendations if rec.get('selected', False)}
+    return [rec for rec in recommendations if rec['title'] in selected_titles]
 
 def generate_email_wrapper(
     transcript: str,
@@ -73,38 +76,39 @@ def generate_email_wrapper(
     try:
         logging.info("Starting email generation wrapper")
         
-        # Filter recommendations to only use selected ones
-        selected_recommendations = [rec for rec in selected_recommendations if rec.get('selected', False)]
+        # Strictly filter recommendations to only use selected ones
+        selected_recommendations = [rec for rec in selected_recommendations if rec.get('selected', True)]
         
         # Convert coverage and recommendations to JSON strings
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations_json = json.dumps(selected_recommendations, ensure_ascii=False)
 
-        logging.debug(f"Transcript: {transcript}")
-        logging.debug(f"Analysis JSON: {analysis_json}")
-        logging.debug(f"Selected Recommendations JSON: {recommendations_json}")
-        logging.debug(f"Identified insurances: {identified_insurances}")
-
+        logging.debug(f"Number of selected recommendations: {len(selected_recommendations)}")
+        logging.debug(f"Selected recommendations: {recommendations_json}")
+        
         if not transcript or not analysis_json or not recommendations_json:
             logging.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Include detailed descriptions for selected recommendations only
+        # Filter detailed descriptions to only include selected recommendations
         detailed_descriptions = st.session_state.get('detailed_descriptions', {})
         filtered_descriptions = {
             title: desc for title, desc in detailed_descriptions.items()
-            if any(rec['title'] == title and rec['selected'] for rec in selected_recommendations)
+            if any(rec['title'] == title and rec.get('selected', False) for rec in selected_recommendations)
         }
         detailed_descriptions_json = json.dumps(filtered_descriptions, ensure_ascii=False)
 
-        # Load insurance-specific instructions for selected insurances only
+        # Filter identified insurances based on selected recommendations
         filtered_insurances = [
             ins for ins in identified_insurances
-            if any(rec['title'].lower() in ins.lower() and rec['selected'] 
+            if any(rec['title'].lower() in ins.lower() and rec.get('selected', False) 
                   for rec in selected_recommendations)
         ]
+        
+        # Load insurance-specific instructions for filtered insurances
         insurance_specific_instructions = load_insurance_specific_instructions(filtered_insurances)
 
+        # Generate initial email
         email_content = generate_email(
             transcript, 
             analysis_json, 
@@ -115,7 +119,7 @@ def generate_email_wrapper(
             insurance_specific_instructions
         )
 
-        if not email_content['initial_email'] or not email_content['corrected_email']:
+        if not email_content.get('initial_email') or not email_content.get('corrected_email'):
             logging.error("Email generation returned empty content.")
             raise ValueError("Email generation did not return any content.")
 
@@ -128,6 +132,13 @@ def generate_email_wrapper(
             transcript,
             detailed_descriptions_json
         )
+
+        # Ensure the closing message is present
+        if "Wij nemen binnenkort contact met je op" not in corrected_email:
+            closing_message = ("\n\nWij nemen binnenkort contact met je op om dit te bespreken. "
+                             "Als je voor die tijd vragen hebt, kun je natuurlijk altijd contact met me opnemen.\n\n"
+                             "Met vriendelijke groet,\n[NAAM ADVISEUR]\nVeldhuis Advies\nTel: 0578-699760")
+            corrected_email += closing_message
 
         email_content['corrected_email'] = corrected_email
 

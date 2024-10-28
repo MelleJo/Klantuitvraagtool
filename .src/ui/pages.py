@@ -227,7 +227,7 @@ def render_recommendations_step():
         if not recommendations:
             st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
         else:
-            st.write("Selecteer de aanbevelingen die u wilt opnemen in het klantrapport:")
+            st.write("Hier worden één voor één de verschillende aanbevelingen gegeneerd, even gedul...")
 
             # Initialize session state for selected recommendations if not exists
             if 'selected_recommendations' not in st.session_state:

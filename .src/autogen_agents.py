@@ -418,8 +418,7 @@ def generate_email(transcript: str, enhanced_coverage: str, selected_recommendat
                 {"role": "system", "content": "You are an experienced insurance advisor at Veldhuis Advies, creating personalized and detailed advice based on specific client information."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
-            streaming=True
+            temperature=0.2
         )
 
         initial_email_content = response.choices[0].message.content.strip()

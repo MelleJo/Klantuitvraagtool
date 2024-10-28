@@ -72,32 +72,44 @@ def generate_email_wrapper(
 ) -> Dict[str, str]:
     try:
         logging.info("Starting email generation wrapper")
-
+        
+        # Filter recommendations to only use selected ones
+        selected_recommendations = [rec for rec in selected_recommendations if rec.get('selected', False)]
+        
         # Convert coverage and recommendations to JSON strings
         analysis_json = json.dumps(enhanced_coverage, ensure_ascii=False)
         recommendations_json = json.dumps(selected_recommendations, ensure_ascii=False)
 
         logging.debug(f"Transcript: {transcript}")
         logging.debug(f"Analysis JSON: {analysis_json}")
-        logging.debug(f"Recommendations JSON: {recommendations_json}")
+        logging.debug(f"Selected Recommendations JSON: {recommendations_json}")
         logging.debug(f"Identified insurances: {identified_insurances}")
 
         if not transcript or not analysis_json or not recommendations_json:
             logging.error("One or more inputs are empty, skipping email generation.")
             raise ValueError("Input data missing or incomplete")
 
-        # Include detailed descriptions in the email generation process
+        # Include detailed descriptions for selected recommendations only
         detailed_descriptions = st.session_state.get('detailed_descriptions', {})
-        detailed_descriptions_json = json.dumps(detailed_descriptions, ensure_ascii=False)
+        filtered_descriptions = {
+            title: desc for title, desc in detailed_descriptions.items()
+            if any(rec['title'] == title and rec['selected'] for rec in selected_recommendations)
+        }
+        detailed_descriptions_json = json.dumps(filtered_descriptions, ensure_ascii=False)
 
-        # Load insurance-specific instructions
-        insurance_specific_instructions = load_insurance_specific_instructions(identified_insurances)
+        # Load insurance-specific instructions for selected insurances only
+        filtered_insurances = [
+            ins for ins in identified_insurances
+            if any(rec['title'].lower() in ins.lower() and rec['selected'] 
+                  for rec in selected_recommendations)
+        ]
+        insurance_specific_instructions = load_insurance_specific_instructions(filtered_insurances)
 
         email_content = generate_email(
             transcript, 
             analysis_json, 
             recommendations_json, 
-            identified_insurances, 
+            filtered_insurances, 
             product_descriptions, 
             detailed_descriptions_json,
             insurance_specific_instructions

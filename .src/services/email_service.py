@@ -1,41 +1,90 @@
 import streamlit as st
 import smtplib
+import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 
-def send_feedback_email(transcript, klantuitvraag, feedback, additional_feedback, user_first_name=""):
+# Configure logging
+logger = logging.getLogger(__name__)
+
+def send_feedback_email(
+    transcript: str,
+    klantuitvraag: str,
+    feedback: str,
+    additional_feedback: str,
+    user_first_name: str
+) -> bool:
+    """
+    Sends feedback email with improved error handling and logging.
+    
+    Args:
+        transcript (str): The conversation transcript
+        klantuitvraag (str): The generated client inquiry
+        feedback (str): Type of feedback (Positive/Negative)
+        additional_feedback (str): Additional feedback comments
+        user_first_name (str): User's first name
+        
+    Returns:
+        bool: True if email sent successfully, False otherwise
+    """
     try:
-        email_secrets = st.secrets["email"]
-        user_email = email_secrets.get("receiving_email")
-        if not user_email:
-            st.error("Email receiving address is not configured properly.")
-            return False
-        
+        # Get email configuration from secrets
+        email_secrets = st.secrets.get("email", {})
+        receiving_email = email_secrets.get("receiving_email")
+        smtp_server = email_secrets.get("smtp_server")
+        smtp_port = email_secrets.get("smtp_port")
+        username = email_secrets.get("username")
+        password = email_secrets.get("password")
+
+        # Validate email configuration
+        if not all([receiving_email, smtp_server, smtp_port, username, password]):
+            logger.error("Incomplete email configuration in secrets")
+            raise ValueError("Email configuration is incomplete")
+
+        # Create message
         msg = MIMEMultipart()
-        msg['From'] = email_secrets["username"]
-        msg['To'] = user_email
-        msg['Subject'] = "New Feedback Submission - Klantuitvraagtool"
+        msg['From'] = username
+        msg['To'] = receiving_email
+        msg['Subject'] = f"Klantuitvraagtool Feedback - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
         
+        # Create email body
         body = f"""
-        Transcript: {transcript}
+        Nieuwe feedback ontvangen van {user_first_name}
+
+        Feedback Type: {feedback}
+        Tijdstip: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         
-        Klantuitvraag: {klantuitvraag}
+        Aanvullende Feedback:
+        {additional_feedback if additional_feedback else 'Geen aanvullende feedback gegeven'}
         
-        Feedback: {feedback}
+        Transcript:
+        {transcript if transcript else 'Geen transcript beschikbaar'}
         
-        User First Name: {user_first_name if user_first_name else "Not provided"}
-        
-        Additional Feedback: {additional_feedback}
+        Gegenereerde Klantuitvraag:
+        {klantuitvraag if klantuitvraag else 'Geen klantuitvraag beschikbaar'}
         """
+        
         msg.attach(MIMEText(body, 'plain'))
         
-        server = smtplib.SMTP(email_secrets["smtp_server"], int(email_secrets["smtp_port"]))
-        server.starttls()
-        server.login(email_secrets["username"], email_secrets["password"])
-        text = msg.as_string()
-        server.sendmail(email_secrets["username"], user_email, text)
-        server.quit()
+        # Connect to SMTP server and send email
+        with smtplib.SMTP(smtp_server, int(smtp_port)) as server:
+            server.starttls()
+            server.login(username, password)
+            server.send_message(msg)
+            
+        logger.info(f"Feedback email sent successfully from {user_first_name}")
         return True
+
+    except ValueError as ve:
+        logger.error(f"Configuration error: {str(ve)}")
+        return False
+    except smtplib.SMTPAuthenticationError:
+        logger.error("SMTP authentication failed")
+        return False
+    except smtplib.SMTPException as e:
+        logger.error(f"SMTP error occurred: {str(e)}")
+        return False
     except Exception as e:
-        st.error(f"An error occurred while sending feedback: {str(e)}")
+        logger.error(f"Unexpected error in send_feedback_email: {str(e)}")
         return False

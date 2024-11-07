@@ -293,55 +293,64 @@ def render_client_report_step():
     # Initialize identified_insurances
     identified_insurances = st.session_state.get('identified_insurances', [])
 
+    # Add prominent button at the top
+    if st.button("📧 Genereer Klantrapport", key="generate_report_button", use_container_width=True):
+        with st.spinner("Rapport wordt gegenereerd..."):
+            try:
+                transcript = st.session_state.get('transcript', '')
+                suggestions = st.session_state.get('suggestions', {})
+                selected_suggestions = st.session_state.get('selected_suggestions', [])
+                
+                # Filter identified insurances based on selected suggestions
+                all_insurances = get_available_insurances(suggestions)
+                selected_titles = [suggestion['title'] for suggestion in selected_suggestions]
+                identified_insurances = [
+                    insurance for insurance in all_insurances 
+                    if any(title.lower() in insurance.lower() for title in selected_titles)
+                ]
+
+                current_coverage = suggestions.get('current_coverage', [])
+                enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
+
+                email_content = generate_email_wrapper(
+                    transcript=transcript,
+                    enhanced_coverage=enhanced_coverage,
+                    selected_recommendations=selected_suggestions,
+                    identified_insurances=identified_insurances,
+                    guidelines=guidelines,
+                    product_descriptions=product_descriptions
+                )
+
+                st.session_state['corrected_email_content'] = email_content['corrected_email']
+                st.session_state['identified_insurances'] = identified_insurances
+
+                st.success("Klantrapport succesvol gegenereerd!")
+                st.rerun()
+
+            except Exception as e:
+                logger.error(f"Error in render_client_report_step: {str(e)}")
+                st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
+                return
+
+    # Show instructions if no report is generated yet
     if 'corrected_email_content' not in st.session_state:
-        if st.button("Genereer e-mail"):
-            with st.spinner("Rapport wordt gegenereerd..."):
-                try:
-                    transcript = st.session_state.get('transcript', '')
-                    suggestions = st.session_state.get('suggestions', {})
-                    selected_suggestions = st.session_state.get('selected_suggestions', [])
-                    
-                    # Filter identified insurances based on selected suggestions
-                    all_insurances = get_available_insurances(suggestions)
-                    selected_titles = [suggestion['title'] for suggestion in selected_suggestions]
-                    identified_insurances = [
-                        insurance for insurance in all_insurances 
-                        if any(title.lower() in insurance.lower() for title in selected_titles)
-                    ]
+        st.info("Klik op de knop hierboven om het klantrapport te genereren.")
+        return
 
-                    current_coverage = suggestions.get('current_coverage', [])
-                    enhanced_coverage = [{"title": item, "coverage": item} for item in current_coverage]
-
-                    email_content = generate_email_wrapper(
-                        transcript=transcript,
-                        enhanced_coverage=enhanced_coverage,
-                        selected_recommendations=selected_suggestions,
-                        identified_insurances=identified_insurances,
-                        guidelines=guidelines,
-                        product_descriptions=product_descriptions
-                    )
-
-                    st.session_state['corrected_email_content'] = email_content['corrected_email']
-                    st.session_state['identified_insurances'] = identified_insurances
-
-                    st.success("Klantrapport succesvol gegenereerd en gecorrigeerd!")
-                    st.rerun()
-
-                except Exception as e:
-                    logger.error(f"Error in render_client_report_step: {str(e)}")
-                    st.error(f"Er is een fout opgetreden bij het genereren van het rapport: {str(e)}")
-                    st.stop()
-
+    # Display the generated report
     if st.session_state.get('corrected_email_content'):
-        st.markdown("### 📝 Gecorrigeerde rapportinhoud")
+        st.markdown("### 📝 Gegenereerde rapportinhoud")
         st.markdown(st.session_state.get('corrected_email_content', ''), unsafe_allow_html=True)
 
-        st.download_button(
-            label="Download gecorrigeerd rapport",
-            data=st.session_state.get('corrected_email_content', ''),
-            file_name="Gecorrigeerd_VerzekeringRapport_Klant.md",
-            mime="text/markdown"
-        )
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            st.download_button(
+                label="⬇️ Download Rapport",
+                data=st.session_state.get('corrected_email_content', ''),
+                file_name="Klantrapport.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
 
     # Add debug info in an expander (optional)
     with st.expander("Debug Info", expanded=False):

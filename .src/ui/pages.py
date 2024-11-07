@@ -424,66 +424,51 @@ def render_conversation_history():
 
 def render_feedback_form():
     """
-    Renders a feedback form with improved state management and validation.
+    Renders a feedback form that collects and processes user feedback
     """
-    st.subheader("📝 Feedback")
-    
-    # Initialize feedback form session state if not exists
-    if 'feedback_submitted' not in st.session_state:
-        st.session_state.feedback_submitted = False
-    
-    with st.form(key="feedback_form", clear_on_submit=True):
-        # Get user information
-        user_first_name = st.text_input(
-            "Uw voornaam",
-            help="Vereist voor het verwerken van uw feedback"
-        )
-        
-        # Get feedback type
-        feedback_type = st.radio(
-            "Was deze klantuitvraag nuttig?",
-            options=["Positief", "Negatief"],
-            index=0,
-            horizontal=True
-        )
-        
-        # Get detailed feedback
-        additional_feedback = st.text_area(
-            "Aanvullende feedback",
-            help="Optioneel: Deel uw specifieke opmerkingen of suggesties"
-        )
-        
-        # Submit button
-        submitted = st.form_submit_button("Verzend feedback")
-        
-        if submitted:
-            if not user_first_name:
-                st.error("⚠️ Voornaam is verplicht bij het geven van feedback.")
-            else:
-                try:
-                    # Get current transcript and analysis from session state
-                    transcript = st.session_state.get('transcript', '')
-                    klantuitvraag = st.session_state.get('email_content', '')
+    with st.expander("💬 Feedback", expanded=False):
+        with st.form(key="feedback_form"):
+            user_first_name = st.text_input(
+                "Uw voornaam",
+                key="feedback_name",
+                help="Vereist voor het verwerken van uw feedback"
+            )
+            
+            feedback_type = st.radio(
+                "Was deze klantuitvraag nuttig?",
+                ["Positief", "Negatief"],
+                key="feedback_type",
+                horizontal=True
+            )
+            
+            additional_feedback = st.text_area(
+                "Aanvullende feedback",
+                key="additional_feedback",
+                help="Optioneel: Deel uw specifieke opmerkingen of suggesties"
+            )
+            
+            submit_button = st.form_submit_button(label="Verzend feedback")
+            
+            if submit_button:
+                if not user_first_name:
+                    st.error("⚠️ Voornaam is verplicht bij het geven van feedback.")
+                else:
+                    try:
+                        success = send_feedback_email(
+                            transcript=st.session_state.get('transcript', ''),
+                            klantuitvraag=st.session_state.get('email_content', ''),
+                            feedback=feedback_type,
+                            additional_feedback=additional_feedback,
+                            user_first_name=user_first_name
+                        )
+                        
+                        if success:
+                            st.session_state['feedback_submitted'] = True
+                            st.success("✅ Bedankt voor uw feedback! We waarderen uw input.")
+                            st.balloons()
+                        else:
+                            st.error("❌ Er is een fout opgetreden bij het verzenden van de feedback. Probeer het later opnieuw.")
                     
-                    success = send_feedback_email(
-                        transcript=transcript,
-                        klantuitvraag=klantuitvraag,
-                        feedback=feedback_type,
-                        additional_feedback=additional_feedback,
-                        user_first_name=user_first_name
-                    )
-                    
-                    if success:
-                        st.session_state.feedback_submitted = True
-                        st.success("✅ Bedankt voor uw feedback! We waarderen uw input.")
-                        st.balloons()
-                    else:
-                        st.error("❌ Er is een fout opgetreden bij het verzenden van de feedback. Probeer het later opnieuw.")
-                
-                except Exception as e:
-                    st.error(f"❌ Er is een onverwachte fout opgetreden: {str(e)}")
-                    logger.error(f"Error in feedback form: {str(e)}")
-    
-    # Show success message outside the form if feedback was submitted
-    if st.session_state.feedback_submitted:
-        st.info("💡 U kunt op elk moment nieuwe feedback indienen als u nog meer opmerkingen heeft.")
+                    except Exception as e:
+                        st.error(f"❌ Er is een onverwachte fout opgetreden: {str(e)}")
+                        logging.error(f"Error in feedback form: {str(e)}")

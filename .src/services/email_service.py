@@ -5,7 +5,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
 def send_feedback_email(
@@ -16,7 +15,7 @@ def send_feedback_email(
     user_first_name: str
 ) -> bool:
     """
-    Sends feedback email with improved error handling and logging.
+    Sends a feedback email with the provided content.
     
     Args:
         transcript (str): The conversation transcript
@@ -24,61 +23,64 @@ def send_feedback_email(
         feedback (str): Type of feedback (Positive/Negative)
         additional_feedback (str): Additional feedback comments
         user_first_name (str): User's first name
-        
+    
     Returns:
-        bool: True if email sent successfully, False otherwise
+        bool: True if email was sent successfully, False otherwise
     """
     try:
+        # Validate required parameters
+        if not user_first_name:
+            logger.error("User first name is required")
+            return False
+
         # Get email configuration from secrets
-        email_secrets = st.secrets.get("email", {})
-        receiving_email = email_secrets.get("receiving_email")
-        smtp_server = email_secrets.get("smtp_server")
-        smtp_port = email_secrets.get("smtp_port")
-        username = email_secrets.get("username")
-        password = email_secrets.get("password")
+        email_config = st.secrets.get("email", {})
+        receiving_email = email_config.get("receiving_email")
+        smtp_server = email_config.get("smtp_server")
+        smtp_port = email_config.get("smtp_port")
+        username = email_config.get("username")
+        password = email_config.get("password")
 
         # Validate email configuration
         if not all([receiving_email, smtp_server, smtp_port, username, password]):
-            logger.error("Incomplete email configuration in secrets")
-            raise ValueError("Email configuration is incomplete")
+            logger.error("Incomplete email configuration")
+            return False
 
-        # Create message
+        # Create email message
         msg = MIMEMultipart()
         msg['From'] = username
         msg['To'] = receiving_email
         msg['Subject'] = f"Klantuitvraagtool Feedback - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        
-        # Create email body
-        body = f"""
-        Nieuwe feedback ontvangen van {user_first_name}
 
+        # Format email body
+        body = f"""
+        Nieuwe feedback ontvangen
+
+        Gebruiker: {user_first_name}
         Feedback Type: {feedback}
         Tijdstip: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-        
+
         Aanvullende Feedback:
         {additional_feedback if additional_feedback else 'Geen aanvullende feedback gegeven'}
-        
+
         Transcript:
         {transcript if transcript else 'Geen transcript beschikbaar'}
-        
+
         Gegenereerde Klantuitvraag:
         {klantuitvraag if klantuitvraag else 'Geen klantuitvraag beschikbaar'}
         """
-        
+
         msg.attach(MIMEText(body, 'plain'))
-        
-        # Connect to SMTP server and send email
+
+        # Send email
         with smtplib.SMTP(smtp_server, int(smtp_port)) as server:
             server.starttls()
             server.login(username, password)
             server.send_message(msg)
-            
-        logger.info(f"Feedback email sent successfully from {user_first_name}")
+
+        logger.info(f"Feedback email sent successfully for user {user_first_name}")
         return True
 
-    except ValueError as ve:
-        logger.error(f"Configuration error: {str(ve)}")
-        return False
     except smtplib.SMTPAuthenticationError:
         logger.error("SMTP authentication failed")
         return False

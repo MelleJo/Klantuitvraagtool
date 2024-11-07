@@ -28,6 +28,7 @@ def initialize_session_state() -> None:
         
         # Navigation state
         'active_step': 1,
+        'state': {},  # Added missing state initialization
         
         # Conversation history
         'gesprekslog': [],

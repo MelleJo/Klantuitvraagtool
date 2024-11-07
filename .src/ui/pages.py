@@ -83,8 +83,6 @@ def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
         st.error(f"Er is een fout opgetreden bij het ophalen van de beschikbare verzekeringen: {str(e)}")
         return []
 
-
-
 def render_input_step(config):
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("📝 Gegevens invoeren")
@@ -144,7 +142,6 @@ def render_input_step(config):
         st.text_area("", value=st.session_state.get('transcript', ''), height=200, key="transcript_display", disabled=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 def render_analysis_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
@@ -407,7 +404,6 @@ def render_client_report_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 def render_conversation_history():
     st.subheader("Laatste vijf gesprekken")
     gesprekslog = st.session_state.get('gesprekslog', [])
@@ -420,7 +416,6 @@ def render_conversation_history():
                 st.markdown(f'<div class="content">{html.escape(gesprek.get("transcript", ""))}</div>', unsafe_allow_html=True)
                 st.markdown("**Gegenereerde e-mail:**")
                 st.markdown(f'<div class="content">{gesprek.get("klantuitvraag", "")}</div>', unsafe_allow_html=True)
-    
 
 def render_feedback_form():
     """

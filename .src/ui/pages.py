@@ -45,22 +45,18 @@ def get_available_insurances(analysis_result: Dict[str, Any]) -> List[str]:
     try:
         # Get the absolute path to the current file
         current_file_path = os.path.abspath(__file__)
-        st.write(f"Current file path: {current_file_path}")
         
         # Navigate to the project root (assuming 'pages.py' is in 'src/ui/')
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
-        st.write(f"Project root: {project_root}")
         
         # Construct the path to the insurance_guidelines directory
         guidelines_dir = os.path.join(project_root, '.src', 'insurance_guidelines')
-        st.write(f"Guidelines directory: {guidelines_dir}")
         
         if not os.path.exists(guidelines_dir):
             st.error(f"The directory {guidelines_dir} does not exist.")
             raise FileNotFoundError(f"The directory {guidelines_dir} does not exist.")
         
         available_files = [f.split('.')[0] for f in os.listdir(guidelines_dir) if f.endswith('.txt')]
-        st.write(f"Available insurance types: {available_files}")
         
         # Prepare the analysis content
         analysis_content = json.dumps(analysis_result, ensure_ascii=False)
@@ -150,15 +146,46 @@ def render_analysis_step():
     if not st.session_state.get('analysis_complete', False):
         with st.spinner("Transcript wordt geanalyseerd..."):
             try:
-                analysis_result = analyze_transcript(st.session_state.get('transcript', ''))
+                transcript = st.session_state.get('transcript', '')
+                if not transcript:
+                    st.error("Geen transcript gevonden om te analyseren.")
+                    return
+                
+                analysis_result = analyze_transcript(transcript)
                 if "error" in analysis_result:
                     raise Exception(analysis_result["error"])
+                
+                # Initialize recommendations list
+                recommendations = []
+                
+                # Add advisor questions to recommendations
+                for q in analysis_result.get('advisor_questions', []):
+                    recommendations.append({
+                        "title": q,
+                        "description": q,
+                        "type": "advisor",
+                        "selected": False
+                    })
+                
+                # Add AI risks to recommendations
+                for r in analysis_result.get('ai_risks', []):
+                    recommendations.append({
+                        "title": r,
+                        "description": r,
+                        "type": "ai",
+                        "selected": False
+                    })
+                
+                # Update session state
                 update_session_state('suggestions', analysis_result)
+                update_session_state('recommendations', recommendations)
                 update_session_state('analysis_complete', True)
+                
                 st.success("Analyse succesvol afgerond!")
             except Exception as e:
                 st.error(f"Er is een fout opgetreden tijdens de analyse: {str(e)}")
-                st.stop()
+                logger.error(f"Analysis error: {str(e)}")
+                return
 
     if st.session_state.get('analysis_complete', False):
         col1, col2, col3 = st.columns(3)
@@ -204,131 +231,56 @@ def render_analysis_step():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-def on_generate_client_report():
-    move_to_step(4)
-
 def render_recommendations_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)
     st.subheader("💡 Aanbevelingen")
 
-    if 'suggestions' not in st.session_state or not st.session_state.get('suggestions'):
-        st.warning("Geen aanbevelingen beschikbaar. Voer eerst de analysestap uit.")
+    # Check if analysis is complete and recommendations exist
+    if not st.session_state.get('analysis_complete', False):
+        st.warning("Voer eerst de analysestap uit voordat u aanbevelingen kunt bekijken.")
         return
 
-    analysis_result = st.session_state.get('suggestions', {})
-    
-    # Combine advisor questions and AI risks as recommendations
-    advisor_questions = analysis_result.get('advisor_questions', [])
-    ai_risks = analysis_result.get('ai_risks', [])
-    
-    recommendations = []
-    for q in advisor_questions:
-        recommendations.append({
-            "title": q,
-            "description": q,
-            "type": "advisor",
-            "selected": False  # Add selected flag
-        })
-    for r in ai_risks:
-        recommendations.append({
-            "title": r,
-            "description": r,
-            "type": "ai",
-            "selected": False  # Add selected flag
-        })
-
+    recommendations = st.session_state.get('recommendations', [])
     if not recommendations:
-        st.warning("Er zijn geen aanbevelingen gegenereerd in de analysestap.")
+        st.warning("Er zijn geen aanbevelingen beschikbaar. Ga terug naar de analysestap.")
         return
 
     st.write("Selecteer de aanbevelingen die u wilt opnemen in het rapport:")
 
-    # Initialize session state for recommendations if not exists
-    if 'recommendations' not in st.session_state:
-        st.session_state.recommendations = recommendations
-
     # Add "Select All" button
     if st.button("Selecteer Alles"):
-        for rec in st.session_state.recommendations:
+        for rec in recommendations:
             rec['selected'] = True
+        update_session_state('recommendations', recommendations)
         st.rerun()
 
     # Create checkboxes for each recommendation
     updated_recommendations = []
-    for i, rec in enumerate(st.session_state.recommendations):
+    for i, rec in enumerate(recommendations):
         is_selected = st.checkbox(
             rec['title'],
             key=f"rec_checkbox_{i}",
             value=rec.get('selected', False)
         )
-        
-        # Update the recommendation with the new selected state
         rec['selected'] = is_selected
         updated_recommendations.append(rec)
 
     # Update session state with the updated recommendations
-    st.session_state.recommendations = updated_recommendations
+    update_session_state('recommendations', updated_recommendations)
 
     # Filter selected recommendations
-    selected_recommendations = [rec for rec in st.session_state.recommendations if rec['selected']]
-    
-    # Update selected suggestions in session state
-    st.session_state.selected_suggestions = selected_recommendations
+    selected_recommendations = [rec for rec in updated_recommendations if rec['selected']]
+    update_session_state('selected_suggestions', selected_recommendations)
 
     if selected_recommendations:
         st.success(f"{len(selected_recommendations)} aanbevelingen geselecteerd.")
         if st.button("Genereer e-mail"):
-            st.session_state.active_step = 4
+            move_to_step(4)
             st.rerun()
     else:
         st.info("Selecteer ten minste één aanbeveling om een klantrapport te genereren.")
 
     st.markdown("</div>", unsafe_allow_html=True)
-    
-def generate_detailed_description(recommendation, analysis_result):
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    
-    # Load product descriptions
-    product_descriptions = load_product_descriptions()
-    
-    prompt = f"""
-    Genereer een gedetailleerde beschrijving voor de volgende aanbeveling:
-
-    Aanbeveling: {recommendation['title']}
-    Type: {"Adviseur vraag" if recommendation['type'] == 'advisor' else 'AI-geïdentificeerd risico'}
-
-    Houd rekening met de volgende richtlijnen:
-    1. Geef een uitgebreide uitleg over waarom deze aanbeveling belangrijk is voor de klant.
-    2. Beschrijf welke verzekering(en) relevant zijn voor deze aanbeveling.
-    3. Leg uit wat de mogelijke gevolgen kunnen zijn als er geen actie wordt ondernomen.
-    4. Geef concrete voorbeelden die relevant zijn voor de situatie van de klant.
-    5. Vermijd het gebruik van technisch jargon en leg alles in duidelijke taal uit.
-    6. Gebruik geen afkortingen die onbekend zijn voor een verzekeringsleek.
-    7. Maak geen aannames over de huidige situatie van de klant.
-    8. Focus op het informeren van de klant over risico's en opties, niet op het pushen van producten.
-    9. Indien van toepassing, leg het verschil uit tussen inventaris (inrichting, machines) en goederen (handelswaren).
-    10. Voor aansprakelijkheidsverzekeringen, bespreek altijd de 'opzicht' clausule en de relevantie ervan.
-    11. Bij bedrijfsschadeverzekeringen, leg uit waarom hersteltijden tegenwoordig langer kunnen zijn.
-
-    Huidige analyse van de klant:
-    {json.dumps(analysis_result, ensure_ascii=False, indent=2)}
-
-    Productbeschrijvingen:
-    {json.dumps(product_descriptions, ensure_ascii=False, indent=2)}
-
-    Geef een gedetailleerde beschrijving in het Nederlands, rekening houdend met bovenstaande richtlijnen.
-    """
-
-    response = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
-        messages=[
-            {"role": "system", "content": "Je bent een ervaren verzekeringsadviseur die gedetailleerde, op maat gemaakte uitleg geeft over verzekeringsaanbevelingen."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2
-    )
-
-    return response.choices[0].message.content.strip()
 
 def render_client_report_step():
     st.markdown("<div class='step-container'>", unsafe_allow_html=True)

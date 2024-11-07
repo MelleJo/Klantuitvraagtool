@@ -1,6 +1,7 @@
 import streamlit as st
-from typing import Dict, Any, List
+from typing import Dict, Any
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -9,10 +10,9 @@ def initialize_session_state() -> None:
     Initialize all required session state variables with default values.
     """
     default_values = {
-        # Input and processing states
+        # Input processing states
         'transcript': '',
         'edited_transcript': '',
-        'input_text': '',
         'input_processed': False,
         'transcription_complete': False,
         
@@ -25,22 +25,28 @@ def initialize_session_state() -> None:
         # Output states
         'email_content': '',
         'corrected_email_content': '',
-        'detailed_descriptions': {},
-        'identified_insurances': [],
         
-        # Navigation and UI states
+        # Navigation state
         'active_step': 1,
-        'feedback_submitted': False,
         
-        # History tracking
+        # Conversation history
         'gesprekslog': [],
         
-        # Recommendations state
-        'recommendations': [],
+        # Feedback state
+        'feedback_submitted': False,
         
-        # Product information
-        'product_info': '',
-        'selected_products': []
+        # Recommendations
+        'recommendations': [],
+        'selected_recommendations': [],
+        
+        # Insurance details
+        'identified_insurances': [],
+        'detailed_descriptions': {},
+        
+        # Form input states
+        'feedback_name_input': '',
+        'feedback_type_input': 'Positief',
+        'feedback_additional_input': '',
     }
     
     # Initialize each state variable if it doesn't exist
@@ -48,15 +54,6 @@ def initialize_session_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = default_value
             logger.debug(f"Initialized session state: {key}")
-
-def get_session_state() -> Dict[str, Any]:
-    """
-    Get the current session state as a dictionary.
-    
-    Returns:
-        Dict[str, Any]: Current session state
-    """
-    return dict(st.session_state)
 
 def update_session_state(key: str, value: Any) -> None:
     """
@@ -67,7 +64,16 @@ def update_session_state(key: str, value: Any) -> None:
         value (Any): The new value
     """
     st.session_state[key] = value
-    logger.debug(f"Updated session state: {key}")
+    logger.debug(f"Updated session state: {key} = {value}")
+
+def get_session_state() -> Dict[str, Any]:
+    """
+    Get the current session state as a dictionary.
+    
+    Returns:
+        Dict[str, Any]: Current session state
+    """
+    return dict(st.session_state)
 
 def reset_session_state() -> None:
     """
@@ -88,7 +94,7 @@ def add_to_conversation_history(transcript: str, klantuitvraag: str) -> None:
     """
     if 'gesprekslog' not in st.session_state:
         st.session_state.gesprekslog = []
-    
+        
     st.session_state.gesprekslog.append({
         'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'transcript': transcript,
@@ -99,36 +105,6 @@ def add_to_conversation_history(transcript: str, klantuitvraag: str) -> None:
     st.session_state.gesprekslog = st.session_state.gesprekslog[-5:]
     logger.debug("Conversation history updated")
 
-def get_conversation_history() -> List[Dict[str, str]]:
-    """
-    Get the conversation history.
-    
-    Returns:
-        List[Dict[str, str]]: List of conversation records
-    """
-    return st.session_state.get('gesprekslog', [])
-
-def clear_step_data(step: int) -> None:
-    """
-    Clear data associated with a specific step.
-    
-    Args:
-        step (int): The step number to clear
-    """
-    if step == 1:
-        st.session_state.transcript = ''
-        st.session_state.input_processed = False
-        st.session_state.transcription_complete = False
-    elif step == 2:
-        st.session_state.suggestions = {}
-        st.session_state.analysis_complete = False
-    elif step == 3:
-        st.session_state.selected_suggestions = []
-    elif step == 4:
-        st.session_state.email_content = ''
-    
-    logger.debug(f"Cleared data for step {step}")
-
 def move_to_step(step: int) -> None:
     """
     Move to a different step in the application flow.
@@ -136,19 +112,27 @@ def move_to_step(step: int) -> None:
     Args:
         step (int): The step number to move to
     """
-    current_step = st.session_state.active_step
-    if step != current_step:
+    if 1 <= step <= 4:  # Ensure step is within valid range
         st.session_state.active_step = step
-        for i in range(step + 1, 5):
-            clear_step_data(i)
         logger.info(f"Moved to step {step}")
+    else:
+        logger.warning(f"Attempted to move to invalid step {step}")
 
 def clear_analysis_results() -> None:
     """
-    Clear all analysis-related results.
+    Clear all analysis-related results from session state.
     """
-    st.session_state.suggestions = {}
-    st.session_state.selected_suggestions = []
-    st.session_state.email_content = ''
-    st.session_state.analysis_complete = False
+    analysis_keys = [
+        'suggestions',
+        'selected_suggestions',
+        'email_content',
+        'analysis_complete',
+        'detailed_descriptions',
+        'identified_insurances'
+    ]
+    
+    for key in analysis_keys:
+        if key in st.session_state:
+            st.session_state[key] = None if key == 'analysis_complete' else {}
+    
     logger.debug("Analysis results cleared")

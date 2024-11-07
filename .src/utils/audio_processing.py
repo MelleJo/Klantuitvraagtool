@@ -7,6 +7,7 @@ from openai import OpenAI
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
 import simplejson as json
+import json
 import uuid
 
 logging.basicConfig(level=logging.DEBUG)
